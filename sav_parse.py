@@ -670,8 +670,8 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "GP_Project_Assembly_Phase_3": "Phase 3: Main Body",
    "GP_Project_Assembly_Phase_4": "Phase 4: Propulsion Systems",
    "GP_Project_Assembly_Phase_5": "Phase 5: Assembly",
-   "GP_Project_Assembly_Phase_6": "Phase 6: ???",
-   "GP_Project_Assembly_Phase_7": "Phase 7: ???",
+   "GP_Project_Assembly_Phase_6": "Phase 6: Completing",
+   "GP_Project_Assembly_Phase_7": "Phase 7: Completed",
 
    # Vehicles
    "BP_StartingPod_C": "Starting Pod",
