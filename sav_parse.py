@@ -1690,10 +1690,7 @@ POWER_LINE = "/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Buil
 CRASH_SITE = "/Game/FactoryGame/World/Benefit/DropPod/BP_DropPod.BP_DropPod_C"
 
 SOMERSLOOP = "/Game/FactoryGame/Prototype/WAT/BP_WAT1.BP_WAT1_C"
-SOMERSLOOP_TOTAL_COUNT = 106
-
 MERCER_SPHERE = "/Game/FactoryGame/Prototype/WAT/BP_WAT2.BP_WAT2_C" # with "/Game/FactoryGame/Prototype/WAT/BP_MercerShrine.BP_MercerShrine_C"
-MERCER_SPHERE_TOTAL_COUNT = 297
 
 # 89 hard drives (alternate recipes & inflated pocket dimention)
 UNLOCK_PATHS__HARD_DRIVES = (
@@ -3486,16 +3483,18 @@ def readSaveFileInfo(filename):
    return saveFileInfo
 
 if __name__ == '__main__':
-   if len(sys.argv) <= 1 and os.path.isdir(".config/Epic/FactoryGame/Saved/SaveGames/server"):
+
+   if (len(sys.argv) <= 1 or len(sys.argv[1]) == 0) and os.path.isdir(".config/Epic/FactoryGame/Saved/SaveGames/server"):
       allSaveFiles = glob.glob(".config/Epic/FactoryGame/Saved/SaveGames/server/*.sav")
       savFilename = max(allSaveFiles, key=os.path.getmtime)
-      sys.argv.append(savFilename)
-
-   if len(sys.argv) <= 1:
+   elif (len(sys.argv) <= 1 or len(sys.argv[1]) == 0) and "LOCALAPPDATA" in os.environ and os.path.isdir(f"{os.environ['LOCALAPPDATA']}/FactoryGame/Saved/SaveGames"):
+      allSaveFiles = glob.glob(f"{os.environ['LOCALAPPDATA']}/FactoryGame/Saved/SaveGames/*/*.sav")
+      savFilename = max(allSaveFiles, key=os.path.getmtime)
+   elif len(sys.argv) <= 1:
       print("ERROR: Please supply save file path/name to perform parsing.", file=sys.stderr)
       exit(1)
-
-   savFilename = sys.argv[1]
+   else:
+      savFilename = sys.argv[1]
 
    if len(sys.argv) >= 3:
       outBase = sys.argv[2]
@@ -3505,6 +3504,8 @@ if __name__ == '__main__':
       outBase = savFilename
    dumpOutputFilename = outBase + "-dump.txt"
    slugOutputFilename = outBase + "-slugs.txt"
+   somersloopOutputFilename = outBase + "-somersloop.txt"
+   mercerSphereOutputFilename = outBase + "-mercerSphere.txt"
    decompressedOutputFilename = outBase + "-decompressed.txt"
 
    if not os.path.isfile(savFilename):
@@ -3546,21 +3547,43 @@ if __name__ == '__main__':
             for collectable in collectables2:
                dumpOut.write(f"    Collectable4: {collectable}\n")
 
+         with open(somersloopOutputFilename, "w") as somersloopOut:
+            somersloopOut.write("# Exported from Satisfactory \n")
+            somersloopOut.write("SOMERSLOOPS = {\n")
+            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+                  if isinstance(actorOrComponentObjectHeader, ActorHeader):
+                     if actorOrComponentObjectHeader.typePath == SOMERSLOOP:
+                        # scale=(1.600000023841858, 1.600000023841858, 1.600000023841858)
+                        somersloopOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}),\n')
+            somersloopOut.write("}\n")
+
+         with open(mercerSphereOutputFilename, "w") as mercerSphereOut:
+            mercerSphereOut.write("# Exported from Satisfactory \n")
+            mercerSphereOut.write("MERCER_SPHERES = {\n")
+            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+                  if isinstance(actorOrComponentObjectHeader, ActorHeader):
+                     if actorOrComponentObjectHeader.typePath == MERCER_SPHERE:
+                        # scale=(2.700000047683716, 2.6999998092651367, 2.6999998092651367)
+                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}),\n')
+            mercerSphereOut.write("}\n")
+
          with open(slugOutputFilename, "w") as slugOut:
 
             numSlug = [0, 0, 0]
             for slugIdx in range(3):
                slugOut.write(f"POWER_SLUGS_{('BLUE', 'YELLOW', 'PURPLE')[slugIdx]} = " + "{\n")
-               for level in levels:
-                  for actorOrComponentObjectHeader in level[1]:
+               for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+                  for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
                      if isinstance(actorOrComponentObjectHeader, ActorHeader) and actorOrComponentObjectHeader.typePath == POWER_SLUG[slugIdx]:
                         slugOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": {actorOrComponentObjectHeader.position},\n')
                         numSlug[slugIdx] += 1
                slugOut.write("}\n")
             slugOut.write(f"# Num slugs: {numSlug}")
 
-            for level in levels:
-               for collectable in level[2]:
+            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+               for collectable in collectables1:
                   if collectable.pathName.startswith("Persistent_Level:PersistentLevel.BP_Crystal"):
                      slugOut.write(f"COLLECTED: {collectable.pathName}\n")
 

@@ -19,7 +19,9 @@ import os
 import glob
 import sys
 import sav_parse
-import sav_slug_lib
+import sav_data_slug
+import sav_data_somersloop
+import sav_data_mercerSphere
 import json
 
 try:
@@ -102,7 +104,7 @@ def getStackSize(itemName, itemCount):
 
 if __name__ == '__main__':
 
-   if len(sys.argv) <= 1:
+   if len(sys.argv) <= 1 or len(sys.argv[1]) == 0:
       allSaveFiles = []
       if "LOCALAPPDATA" in os.environ:
          allSaveFiles = glob.glob(f"{os.environ['LOCALAPPDATA']}/FactoryGame/Saved/SaveGames/*/*.sav")
@@ -125,9 +127,11 @@ if __name__ == '__main__':
       (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
       #htmlFilename = f"save_{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.html"
 
-      uncollectedPowerSlugsBlue = sav_slug_lib.POWER_SLUGS_BLUE.copy()
-      uncollectedPowerSlugsYellow = sav_slug_lib.POWER_SLUGS_YELLOW.copy()
-      uncollectedPowerSlugsPurple = sav_slug_lib.POWER_SLUGS_PURPLE.copy()
+      uncollectedPowerSlugsBlue = sav_data_slug.POWER_SLUGS_BLUE.copy()
+      uncollectedPowerSlugsYellow = sav_data_slug.POWER_SLUGS_YELLOW.copy()
+      uncollectedPowerSlugsPurple = sav_data_slug.POWER_SLUGS_PURPLE.copy()
+      uncollectedSomersloops = sav_data_somersloop.SOMERSLOOPS.copy()
+      uncollectedMercerSpheres = sav_data_mercerSphere.MERCER_SPHERES.copy()
 
       activeSchematic = None
       activeSchematicShortName = None
@@ -140,8 +144,6 @@ if __name__ == '__main__':
       numCollectedSlugsMk1 = 0
       numCollectedSlugsMk2 = 0
       numCollectedSlugsMk3 = 0
-      somersloopPositions = []
-      mercerSpherePositions = []
       crashSiteInstances = {}
       numCreaturesKilled = 0
       creaturesKilled = []
@@ -178,10 +180,6 @@ if __name__ == '__main__':
                   minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, type, purity)
                elif typePath == sav_parse.CRASH_SITE:
                   crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
-               elif typePath == sav_parse.SOMERSLOOP:
-                  somersloopPositions.append(actorOrComponentObjectHeader.position)
-               elif typePath == sav_parse.MERCER_SPHERE:
-                  mercerSpherePositions.append(actorOrComponentObjectHeader.position)
                elif typePath == sav_parse.POWER_LINE:
                   powerLines[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
          for object in objects:
@@ -282,15 +280,19 @@ if __name__ == '__main__':
                      if name == "Locations":
                         wireLines.append((powerLines[object.instanceName], position))
          for collectable in collectables1:  # Quantity should match collectables2
-            if collectable.pathName in sav_slug_lib.POWER_SLUGS_BLUE:
+            if collectable.pathName in uncollectedPowerSlugsBlue:
                numCollectedSlugsMk1 += 1
                del uncollectedPowerSlugsBlue[collectable.pathName]
-            if collectable.pathName in sav_slug_lib.POWER_SLUGS_YELLOW:
+            if collectable.pathName in uncollectedPowerSlugsYellow:
                numCollectedSlugsMk2 += 1
                del uncollectedPowerSlugsYellow[collectable.pathName]
-            if collectable.pathName in sav_slug_lib.POWER_SLUGS_PURPLE:
+            if collectable.pathName in uncollectedPowerSlugsPurple:
                numCollectedSlugsMk3 += 1
                del uncollectedPowerSlugsPurple[collectable.pathName]
+            if collectable.pathName in uncollectedSomersloops:
+               del uncollectedSomersloops[collectable.pathName]
+            if collectable.pathName in uncollectedMercerSpheres:
+               del uncollectedMercerSpheres[collectable.pathName]
 
       crashSitesOpenWithDrive = []
       crashSitesUnopenedKeys = list(crashSiteInstances.keys())
@@ -382,22 +384,22 @@ if __name__ == '__main__':
       else:
          lines += ".<p>\n"
 
-      TOTAL_NUM_SLUGS = len(sav_slug_lib.POWER_SLUGS_BLUE) + len(sav_slug_lib.POWER_SLUGS_YELLOW) + len(sav_slug_lib.POWER_SLUGS_PURPLE)
+      TOTAL_NUM_SLUGS = len(sav_data_slug.POWER_SLUGS_BLUE) + len(sav_data_slug.POWER_SLUGS_YELLOW) + len(sav_data_slug.POWER_SLUGS_PURPLE)
       totalNumCollectedSlugs = numCollectedSlugsMk1 + numCollectedSlugsMk2 + numCollectedSlugsMk3
       lines += f"{totalNumCollectedSlugs} of {TOTAL_NUM_SLUGS} slugs collected.\n"
-      lines += f"{numCollectedSlugsMk1} of {len(sav_slug_lib.POWER_SLUGS_BLUE)} blue.\n"
-      lines += f"{numCollectedSlugsMk2} of {len(sav_slug_lib.POWER_SLUGS_YELLOW)} yellow.\n"
-      lines += f"{numCollectedSlugsMk3} of {len(sav_slug_lib.POWER_SLUGS_PURPLE)} purple."
+      lines += f"{numCollectedSlugsMk1} of {len(sav_data_slug.POWER_SLUGS_BLUE)} blue.\n"
+      lines += f"{numCollectedSlugsMk2} of {len(sav_data_slug.POWER_SLUGS_YELLOW)} yellow.\n"
+      lines += f"{numCollectedSlugsMk3} of {len(sav_data_slug.POWER_SLUGS_PURPLE)} purple."
       if creatingMapImagesFlag:
          lines += f'\n<a href="{MAP_FILENAME_SLUGS}">Map of remaining slugs.</a>'
       lines += "<p>\n"
 
-      lines += f"{len(somersloopPositions)} Somersloops remaining ({round(len(somersloopPositions)/sav_parse.SOMERSLOOP_TOTAL_COUNT*100,1)}% of {sav_parse.SOMERSLOOP_TOTAL_COUNT})."
+      lines += f"{len(uncollectedSomersloops)} Somersloops remaining ({round(len(uncollectedSomersloops)/len(sav_data_somersloop.SOMERSLOOPS)*100,1)}% of {len(sav_data_somersloop.SOMERSLOOPS)})."
       if creatingMapImagesFlag:
          lines += f' <a href="{MAP_FILENAME_SOMERSLOOP}">map</a>'
       lines += "<br>\n"
 
-      lines += f"{len(mercerSpherePositions)} Mercer Spheres remaining ({round(len(mercerSpherePositions)/sav_parse.MERCER_SPHERE_TOTAL_COUNT*100,1)}% of {sav_parse.MERCER_SPHERE_TOTAL_COUNT})."
+      lines += f"{len(uncollectedMercerSpheres)} Mercer Spheres remaining ({round(len(uncollectedMercerSpheres)/len(sav_data_mercerSphere.MERCER_SPHERES)*100,1)}% of {len(sav_data_mercerSphere.MERCER_SPHERES)})."
       if creatingMapImagesFlag:
          lines += f' <a href="{MAP_FILENAME_MERCER_SPHERE}">map</a>'
       lines += "<p>\n"
@@ -510,9 +512,10 @@ if __name__ == '__main__':
 
          ssImage = origImage.copy()
          ssDraw = ImageDraw.Draw(ssImage)
-         for coord in somersloopPositions:
-            posX = adjPos(coord[0], False)
-            posY = adjPos(coord[1], True)
+         for instanceName in uncollectedSomersloops:
+            (rootObject, rotation, position) = uncollectedSomersloops[instanceName]
+            posX = adjPos(position[0], False)
+            posY = adjPos(position[1], True)
             ssDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
          ssDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Somersloops from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          ssDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
@@ -521,9 +524,10 @@ if __name__ == '__main__':
 
          msImage = origImage.copy()
          msDraw = ImageDraw.Draw(msImage)
-         for coord in mercerSpherePositions:
-            posX = adjPos(coord[0], False)
-            posY = adjPos(coord[1], True)
+         for instanceName in uncollectedMercerSpheres:
+            (rootObject, rotation, position) = uncollectedMercerSpheres[instanceName]
+            posX = adjPos(position[0], False)
+            posY = adjPos(position[1], True)
             msDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
          msDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Mercer Spheres from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          msDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))

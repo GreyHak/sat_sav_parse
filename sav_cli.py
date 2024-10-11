@@ -21,6 +21,7 @@ import json
 import math
 import sav_parse
 import sav_to_resave
+import sav_data_somersloop
 
 def getPlayerPaths(levels):
    playerPaths = [] # = (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath)
@@ -853,59 +854,47 @@ if __name__ == '__main__':
          # For those items present in (both) collectables1 and collectables2, remove those,
          # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
-         #somersloopDetails = []
-         #for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-         #   for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
-         #      if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
-         #         if actorOrComponentObjectHeader.typePath == sav_parse.SOMERSLOOP:
-         #            # scale=(1.600000023841858, 1.600000023841858, 1.600000023841858)
-         #            somersloopDetails.append((actorOrComponentObjectHeader.instanceName, actorOrComponentObjectHeader.rootObject, actorOrComponentObjectHeader.rotation, actorOrComponentObjectHeader.position))
-         #with open("sav_cli_somersloops.json", "w") as fout:
-         #   json.dump(somersloopDetails, fout, indent=2)
-
-         with open("sav_cli_somersloops.json", "r") as fin:
-            somersloopDetails = json.load(fin)
-
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
             for collectable in collectables1:
-               for (instanceName, rootObject, rotation, position) in somersloopDetails:
-                  if collectable.levelName == rootObject and collectable.pathName == instanceName:
-                     collectables1.remove(collectable)
-                     print(f"Clearing removal of {instanceName}")
+               if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
+                  collectables1.remove(collectable)
+                  print(f"Clearing removal of {collectable.pathName}")
             for collectable in collectables2:
-               for (instanceName, rootObject, rotation, position) in somersloopDetails:
-                  if collectable.levelName == rootObject and collectable.pathName == instanceName:
-                     collectables2.remove(collectable)
+               if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
+                  collectables2.remove(collectable)
 
-                     newActor = sav_parse.ActorHeader()
-                     newActor.typePath = sav_parse.SOMERSLOOP
-                     newActor.rootObject = rootObject
-                     newActor.instanceName = instanceName
-                     newActor.needTransform = 0
-                     newActor.rotation = rotation
-                     newActor.position = position
-                     newActor.scale = (1.600000023841858, 1.600000023841858, 1.600000023841858)
-                     newActor.wasPlacedInLevel = 1
-                     newActor.validFlag = True
-                     actorAndComponentObjectHeaders.append(newActor)
+                  instanceName = collectable.pathName
+                  (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[collectable.pathName]
 
-                     newObject = sav_parse.Object()
-                     newObject.instanceName = instanceName
-                     newObject.objectGameVersion = 46
-                     newObject.flag = 0
-                     nullParentObjectReference = sav_parse.ObjectReference()
-                     nullParentObjectReference.levelName = ""
-                     nullParentObjectReference.pathName = ""
-                     nullParentObjectReference.validFlag = True
-                     newObject.actorReferenceAssociations = (nullParentObjectReference, [])
-                     newObject.properties    = []
-                     newObject.propertyTypes = []
-                     newObject.actorSpecificInfo = None
-                     newObject.validFlag = True
-                     objects.append(newObject)
+                  newActor = sav_parse.ActorHeader()
+                  newActor.typePath = sav_parse.SOMERSLOOP
+                  newActor.rootObject = rootObject
+                  newActor.instanceName = instanceName
+                  newActor.needTransform = 0
+                  newActor.rotation = rotation
+                  newActor.position = position
+                  newActor.scale = (1.600000023841858, 1.600000023841858, 1.600000023841858)
+                  newActor.wasPlacedInLevel = 1
+                  newActor.validFlag = True
+                  actorAndComponentObjectHeaders.append(newActor)
 
-                     modifiedFlag = True
-                     print(f"Restored Somersloop {instanceName} at {position}")
+                  newObject = sav_parse.Object()
+                  newObject.instanceName = instanceName
+                  newObject.objectGameVersion = 46
+                  newObject.flag = 0
+                  nullParentObjectReference = sav_parse.ObjectReference()
+                  nullParentObjectReference.levelName = ""
+                  nullParentObjectReference.pathName = ""
+                  nullParentObjectReference.validFlag = True
+                  newObject.actorReferenceAssociations = (nullParentObjectReference, [])
+                  newObject.properties    = []
+                  newObject.propertyTypes = []
+                  newObject.actorSpecificInfo = None
+                  newObject.validFlag = True
+                  objects.append(newObject)
+
+                  modifiedFlag = True
+                  print(f"Restored Somersloop {instanceName} at {position}")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
