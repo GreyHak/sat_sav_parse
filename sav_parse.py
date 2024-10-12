@@ -2879,7 +2879,30 @@ def parseObjectReference(offset, data):
    offset = objectReference.parse(offset, data)
    return (offset, objectReference)
 
-def parseLevel(offset, data, persistentLevelFlag = False):
+def getLevelSize(offset, data, persistentLevelFlag = False):
+   if persistentLevelFlag:
+      levelName = None
+   else:
+      (offset, levelName) = parseString(offset, data)
+
+   (offset, objectHeaderAndCollectable1Size) = parseUint64(offset, data)
+   objectHeaderAndCollectable1StartOffset = offset
+   (offset, actorAndComponentCount) = parseUint32(offset, data)
+
+   offset = objectHeaderAndCollectable1StartOffset + objectHeaderAndCollectable1Size
+
+   (offset, allObjectsSize) = parseUint64(offset, data)
+   offset += allObjectsSize
+
+   # Collectables #2
+   if not persistentLevelFlag:
+      (offset, collectedCount2) = parseUint32(offset, data)
+      for count in range(collectedCount2):
+         (offset, objectReference) = parseObjectReference(offset, data)
+
+   return (offset, actorAndComponentCount * 2)
+
+def parseLevel(offset, data, persistentLevelFlag = False, progressBar = None):
    if persistentLevelFlag:
       levelName = None
    else:
@@ -2902,6 +2925,8 @@ def parseLevel(offset, data, persistentLevelFlag = False):
          raise ParseError(f"Invalid headerType {headerType}")
       offset = objectHeader.parse(offset, data)
       actorAndComponentObjectHeaders.append(objectHeader)
+      if progressBar != None:
+         progressBar.add()
 
    # Collectables #1
    collectables1 = []
@@ -2928,6 +2953,8 @@ def parseLevel(offset, data, persistentLevelFlag = False):
       object = Object()
       offset = object.parse(offset, data, actorAndComponentObjectHeaders[idx])
       objects.append(object)
+      if progressBar != None:
+         progressBar.add()
    if offset - objectStartOffset != allObjectsSize:
       raise ParseError(f"Object size mismatch: expect={allObjectsSize} != actual={offset - objectStartOffset}")
 
@@ -3355,8 +3382,38 @@ def readCompressedSaveFile(filename):
    with open(filename, "rb") as fin:
       return fin.read()
 
+class ProgressBar():
+   prior = None
+   current = 0
+   fillChar = "#"
+   emptyChar = "."
+   completedChar = b'\x13\x27'.decode('utf-16')
+   fillColor = "\033[1;37;47m"
+   emptyColor = "\033[0;30;40m"
+   resetColor = "\033[0m"
+   def __init__(self, total, prefix="", width=70):
+      self.total = total
+      self.prefix = prefix
+      self.width = width
+      self.show()
+   def add(self, more=1):
+      self.current += more
+      self.show()
+   def set(self, current=1):
+      self.current = current
+      self.show()
+   def show(self):
+      # Loosely based on imbr's (https://stackoverflow.com/users/1207193/imbr) code at https://stackoverflow.com/questions/3160699/python-progress-bar
+      filled = int(round(self.current / self.total * self.width))
+      if filled != self.prior:
+         print(f"{self.prefix}[{self.fillColor}{self.fillChar*filled}{self.emptyColor}{(self.emptyChar*(self.width-filled))}{self.resetColor}]   {round(self.current)}/{self.total}", end='\r', flush=True)
+         self.prior = filled
+   def complete(self):
+      print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
+
 def decompressSaveFile(offset, data):
    decompressedData = b""
+   progressBar = ProgressBar(len(data), "Decompression: ")
    while offset < len(data):
       offset = confirmBasicType(offset, data, parseUint32, 0x9e2a83c1)  # unrealEnginePackageSignature
       offset = confirmBasicType(offset, data, parseUint32, 0x22222222)
@@ -3381,7 +3438,9 @@ def decompressSaveFile(offset, data):
          raise ParseError(f"Decompression didn't return the expected amount return={len(dData)} != expected={currentChunkUncompressedLength1}")
       decompressedData += dData
       offset += currentChunkCompressedLength1
+      progressBar.set(offset)
 
+   progressBar.complete()
    return decompressedData
 
 def pathNameToReadableName(name):
@@ -3454,11 +3513,25 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
    # Levels
    levels = []
    (offset, levelCount) = parseUint32(offset, data)
+
+   totalLevelSize = 0
+   levelSizes = []
+   tmpOffset = offset
    for idx in range(levelCount):
-      (offset, level) = parseLevel(offset, data)
+      (tmpOffset, levelSize) = getLevelSize(tmpOffset, data)
+      totalLevelSize += levelSize
+      levelSizes.append(levelSize)
+   (tmpOffset, levelSize) = getLevelSize(tmpOffset, data, True)
+   totalLevelSize += levelSize
+   levelSizes.append(levelSize)
+   progressBar = ProgressBar(totalLevelSize, "      Parsing: ")
+
+   for idx in range(levelCount):
+      (offset, level) = parseLevel(offset, data, False, progressBar)
       levels.append(level)
-   (offset, level) = parseLevel(offset, data, True) # Potentially sets the global satisfactoryCalculatorInteractiveMapFlag
+   (offset, level) = parseLevel(offset, data, True, progressBar) # Potentially sets the global satisfactoryCalculatorInteractiveMapFlag
    levels.append(level)
+   progressBar.complete()
 
    if satisfactoryCalculatorInteractiveMapFlag:
       print("File suspected of having been saved by satisfactory-calculator.com/en/interactive-map", file=sys.stderr)
@@ -3534,18 +3607,32 @@ if __name__ == '__main__':
          dumpOut.write("\nGrids:\n")
          for grid in grids:
             dumpOut.write(f"  {grid}\n")
+
+         progressBarTotal = 0
+         for level in levels:
+            (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
+            progressBarTotal += len(actorAndComponentObjectHeaders)
+            progressBarTotal += len(objects)
+            progressBarTotal += len(collectables1)
+            progressBarTotal += len(collectables2)
+         progressBar = ProgressBar(progressBarTotal, "      Dumping: ")
          dumpOut.write("\nLevels:\n")
          for level in levels:
             (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
             dumpOut.write(f"  Level: {levelName}\n")
             for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
                dumpOut.write(f"    {actorOrComponentObjectHeader}\n")
+               progressBar.add()
             for object in objects:
                dumpOut.write(f"    {object}\n")
+               progressBar.add()
             for collectable in collectables1:
                dumpOut.write(f"    Collectable2: {collectable}\n")
+               progressBar.add()
             for collectable in collectables2:
                dumpOut.write(f"    Collectable4: {collectable}\n")
+               progressBar.add()
+         progressBar.complete()
 
          with open(somersloopOutputFilename, "w") as somersloopOut:
             somersloopOut.write("# Exported from Satisfactory \n")

@@ -661,8 +661,11 @@ def saveFile(saveFileInfo, headhex, grids, levels, outFilename):
          data.extend(addUint32(lhex))
 
    data.extend(addUint32(len(levels)-1))
+   progressBar = sav_parse.ProgressBar(len(levels), "   Reencoding: ")
    for level in levels:
       data.extend(addLevel(level))
+      progressBar.add()
+   progressBar.complete()
    data.extend(addUint32(0))
    data.extend(addUint32(0))
 
@@ -697,6 +700,7 @@ def saveFile(saveFileInfo, headhex, grids, levels, outFilename):
    sdata.extend(addUint32(saveFileInfo.cheatFlag))
 
    dataOffset = 0
+   progressBar = sav_parse.ProgressBar(len(rdata), "  Compressing: ")
    while dataOffset < len(rdata):
 
       chunkSize = MAXIMUM_CHUNK_SIZE
@@ -718,6 +722,8 @@ def saveFile(saveFileInfo, headhex, grids, levels, outFilename):
       sdata.extend(cdata)
 
       dataOffset += chunkSize
+      progressBar.set(dataOffset)
+   progressBar.complete()
 
    with open(outFilename, "wb") as fout:
       fout.write(sdata)

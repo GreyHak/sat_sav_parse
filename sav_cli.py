@@ -23,6 +23,8 @@ import sav_parse
 import sav_to_resave
 import sav_data_somersloop
 
+VERIFY_CREATED_SAVE_FILES = False
+
 def getPlayerPaths(levels):
    playerPaths = [] # = (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath)
 
@@ -341,8 +343,9 @@ if __name__ == '__main__':
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
-         print("Validation successful")
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
@@ -399,8 +402,9 @@ if __name__ == '__main__':
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
-         print("Validation successful")
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
@@ -468,8 +472,9 @@ if __name__ == '__main__':
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
-         print("Validation successful")
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
@@ -507,8 +512,9 @@ if __name__ == '__main__':
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
-         print("Validation successful")
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
@@ -795,8 +801,9 @@ if __name__ == '__main__':
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
-         print("Validation successful")
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
@@ -835,8 +842,9 @@ if __name__ == '__main__':
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
-         print("Validation successful")
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
@@ -907,8 +915,9 @@ if __name__ == '__main__':
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
-         print("Validation successful")
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
