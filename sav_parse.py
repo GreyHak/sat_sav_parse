@@ -3531,7 +3531,6 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
       levels.append(level)
    (offset, level) = parseLevel(offset, data, True, progressBar) # Potentially sets the global satisfactoryCalculatorInteractiveMapFlag
    levels.append(level)
-   progressBar.complete()
 
    if satisfactoryCalculatorInteractiveMapFlag:
       print("File suspected of having been saved by satisfactory-calculator.com/en/interactive-map", file=sys.stderr)
@@ -3545,6 +3544,7 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
 
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
+   progressBar.complete()
 
    return (saveFileInfo, (headhex1, headhex2), grids, levels)
 

@@ -61,7 +61,10 @@ if __name__ == '__main__':
    priorSavFilename = None
    while True:
       allSaveFiles = glob.glob(f"{savePath}/*.sav")
-      savFilename = max(allSaveFiles, key=os.path.getmtime)
+      try:
+         savFilename = max(allSaveFiles, key=os.path.getmtime)
+      except FileNotFoundError:
+         next
 
       if savFilename != priorSavFilename:
          priorSavFilename = savFilename

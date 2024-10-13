@@ -665,13 +665,13 @@ def saveFile(saveFileInfo, headhex, grids, levels, outFilename):
    for level in levels:
       data.extend(addLevel(level))
       progressBar.add()
-   progressBar.complete()
    data.extend(addUint32(0))
    data.extend(addUint32(0))
 
    rdata = bytearray()
    rdata.extend(addUint64(len(data))) # Length doesn't include the length itself even if the length is called compressed data length and the length is itself compressed.
    rdata.extend(data)
+   progressBar.complete()
 
    with open(f"{outFilename}-raw.txt", "wb") as fout:
       fout.write(rdata)

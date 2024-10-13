@@ -24,6 +24,9 @@ import sav_to_resave
 import sav_data_somersloop
 
 VERIFY_CREATED_SAVE_FILES = False
+USERNAME_FILENAME = "sav_cli_usernames.json"
+
+playerUsernames = {}
 
 def getPlayerPaths(levels):
    playerPaths = [] # = (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath)
@@ -73,6 +76,12 @@ def getPlayerPaths(levels):
    return playerPaths
 
 def getPlayerName(levels, playerCharacter):
+   global playerUsernames
+   loc = playerCharacter.rfind("_")
+   playerId = playerCharacter[loc+1:]
+   if playerId in playerUsernames:
+      return playerUsernames[playerId]
+
    for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
       for object in objects:
          if object.instanceName == playerCharacter:
@@ -156,6 +165,7 @@ def printUsage():
    print("   py sav_cli.py --import-hotbar <player-state-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py -remember-username <player-state-num> <username-alias>")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -171,6 +181,10 @@ def printUsage():
    #       ('mPlayerRules', ([('HasInitialized', True), ('NoBuildCost', True), ('FlightMode', True), ('GodMode', True)], [('HasInitialized', 'BoolProperty', 0), ('NoBuildCost', 'BoolProperty', 0), ('FlightMode', 'BoolProperty', 0), ('GodMode', 'BoolProperty', 0)]))
 
 if __name__ == '__main__':
+
+   if os.path.isfile(USERNAME_FILENAME):
+      with open(USERNAME_FILENAME, "r") as fin:
+         playerUsernames = json.load(fin)
 
    if len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help"):
       printUsage()
@@ -920,6 +934,24 @@ if __name__ == '__main__':
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "-remember-username":
+      playerId = sys.argv[2]
+      playerUsername = sys.argv[3]
+
+      if len(playerUsername) == 0:
+         if playerId in playerUsernames:
+            print(f"Removing '{playerUsernames[playerId]}' for {playerId}")
+            del playerUsernames[playerId]
+      else:
+         if playerId in playerUsernames:
+            print(f"Replacing '{playerUsernames[playerId]}' with '{playerUsername}' for {playerId}")
+         else:
+            print(f"Setting '{playerUsername}' for {playerId}")
+         playerUsernames[playerId] = playerUsername
+
+      with open(USERNAME_FILENAME, "w") as fout:
+         json.dump(playerUsernames, fout, indent=2)
 
    else:
       print(f"ERROR: Did not understand {len(sys.argv)} arguments: {sys.argv}", file=sys.stderr)

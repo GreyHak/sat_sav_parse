@@ -44,6 +44,7 @@ Usage:
   - `py sav_cli.py --import-hotbar <player-state-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --remember-username  <player-state-num> <username-alias>`
 
 ## sav_to_html.py
 
