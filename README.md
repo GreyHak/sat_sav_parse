@@ -33,6 +33,7 @@ provide specific information from the save file or change data in a save file.
 
 Usage:
   - `py sav_cli.py --help`
+  - `py sav_cli.py --find-free-stuff [item] [save-filename]`
   - `py sav_cli.py --list-players <save-filename>`
   - `py sav_cli.py --list-player-inventory <player-state-num> <save-filename>`
   - `py sav_cli.py --export-player-inventory <player-state-num> <save-filename> <output-json-filename>`
@@ -44,7 +45,11 @@ Usage:
   - `py sav_cli.py --import-hotbar <player-state-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --remember-username <player-state-num> <username-alias>`
   - `py sav_cli.py --remember-username  <player-state-num> <username-alias>`
+
+if `--find-free-stuff` is used inconjunction with `sav_to_html.py` and a blank
+map, it will generate a map of all the locations for the specified item.
 
 ## sav_to_html.py
 

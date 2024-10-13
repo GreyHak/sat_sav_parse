@@ -22,6 +22,14 @@ import math
 import sav_parse
 import sav_to_resave
 import sav_data_somersloop
+import sav_data_free
+
+try:
+   import sav_to_html
+   from PIL import Image, ImageDraw, ImageFont
+   pilAvailableFlag = True
+except ModuleNotFoundError:
+   pilAvailableFlag = False
 
 VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
@@ -154,6 +162,7 @@ def eulerToQuaternion(euler):
 def printUsage():
    print()
    print("USAGE:")
+   print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-state-num> <save-filename>")
    print("   py sav_cli.py --export-player-inventory <player-state-num> <save-filename> <output-json-filename>")
@@ -165,7 +174,7 @@ def printUsage():
    print("   py sav_cli.py --import-hotbar <player-state-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
-   print("   py sav_cli.py -remember-username <player-state-num> <username-alias>")
+   print("   py sav_cli.py --remember-username <player-state-num> <username-alias>")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -188,6 +197,68 @@ if __name__ == '__main__':
 
    if len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help"):
       printUsage()
+
+   elif len(sys.argv) in (2, 3, 4) and sys.argv[1] == "--find-free-stuff" and (len(sys.argv) < 4 or os.path.isfile(sys.argv[3])):
+
+      if len(sys.argv) == 2:
+         for item in sav_data_free.FREE_DROPPED_ITEMS:
+            total = 0
+            for (quantity, position, instanceName) in sav_data_free.FREE_DROPPED_ITEMS[item]:
+               total += quantity
+            print(f"{total} x {sav_parse.pathNameToReadableName(item)}")
+      else:
+
+         itemName = sys.argv[2]
+
+         droppedInstances = {}
+         for item in sav_data_free.FREE_DROPPED_ITEMS:
+            if sav_parse.pathNameToReadableName(item) == itemName:
+               for idx in range(len(sav_data_free.FREE_DROPPED_ITEMS[item])):
+                  (quantity, position, instanceName) = sav_data_free.FREE_DROPPED_ITEMS[item][idx]
+                  droppedInstances[instanceName] = (quantity, position)
+               break
+         if len(droppedInstances) == 0:
+            print(f"No {itemName}")
+         else:
+
+            if len(sys.argv) == 4:
+               savFilename = sys.argv[3]
+               try:
+                  (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+                  for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+                     for collectable in collectables1:
+                        if collectable.pathName in droppedInstances:
+                           del droppedInstances[collectable.pathName]
+               except Exception as error:
+                  raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+            total = 0
+            for instanceName in droppedInstances:
+               (quantity, position) = droppedInstances[instanceName]
+               print(f"{quantity} x {itemName} at {position}")
+               total += quantity
+
+            if pilAvailableFlag:
+               MAP_BASENAME_FREE_ITEM = "save_free.png"
+               if os.path.isfile(sav_to_html.MAP_BASENAME_BLANK):
+                  imageFont = ImageFont.truetype(sav_to_html.FONT_FILENAME, sav_to_html.MAP_FONT_SIZE)
+                  smallFont = ImageFont.truetype(sav_to_html.FONT_FILENAME, 400/sav_to_html.MAP_DESCALE)
+                  diImage = Image.open(sav_to_html.MAP_BASENAME_BLANK)
+                  diDraw = ImageDraw.Draw(diImage)
+                  for instanceName in droppedInstances:
+                     (quantity, position) = droppedInstances[instanceName]
+                     posX = sav_to_html.adjPos(position[0], False)
+                     posY = sav_to_html.adjPos(position[1], True)
+                     diDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(255,255,0))
+                     diDraw.text((posX, posY), str(quantity), font=smallFont, fill=(0,0,0))
+                  if len(sys.argv) == 4:
+                     diDraw.text(sav_to_html.MAP_TEXT_1, saveFileInfo.saveDatetime.strftime(f"{total} free {itemName} from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(50,50,50))
+                     diDraw.text(sav_to_html.MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+                  else:
+                     diDraw.text(sav_to_html.MAP_TEXT_1, f"All {total} free {itemName}", font=imageFont, fill=(0,0,0))
+                  imageFilename = MAP_BASENAME_FREE_ITEM
+                  diImage.crop(sav_to_html.CROP_SETTINGS).save(imageFilename)
+                  sav_to_html.chown(imageFilename)
 
    elif len(sys.argv) == 3 and sys.argv[1] == "--list-players" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]

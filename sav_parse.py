@@ -3580,6 +3580,7 @@ if __name__ == '__main__':
    somersloopOutputFilename = outBase + "-somersloop.txt"
    mercerSphereOutputFilename = outBase + "-mercerSphere.txt"
    decompressedOutputFilename = outBase + "-decompressed.txt"
+   droppedItemsOutputFilename = outBase + "-dropped.txt"
 
    if not os.path.isfile(savFilename):
       print(f"ERROR: Save file does not exist: '{savFilename}'", file=sys.stderr)
@@ -3673,6 +3674,36 @@ if __name__ == '__main__':
                for collectable in collectables1:
                   if collectable.pathName.startswith("Persistent_Level:PersistentLevel.BP_Crystal"):
                      slugOut.write(f"COLLECTED: {collectable.pathName}\n")
+
+         with open(droppedItemsOutputFilename, "w") as dropOut:
+            items = {}
+            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+                  if isinstance(actorOrComponentObjectHeader, ActorHeader) and actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGItemPickup_Spawnable":
+                     items[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
+            specificItems = {}
+            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+               for object in objects:
+                  if object.instanceName in items:
+                     pickupItems = getPropertyValue(object.properties, "mPickupItems")
+                     if pickupItems != None:
+                        pickupItems = pickupItems[0]
+                        item = getPropertyValue(pickupItems, "Item")
+                        if item != None:
+                           item = item[0]
+                           numItems = getPropertyValue(pickupItems, "NumItems")
+                           if numItems != None:
+                              if item not in specificItems:
+                                 specificItems[item] = []
+                              specificItems[item].append((object.instanceName, numItems, items[object.instanceName]))
+            dropOut.write("# Exported from Satisfactory \n")
+            dropOut.write("FREE_DROPPED_ITEMS = {\n")
+            for item in specificItems:
+               dropOut.write(f'   "{item}": [ # {pathNameToReadableName(item)}\n')
+               for (instanceName, quantity, location) in specificItems[item]:
+                  dropOut.write(f'      ({quantity}, {location}, "{instanceName}"),\n')
+               dropOut.write(f'      ],\n')
+            dropOut.write("} # FREE_DROPPED_ITEMS\n")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
