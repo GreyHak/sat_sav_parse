@@ -30,17 +30,18 @@ try:
 except ModuleNotFoundError:
    pilAvailableFlag = False
 
-DEFAULT_HTML_FILENAME = "save.html"
+DEFAULT_OUTPUT_DIR = "."
+DEFAULT_HTML_BASENAME = "save.html"
 FONT_FILENAME = "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf" # The library automatically adjusts to "C:\Windows\Fonts\DejaVuSerif.ttf" on Windows.
 
 MAP_DESCALE = 20
-MAP_FILENAME_BLANK = f"blank_map{str(MAP_DESCALE).zfill(2)}.png"
-MAP_FILENAME_SLUGS          = "save_slug.png"
-MAP_FILENAME_HARD_DRIVES    = "save_hd.png"
-MAP_FILENAME_SOMERSLOOP     = "save_somersloop.png"
-MAP_FILENAME_MERCER_SPHERE  = "save_mercer_sphere.png"
-MAP_FILENAME_POWER          = "save_power.png"
-MAP_FILENAME_RESOURCE_NODES = "save_nodes.png"
+MAP_BASENAME_BLANK = f"blank_map{str(MAP_DESCALE).zfill(2)}.png"
+MAP_BASENAME_SLUGS          = "save_slug.png"
+MAP_BASENAME_HARD_DRIVES    = "save_hd.png"
+MAP_BASENAME_SOMERSLOOP     = "save_somersloop.png"
+MAP_BASENAME_MERCER_SPHERE  = "save_mercer_sphere.png"
+MAP_BASENAME_POWER          = "save_power.png"
+MAP_BASENAME_RESOURCE_NODES = "save_nodes.png"
 
 MAP_FONT_SIZE = 760/MAP_DESCALE
 MAP_TEXT_1 = (4400/MAP_DESCALE, 4300/MAP_DESCALE)
@@ -102,27 +103,8 @@ def getStackSize(itemName, itemCount):
       json.dump(itemStackSizes, fout, indent=2)
    return derivedStackSize
 
-if __name__ == '__main__':
-
-   if len(sys.argv) <= 1 or len(sys.argv[1]) == 0:
-      allSaveFiles = []
-      if "LOCALAPPDATA" in os.environ:
-         allSaveFiles = glob.glob(f"{os.environ['LOCALAPPDATA']}/FactoryGame/Saved/SaveGames/*/*.sav")
-      if len(allSaveFiles) == 0:
-         print("ERROR: No .sav file specified.")
-         exit(1)
-      savFilename = max(allSaveFiles, key=os.path.getmtime)
-   else:
-      savFilename = sys.argv[1]
-
-   if not os.path.isfile(savFilename):
-      print(f"ERROR: Save file does not exist: '{savFilename}'", file=sys.stderr)
-      exit(1)
-
-   htmlFilename = DEFAULT_HTML_FILENAME
-   if len(sys.argv) > 2:
-      htmlFilename = sys.argv[2]
-
+def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT_HTML_BASENAME):
+   htmlFilename = f"{outputDir}/{htmlBasename}"
    try:
       (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
       #htmlFilename = f"save_{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.html"
@@ -352,7 +334,7 @@ if __name__ == '__main__':
                elif activeSchematicDescription != None:
                   activeSchematicDescription = f"{activeSchematicDescription}<p>\n"
 
-      creatingMapImagesFlag = pilAvailableFlag and os.path.isfile(MAP_FILENAME_BLANK)
+      creatingMapImagesFlag = pilAvailableFlag and os.path.isfile(MAP_BASENAME_BLANK)
 
       lines  = "<!DOCTYPE html>\n"  # This allows the font setting to apply to the table
       lines += "<html>\n"
@@ -380,7 +362,7 @@ if __name__ == '__main__':
 
       lines += f'Mining {numMinedResources} of {len(minedResourceActors)} resources'
       if creatingMapImagesFlag:
-         lines += f' (<a href="{MAP_FILENAME_RESOURCE_NODES}">map</a>).\n<a href="{MAP_FILENAME_POWER}">Map of Power Lines.</a><p>\n'
+         lines += f' (<a href="{MAP_BASENAME_RESOURCE_NODES}">map</a>).\n<a href="{MAP_BASENAME_POWER}">Map of Power Lines.</a><p>\n'
       else:
          lines += ".<p>\n"
 
@@ -391,23 +373,23 @@ if __name__ == '__main__':
       lines += f"{numCollectedSlugsMk2} of {len(sav_data_slug.POWER_SLUGS_YELLOW)} yellow.\n"
       lines += f"{numCollectedSlugsMk3} of {len(sav_data_slug.POWER_SLUGS_PURPLE)} purple."
       if creatingMapImagesFlag:
-         lines += f'\n<a href="{MAP_FILENAME_SLUGS}">Map of remaining slugs.</a>'
+         lines += f'\n<a href="{MAP_BASENAME_SLUGS}">Map of remaining slugs.</a>'
       lines += "<p>\n"
 
       lines += f"{len(uncollectedSomersloops)} Somersloops remaining ({round(len(uncollectedSomersloops)/len(sav_data_somersloop.SOMERSLOOPS)*100,1)}% of {len(sav_data_somersloop.SOMERSLOOPS)})."
       if creatingMapImagesFlag:
-         lines += f' <a href="{MAP_FILENAME_SOMERSLOOP}">map</a>'
+         lines += f' <a href="{MAP_BASENAME_SOMERSLOOP}">map</a>'
       lines += "<br>\n"
 
       lines += f"{len(uncollectedMercerSpheres)} Mercer Spheres remaining ({round(len(uncollectedMercerSpheres)/len(sav_data_mercerSphere.MERCER_SPHERES)*100,1)}% of {len(sav_data_mercerSphere.MERCER_SPHERES)})."
       if creatingMapImagesFlag:
-         lines += f' <a href="{MAP_FILENAME_MERCER_SPHERE}">map</a>'
+         lines += f' <a href="{MAP_BASENAME_MERCER_SPHERE}">map</a>'
       lines += "<p>\n"
 
       numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
       lines += f"Of {len(crashSiteInstances)} crash sites, {numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} been looted, {numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, {numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available.\r\n"
       if creatingMapImagesFlag:
-         lines += f'<a href="{MAP_FILENAME_HARD_DRIVES}">Map of hard drives.</a>'
+         lines += f'<a href="{MAP_BASENAME_HARD_DRIVES}">Map of hard drives.</a>'
       lines += '<p style="margin-bottom:0px">\n'
 
       lines += "Unlock Progress:\n"
@@ -476,7 +458,7 @@ if __name__ == '__main__':
          # If this font load fails, and imageFont is None, the drawn text will
          # still be present, just with a tiny font.
 
-         origImage = Image.open(MAP_FILENAME_BLANK)
+         origImage = Image.open(MAP_BASENAME_BLANK)
 
          slugImage = origImage.copy()
          slugDraw = ImageDraw.Draw(slugImage)
@@ -485,8 +467,9 @@ if __name__ == '__main__':
          addSlugs(slugDraw, uncollectedPowerSlugsPurple, (192,0,192))
          slugDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Slugs from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          slugDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
-         slugImage.crop(CROP_SETTINGS).save(MAP_FILENAME_SLUGS)
-         chown(MAP_FILENAME_SLUGS)
+         imageFilename = f"{outputDir}/{MAP_BASENAME_SLUGS}"
+         slugImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
 
          hdImage = origImage.copy()
          hdDraw = ImageDraw.Draw(hdImage)
@@ -507,8 +490,9 @@ if __name__ == '__main__':
                hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,255,0))
          hdDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Hard drives from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          hdDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
-         hdImage.crop(CROP_SETTINGS).save(MAP_FILENAME_HARD_DRIVES)
-         chown(MAP_FILENAME_HARD_DRIVES)
+         imageFilename = f"{outputDir}/{MAP_BASENAME_HARD_DRIVES}"
+         hdImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
 
          ssImage = origImage.copy()
          ssDraw = ImageDraw.Draw(ssImage)
@@ -519,8 +503,9 @@ if __name__ == '__main__':
             ssDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
          ssDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Somersloops from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          ssDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
-         ssImage.crop(CROP_SETTINGS).save(MAP_FILENAME_SOMERSLOOP)
-         chown(MAP_FILENAME_SOMERSLOOP)
+         imageFilename = f"{outputDir}/{MAP_BASENAME_SOMERSLOOP}"
+         ssImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
 
          msImage = origImage.copy()
          msDraw = ImageDraw.Draw(msImage)
@@ -531,8 +516,9 @@ if __name__ == '__main__':
             msDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
          msDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Mercer Spheres from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          msDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
-         msImage.crop(CROP_SETTINGS).save(MAP_FILENAME_MERCER_SPHERE)
-         chown(MAP_FILENAME_MERCER_SPHERE)
+         imageFilename = f"{outputDir}/{MAP_BASENAME_MERCER_SPHERE}"
+         msImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
 
          plImage = origImage.copy()
          plDraw = ImageDraw.Draw(plImage)
@@ -544,8 +530,9 @@ if __name__ == '__main__':
             plDraw.line(((possX, possY), (posdX, posdY)), fill=(22,47,101), width=2)
          plDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Power Lines from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          plDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
-         plImage.crop(CROP_SETTINGS).save(MAP_FILENAME_POWER)
-         chown(MAP_FILENAME_POWER)
+         imageFilename = f"{outputDir}/{MAP_BASENAME_POWER}"
+         plImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
 
          rnImage = origImage.copy()
          rnDraw = ImageDraw.Draw(rnImage)
@@ -590,12 +577,40 @@ if __name__ == '__main__':
                rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=typeColors[type])
          rnDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Resource Nodes from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
          rnDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
-         rnImage.crop(CROP_SETTINGS).save(MAP_FILENAME_RESOURCE_NODES)
-         chown(MAP_FILENAME_RESOURCE_NODES)
+         imageFilename = f"{outputDir}/{MAP_BASENAME_RESOURCE_NODES}"
+         rnImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
 
    except Exception as error:
       with open(htmlFilename, "w") as fout:
          fout.write(f"<html><head><title>Error parsing save</title></head><body>{error}</body></html>")
       raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+if __name__ == '__main__':
+
+   if len(sys.argv) <= 1 or len(sys.argv[1]) == 0:
+      allSaveFiles = []
+      if "LOCALAPPDATA" in os.environ:
+         allSaveFiles = glob.glob(f"{os.environ['LOCALAPPDATA']}/FactoryGame/Saved/SaveGames/*/*.sav")
+      if len(allSaveFiles) == 0:
+         print("ERROR: No .sav file specified.")
+         exit(1)
+      savFilename = max(allSaveFiles, key=os.path.getmtime)
+   else:
+      savFilename = sys.argv[1]
+
+   if not os.path.isfile(savFilename):
+      print(f"ERROR: Save file does not exist: '{savFilename}'", file=sys.stderr)
+      exit(1)
+
+   outputDir = DEFAULT_OUTPUT_DIR
+   if len(sys.argv) > 2:
+      outputDir = sys.argv[2]
+
+   htmlBasename = DEFAULT_HTML_BASENAME
+   if len(sys.argv) > 3:
+      htmlBasename = sys.argv[3]
+
+   generateHTML(savFilename, outputDir, htmlBasename)
 
    exit(0)

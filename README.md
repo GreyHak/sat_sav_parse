@@ -47,7 +47,11 @@ Usage:
 
 ## sav_to_html.py
 
-Usage: `py sav_to_html.py <save-filename> [output-html-file]`
+`sav_to_html.py` can be used as either a library or a program.
+
+Command line: `py sav_to_html.py <save-filename> [output-html-file]`
+
+Library: `sav_to_html.generateHTML(str savFilePath, str outputDirectory, str htmlBaseName)`
 
 `sav_to_html.py` makes use of `sav_parse.py` to decode a save file and creates
 a save.html.  The HTML page contains:
