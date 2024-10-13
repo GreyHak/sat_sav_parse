@@ -78,6 +78,13 @@ is provided, this script also creates maps of:
   - The power grid.
   - The resource nodes including their type, locations, purity, and usage.
 
+## sav_monitor.py
+
+Usage: `py sav_monitor.py [save-directory] [html-output-directory] [monitor-period] [archive-directory]`
+
+`sav_monitor.py` will check for new save files, generate html/png summary of
+new save files, and optionally archive the save files.
+
 ## Credits
 
 The source code in this repo was developed by [GreyHak](https://github.com/GreyHak).
