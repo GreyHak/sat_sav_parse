@@ -1690,7 +1690,8 @@ POWER_LINE = "/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Buil
 CRASH_SITE = "/Game/FactoryGame/World/Benefit/DropPod/BP_DropPod.BP_DropPod_C"
 
 SOMERSLOOP = "/Game/FactoryGame/Prototype/WAT/BP_WAT1.BP_WAT1_C"
-MERCER_SPHERE = "/Game/FactoryGame/Prototype/WAT/BP_WAT2.BP_WAT2_C" # with "/Game/FactoryGame/Prototype/WAT/BP_MercerShrine.BP_MercerShrine_C"
+MERCER_SPHERE = "/Game/FactoryGame/Prototype/WAT/BP_WAT2.BP_WAT2_C"
+MERCER_SHRINE = "/Game/FactoryGame/Prototype/WAT/BP_MercerShrine.BP_MercerShrine_C"
 
 # 89 hard drives (alternate recipes & inflated pocket dimention)
 UNLOCK_PATHS__HARD_DRIVES = (
@@ -3628,10 +3629,10 @@ if __name__ == '__main__':
                dumpOut.write(f"    {object}\n")
                progressBar.add()
             for collectable in collectables1:
-               dumpOut.write(f"    Collectable2: {collectable}\n")
+               dumpOut.write(f"    Collectable1: {collectable}\n")
                progressBar.add()
             for collectable in collectables2:
-               dumpOut.write(f"    Collectable4: {collectable}\n")
+               dumpOut.write(f"    Collectable2: {collectable}\n")
                progressBar.add()
          progressBar.complete()
 
@@ -3644,7 +3645,7 @@ if __name__ == '__main__':
                      if actorOrComponentObjectHeader.typePath == SOMERSLOOP:
                         # scale=(1.600000023841858, 1.600000023841858, 1.600000023841858)
                         somersloopOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}),\n')
-            somersloopOut.write("}\n")
+            somersloopOut.write("} # SOMERSLOOPS\n")
 
          with open(mercerSphereOutputFilename, "w") as mercerSphereOut:
             mercerSphereOut.write("# Exported from Satisfactory \n")
@@ -3655,7 +3656,15 @@ if __name__ == '__main__':
                      if actorOrComponentObjectHeader.typePath == MERCER_SPHERE:
                         # scale=(2.700000047683716, 2.6999998092651367, 2.6999998092651367)
                         mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}),\n')
-            mercerSphereOut.write("}\n")
+            mercerSphereOut.write("} # MERCER_SPHERES\n")
+            mercerSphereOut.write("MERCER_SHRINES = {\n")
+            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+                  if isinstance(actorOrComponentObjectHeader, ActorHeader):
+                     if actorOrComponentObjectHeader.typePath == MERCER_SHRINE:
+                        # scale=(1.0, 1.0, 1.0) or (0.8999999761581421, 0.8999999761581421, 0.8999999761581421)
+                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}, {actorOrComponentObjectHeader.scale[1]}),\n')
+            mercerSphereOut.write("} # MERCER_SHRINES\n")
 
          with open(slugOutputFilename, "w") as slugOut:
 

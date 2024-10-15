@@ -673,8 +673,8 @@ def saveFile(saveFileInfo, headhex, grids, levels, outFilename):
    rdata.extend(data)
    progressBar.complete()
 
-   with open(f"{outFilename}-raw.txt", "wb") as fout:
-      fout.write(rdata)
+   #with open(f"{outFilename}-raw.txt", "wb") as fout:
+   #   fout.write(rdata)
 
    MAXIMUM_CHUNK_SIZE = 128 * 1024
 

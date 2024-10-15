@@ -22,6 +22,7 @@ import math
 import sav_parse
 import sav_to_resave
 import sav_data_somersloop
+import sav_data_mercerSphere
 import sav_data_free
 
 try:
@@ -174,6 +175,7 @@ def printUsage():
    print("   py sav_cli.py --import-hotbar <player-state-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --remember-username <player-state-num> <username-alias>")
    print()
 
@@ -994,6 +996,123 @@ if __name__ == '__main__':
 
       if not modifiedFlag:
          print("ERROR: All Somersloops already present.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--restore-mercer-spheres" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+      changeTimeFlag = True
+      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+
+         # For those items present in (both) collectables1 and collectables2, remove those,
+         # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            removeCollectables = []
+            for collectable in collectables1:
+               if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
+                  removeCollectables.append(collectable)
+                  print(f"Clearing removal of sphere {collectable.pathName}")
+               elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
+                  removeCollectables.append(collectable)
+                  print(f"Clearing removal of shrine {collectable.pathName}")
+            [collectables1.remove(x) for x in removeCollectables]
+
+            removeCollectables = []
+            for collectable in collectables2:
+               if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
+                  removeCollectables.append(collectable)
+
+                  instanceName = collectable.pathName
+                  (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[collectable.pathName]
+
+                  newActor = sav_parse.ActorHeader()
+                  newActor.typePath = sav_parse.MERCER_SPHERE
+                  newActor.rootObject = rootObject
+                  newActor.instanceName = instanceName
+                  newActor.needTransform = 0
+                  newActor.rotation = rotation
+                  newActor.position = position
+                  newActor.scale = (2.700000047683716, 2.6999998092651367, 2.6999998092651367)
+                  newActor.wasPlacedInLevel = 1
+                  newActor.validFlag = True
+                  actorAndComponentObjectHeaders.append(newActor)
+
+                  newObject = sav_parse.Object()
+                  newObject.instanceName = instanceName
+                  newObject.objectGameVersion = 46
+                  newObject.flag = 0
+                  nullParentObjectReference = sav_parse.ObjectReference()
+                  nullParentObjectReference.levelName = ""
+                  nullParentObjectReference.pathName = ""
+                  nullParentObjectReference.validFlag = True
+                  newObject.actorReferenceAssociations = (nullParentObjectReference, [])
+                  newObject.properties    = []
+                  newObject.propertyTypes = []
+                  newObject.actorSpecificInfo = None
+                  newObject.validFlag = True
+                  objects.append(newObject)
+
+                  modifiedFlag = True
+                  print(f"Restored Mercer Sphere {instanceName} at {position}")
+
+               elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
+                  removeCollectables.append(collectable)
+
+                  instanceName = collectable.pathName
+                  (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[collectable.pathName]
+
+                  newActor = sav_parse.ActorHeader()
+                  newActor.typePath = sav_parse.MERCER_SHRINE
+                  newActor.rootObject = rootObject
+                  newActor.instanceName = instanceName
+                  newActor.needTransform = 0
+                  newActor.rotation = rotation
+                  newActor.position = position
+                  newActor.scale = (scale, scale, scale)
+                  newActor.wasPlacedInLevel = 1
+                  newActor.validFlag = True
+                  actorAndComponentObjectHeaders.append(newActor)
+
+                  newObject = sav_parse.Object()
+                  newObject.instanceName = instanceName
+                  newObject.objectGameVersion = 46
+                  newObject.flag = 0
+                  nullParentObjectReference = sav_parse.ObjectReference()
+                  nullParentObjectReference.levelName = ""
+                  nullParentObjectReference.pathName = ""
+                  nullParentObjectReference.validFlag = True
+                  newObject.actorReferenceAssociations = (nullParentObjectReference, [])
+                  newObject.properties    = []
+                  newObject.propertyTypes = []
+                  newObject.actorSpecificInfo = None
+                  newObject.validFlag = True
+                  objects.append(newObject)
+
+                  modifiedFlag = True
+                  print(f"Restored Mercer Shrine {instanceName} at {position}")
+            [collectables2.remove(x) for x in removeCollectables]
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: All Mercer Spheres already present.", file=sys.stderr)
          exit(1)
 
       try:
