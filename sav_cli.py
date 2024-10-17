@@ -226,7 +226,7 @@ if __name__ == '__main__':
             if len(sys.argv) == 4:
                savFilename = sys.argv[3]
                try:
-                  (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+                  (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
                   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
                      for collectable in collectables1:
                         if collectable.pathName in droppedInstances:
@@ -265,7 +265,7 @@ if __name__ == '__main__':
    elif len(sys.argv) == 3 and sys.argv[1] == "--list-players" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
             playerName = getPlayerName(levels, characterPlayer)
@@ -280,7 +280,7 @@ if __name__ == '__main__':
       playerId = sys.argv[2]
       savFilename = sys.argv[3]
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
 
          playerInventory = None
@@ -323,7 +323,7 @@ if __name__ == '__main__':
       savFilename = sys.argv[3]
       outFilename = sys.argv[4]
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
 
          playerInventory = None
@@ -380,7 +380,7 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
 
          playerInventory = None
@@ -431,7 +431,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -453,7 +453,7 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
 
          playerInventory = None
@@ -490,7 +490,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -506,7 +506,7 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
             for object in objects:
@@ -560,7 +560,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -574,7 +574,7 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
             for object in objects:
@@ -600,7 +600,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -610,7 +610,7 @@ if __name__ == '__main__':
       savFilename = sys.argv[3]
       outFilename = sys.argv[4]
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
 
          playerState = None
@@ -703,7 +703,7 @@ if __name__ == '__main__':
       addIndex = 3000000000  # This number is arbitrary.  What would be a better choice?
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
 
          #names = []
@@ -889,7 +889,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -904,7 +904,7 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
             for object in objects:
@@ -930,7 +930,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -944,7 +944,7 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
 
          # For those items present in (both) collectables1 and collectables2, remove those,
          # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
@@ -1003,7 +1003,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1017,7 +1017,7 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(savFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
 
          # For those items present in (both) collectables1 and collectables2, remove those,
          # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
@@ -1120,7 +1120,7 @@ if __name__ == '__main__':
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(outFilename)
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")

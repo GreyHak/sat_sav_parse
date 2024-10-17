@@ -637,7 +637,7 @@ def addLevel(level):
 
    return data
 
-def saveFile(saveFileInfo, headhex, grids, levels, outFilename):
+def saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename):
 
    data = bytearray()
    data.extend(addUint32(6))
@@ -666,7 +666,10 @@ def saveFile(saveFileInfo, headhex, grids, levels, outFilename):
       data.extend(addLevel(level))
       progressBar.add()
    data.extend(addUint32(0))
-   data.extend(addUint32(0))
+
+   data.extend(addUint32(len(extraMercerShrineList)))
+   for msLevelPathName in extraMercerShrineList:
+      data.extend(addObjectReference(msLevelPathName))
 
    rdata = bytearray()
    rdata.extend(addUint64(len(data))) # Length doesn't include the length itself even if the length is called compressed data length and the length is itself compressed.
@@ -738,9 +741,9 @@ if __name__ == '__main__':
    outFilename = sys.argv[2]
 
    print("Parsing save file")
-   (saveFileInfo, headhex, grids, levels) = sav_parse.readFullSaveFile(inFilename)
+   (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(inFilename)
 
    print("Recreating save file")
-   saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+   saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
 
    exit(0)

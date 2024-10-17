@@ -3407,10 +3407,12 @@ class ProgressBar():
       # Loosely based on imbr's (https://stackoverflow.com/users/1207193/imbr) code at https://stackoverflow.com/questions/3160699/python-progress-bar
       filled = int(round(self.current / self.total * self.width))
       if filled != self.prior:
-         print(f"{self.prefix}[{self.fillColor}{self.fillChar*filled}{self.emptyColor}{(self.emptyChar*(self.width-filled))}{self.resetColor}]   {round(self.current)}/{self.total}", end='\r', flush=True)
+         if sys.stdout.isatty():
+            print(f"{self.prefix}[{self.fillColor}{self.fillChar*filled}{self.emptyColor}{(self.emptyChar*(self.width-filled))}{self.resetColor}]   {round(self.current)}/{self.total}", end='\r', flush=True)
          self.prior = filled
    def complete(self):
-      print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
+      if sys.stdout.isatty():
+         print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
 
 def decompressSaveFile(offset, data):
    decompressedData = b""
@@ -3538,7 +3540,13 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
       data += b"\x00\x00\x00\x00"
 
    offset = confirmBasicType(offset, data, parseUint32, 0)
-   offset = confirmBasicType(offset, data, parseUint32, 0)
+
+   (offset, extraMercerShrineCount) = parseUint32(offset, data)
+   extraMercerShrineList = []
+   for idx in range(extraMercerShrineCount):
+      # Persistent_Level:PersistentLevel.BP_MercerShrine_C_*
+      (offset, msLevelPathName) = parseObjectReference(offset, data)
+      extraMercerShrineList.append(msLevelPathName)
 
    if skippedCollectableGroup1Flag:
       print("Skipped collectable group 1", file=sys.stderr)
@@ -3547,7 +3555,7 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
    progressBar.complete()
 
-   return (saveFileInfo, (headhex1, headhex2), grids, levels)
+   return (saveFileInfo, (headhex1, headhex2), grids, levels, extraMercerShrineList)
 
 def readSaveFileInfo(filename):
    with open(filename, "rb") as fin:
@@ -3602,7 +3610,7 @@ if __name__ == '__main__':
          exit(1)
       dumpOut.write("\n=== Full File ===\n")
       try:
-         (saveFileInfo, headhex, grids, levels) = readFullSaveFile(savFilename, decompressedOutputFilename)
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = readFullSaveFile(savFilename, decompressedOutputFilename)
          dumpOut.write("Successfully parsed save file\n\n")
 
          dumpOut.write(str(saveFileInfo))
@@ -3635,6 +3643,10 @@ if __name__ == '__main__':
                dumpOut.write(f"    Collectable2: {collectable}\n")
                progressBar.add()
          progressBar.complete()
+
+         dumpOut.write("\nAdditional object references:\n")
+         for msLevelPathName in extraMercerShrineList:
+            dumpOut.write(f"  {msLevelPathName}\n")
 
          with open(somersloopOutputFilename, "w") as somersloopOut:
             somersloopOut.write("# Exported from Satisfactory \n")
