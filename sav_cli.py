@@ -176,6 +176,7 @@ def printUsage():
    print("   py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --show-blueprints <save-filename>")
    print("   py sav_cli.py --remember-username <player-state-num> <username-alias>")
    print()
 
@@ -1124,6 +1125,35 @@ if __name__ == '__main__':
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 3 and sys.argv[1] == "--show-blueprints" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              print(f"=== Category: {categoryName} ===")
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       print(f"   --- Subcategory: {subCategoryName} ---")
+                                       for blueprintName in blueprintNames:
+                                          print(f"      {blueprintName}")
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--remember-username":
       playerId = sys.argv[2]

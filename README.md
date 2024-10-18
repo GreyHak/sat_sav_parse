@@ -46,8 +46,8 @@ Usage:
   - `py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --show-blueprints <save-filename>`
   - `py sav_cli.py --remember-username <player-state-num> <username-alias>`
-  - `py sav_cli.py --remember-username  <player-state-num> <username-alias>`
 
 if `--find-free-stuff` is used inconjunction with `sav_to_html.py` and a blank
 map, it will generate a map of all the locations for the specified item.
