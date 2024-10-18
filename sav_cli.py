@@ -1125,7 +1125,7 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
-   elif len(sys.argv) == 4 and sys.argv[1] == "-remember-username":
+   elif len(sys.argv) == 4 and sys.argv[1] == "--remember-username":
       playerId = sys.argv[2]
       playerUsername = sys.argv[3]
 
