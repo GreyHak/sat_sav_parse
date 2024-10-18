@@ -176,8 +176,12 @@ def printUsage():
    print("   py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
-   print("   py sav_cli.py --show-blueprints <save-filename>")
    print("   py sav_cli.py --remember-username <player-state-num> <username-alias>")
+   print("   py sav_cli.py --blueprint --show <save-filename>")
+   print("   py sav_cli.py --blueprint --add-category <category> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --add-subcategory <category> <subcategory> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --add-blueprint <category> <subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --remove-category <category> <original-save-filename> <new-save-filename> [--same-time]")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -198,7 +202,7 @@ if __name__ == '__main__':
       with open(USERNAME_FILENAME, "r") as fin:
          playerUsernames = json.load(fin)
 
-   if len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help"):
+   if len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help")):
       printUsage()
 
    elif len(sys.argv) in (2, 3, 4) and sys.argv[1] == "--find-free-stuff" and (len(sys.argv) < 4 or os.path.isfile(sys.argv[3])):
@@ -430,7 +434,7 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
@@ -489,7 +493,7 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
@@ -559,7 +563,7 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
@@ -599,7 +603,7 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
@@ -888,7 +892,7 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
@@ -929,7 +933,7 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
@@ -1002,7 +1006,7 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
@@ -1119,15 +1123,33 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, outFilename)
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
-   elif len(sys.argv) == 3 and sys.argv[1] == "--show-blueprints" and os.path.isfile(sys.argv[2]):
-      savFilename = sys.argv[2]
+   elif len(sys.argv) == 4 and sys.argv[1] == "--remember-username":
+      playerId = sys.argv[2]
+      playerUsername = sys.argv[3]
+
+      if len(playerUsername) == 0:
+         if playerId in playerUsernames:
+            print(f"Removing '{playerUsernames[playerId]}' for {playerId}")
+            del playerUsernames[playerId]
+      else:
+         if playerId in playerUsernames:
+            print(f"Replacing '{playerUsernames[playerId]}' with '{playerUsername}' for {playerId}")
+         else:
+            print(f"Setting '{playerUsername}' for {playerId}")
+         playerUsernames[playerId] = playerUsername
+
+      with open(USERNAME_FILENAME, "w") as fout:
+         json.dump(playerUsernames, fout, indent=2)
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--show" and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[3]
 
       try:
          (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
@@ -1155,23 +1177,191 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
-   elif len(sys.argv) == 4 and sys.argv[1] == "--remember-username":
-      playerId = sys.argv[2]
-      playerUsername = sys.argv[3]
+   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--add-category" and os.path.isfile(sys.argv[4]):
+      category = sys.argv[3]
+      savFilename = sys.argv[4]
+      outFilename = sys.argv[5]
+      changeTimeFlag = True
+      if len(sys.argv) == 7 and sys.argv[6] == "--same-time":
+         changeTimeFlag = False
 
-      if len(playerUsername) == 0:
-         if playerId in playerUsernames:
-            print(f"Removing '{playerUsernames[playerId]}' for {playerId}")
-            del playerUsernames[playerId]
-      else:
-         if playerId in playerUsernames:
-            print(f"Replacing '{playerUsernames[playerId]}' with '{playerUsername}' for {playerId}")
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     blueprintCategoryRecords.append(([('CategoryName', category), ('IconID', -1), ('MenuPriority', 0.0), ('IsUndefined', False), ('SubCategoryRecords', [([('SubCategoryName', 'Undefined'), ('MenuPriority', 0.0), ('IsUndefined', 1), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)])])], [('CategoryName', 'StrProperty', 0), ('IconID', 'IntProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'BoolProperty', 0), ('SubCategoryRecords', ('ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'), 0)]))
+                     modifiedFlag = True
+                     break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find blueprint category records to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (7, 8) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--add-subcategory" and os.path.isfile(sys.argv[5]):
+      categoryToAddIn = sys.argv[3]
+      subcategory = sys.argv[4]
+      savFilename = sys.argv[5]
+      outFilename = sys.argv[6]
+      changeTimeFlag = True
+      if len(sys.argv) == 8 and sys.argv[7] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None and categoryName == categoryToAddIn:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              subCategoryRecords.append(([('SubCategoryName', subcategory), ('MenuPriority', 0.0), ('IsUndefined', 0), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)]))
+                              modifiedFlag = True
+                           break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print(f"ERROR: Failed to find category '{categoryToAddIn}' to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (8, 9) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--add-blueprint" and os.path.isfile(sys.argv[6]):
+      categoryToAddIn = sys.argv[3]
+      subcategoryToAddIn = sys.argv[4]
+      blueprint = sys.argv[5]
+      savFilename = sys.argv[6]
+      outFilename = sys.argv[7]
+      changeTimeFlag = True
+      if len(sys.argv) == 9 and sys.argv[8] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None and categoryName == categoryToAddIn:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              print(f"=== Category: {categoryName} ===")
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None and subCategoryName == subcategoryToAddIn:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       blueprintNames.append(blueprint)
+                                       modifiedFlag = True
+                                    break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print(f"ERROR: Failed to find category '{categoryToAddIn}', subcategory '{subcategoryToAddIn}' to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--remove-category" and os.path.isfile(sys.argv[4]):
+      categoryToRemove = sys.argv[3]
+      savFilename = sys.argv[4]
+      outFilename = sys.argv[5]
+      changeTimeFlag = True
+      if len(sys.argv) == 7 and sys.argv[6] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      numberOfBlueprints = 0
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None and categoryName == categoryToRemove:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    numberOfBlueprints += len(blueprintNames)
+                           if numberOfBlueprints == 0:
+                              blueprintCategoryRecords.remove(category)
+                              modifiedFlag = True
+                           break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         if numberOfBlueprints == 0:
+            print(f"ERROR: Failed to find category '{categoryToRemove}' to remove.", file=sys.stderr)
          else:
-            print(f"Setting '{playerUsername}' for {playerId}")
-         playerUsernames[playerId] = playerUsername
+            print(f"ERROR: Category '{categoryToRemove}' contains {numberOfBlueprints} blueprints.  Must be empty to remove.", file=sys.stderr)
+         exit(1)
 
-      with open(USERNAME_FILENAME, "w") as fout:
-         json.dump(playerUsernames, fout, indent=2)
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    else:
       print(f"ERROR: Did not understand {len(sys.argv)} arguments: {sys.argv}", file=sys.stderr)
