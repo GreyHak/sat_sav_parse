@@ -48,13 +48,23 @@ Usage:
   - `py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --remember-username <player-state-num> <username-alias>`
   - `py sav_cli.py --blueprint --show <save-filename>`
+  - `py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --blueprint --export <save-filename> <output-json-filename>`
+  - `py sav_cli.py --blueprint --import <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --add-category <category> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --add-subcategory <category> <subcategory> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --add-blueprint <category> <subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --remove-category <category> <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --blueprint --remove-subcategory <category> <subcategory> <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --blueprint --remove-blueprint <category> <subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --blueprint --move-blueprint <old-category> <old-subcategory> <new-category> <new-subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --blueprint --reset <original-save-filename> <new-save-filename> [--same-time]`
 
-if `--find-free-stuff` is used inconjunction with `sav_to_html.py` and a blank
+If `--find-free-stuff` is used inconjunction with `sav_to_html.py` and a blank
 map, it will generate a map of all the locations for the specified item.
+
+With v1.0.0.4 release, there isn't much point to the `--blueprint --sort`
+operation since the game's reverse-sorting is performed on save-open time.
 
 ## sav_to_html.py
 

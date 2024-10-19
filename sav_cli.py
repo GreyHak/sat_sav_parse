@@ -35,6 +35,12 @@ except ModuleNotFoundError:
 VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
 
+def getBlankCategory(categoryName, iconId = -1):
+   return ([('CategoryName', categoryName), ('IconID', iconId), ('MenuPriority', 0.0), ('IsUndefined', False), ('SubCategoryRecords', [([('SubCategoryName', 'Undefined'), ('MenuPriority', 0.0), ('IsUndefined', 1), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)])])], [('CategoryName', 'StrProperty', 0), ('IconID', 'IntProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'BoolProperty', 0), ('SubCategoryRecords', ('ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'), 0)])
+
+def getBlankSubcategory(subcategoryName):
+   return ([('SubCategoryName', subcategoryName), ('MenuPriority', 0.0), ('IsUndefined', 0), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)])
+
 playerUsernames = {}
 
 def getPlayerPaths(levels):
@@ -98,6 +104,22 @@ def getPlayerName(levels, playerCharacter):
             if cachedPlayerName != None:
                return cachedPlayerName
    return None
+
+def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
+   for categoryIdx in range(len(blueprintCategoryRecords)):
+      category = blueprintCategoryRecords[categoryIdx]
+      for propertyIdx in range(len(category[0])):
+         if category[0][propertyIdx][0] == "MenuPriority":
+            # Must preserve the same propertyIdx because the property type is at this index
+            category[0][propertyIdx] = (category[0][propertyIdx][0], float(categoryIdx))
+      subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+      if subCategoryRecords != None:
+         for subcategoryIdx in range(len(subCategoryRecords)):
+            subcategory = subCategoryRecords[subcategoryIdx]
+            for propertyIdx in range(len(subcategory[0])):
+               if subcategory[0][propertyIdx][0] == "MenuPriority":
+                  # Must preserve the same propertyIdx because the property type is at this index
+                  subcategory[0][propertyIdx] = (subcategory[0][propertyIdx][0], float(subcategoryIdx))
 
 # Converts an sRGB component in hex to a luminance component (a linear measure of light)
 #def hexToLc(channel):
@@ -178,10 +200,17 @@ def printUsage():
    print("   py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --remember-username <player-state-num> <username-alias>")
    print("   py sav_cli.py --blueprint --show <save-filename>")
+   print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --blueprint --import <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --add-category <category> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --add-subcategory <category> <subcategory> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --add-blueprint <category> <subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --remove-category <category> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --remove-subcategory <category> <subcategory> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --remove-blueprint <category> <subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --move-blueprint <old-category> <old-subcategory> <new-category> <new-subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --blueprint --reset <original-save-filename> <new-save-filename> [--same-time]")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -327,6 +356,7 @@ if __name__ == '__main__':
       playerId = sys.argv[2]
       savFilename = sys.argv[3]
       outFilename = sys.argv[4]
+
       try:
          (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
@@ -358,11 +388,11 @@ if __name__ == '__main__':
                            else:
                               inventoryContents.append((itemName, item[1][1], item[0][1][1][0], item[0][1][1][1]))
 
+         with open(outFilename, "w") as fout:
+            json.dump(inventoryContents, fout, indent=2)
+
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
-
-      with open(outFilename, "w") as fout:
-         json.dump(inventoryContents, fout, indent=2)
 
    elif len(sys.argv) in (6, 7) and sys.argv[1] == "--import-player-inventory" and os.path.isfile(sys.argv[3]) and os.path.isfile(sys.argv[4]):
       playerId = sys.argv[2]
@@ -1162,23 +1192,212 @@ if __name__ == '__main__':
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
                         if categoryName != None:
+
+                           iconID = sav_parse.getPropertyValue(category[0], "IconID")
+                           if iconID == None:
+                              iconID = -1
+
+                           menuPriority = sav_parse.getPropertyValue(category[0], "MenuPriority")
+                           if menuPriority == None:
+                              menuPriority = 0.0
+
+                           isUndefined = sav_parse.getPropertyValue(category[0], "IsUndefined")
+                           if isUndefined == None:
+                              isUndefined = False
+
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
                            if subCategoryRecords != None:
-                              print(f"=== Category: {categoryName} ===")
+                              print(f"=== Category: {categoryName} === idx={menuPriority}, icon={iconID}, undefined={isUndefined}")
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
                                  if subCategoryName != None:
+
+                                    subMenuPriority = sav_parse.getPropertyValue(subcategory[0], "MenuPriority")
+                                    if subMenuPriority == None:
+                                       subMenuPriority = 0.0
+
+                                    subIsUndefined = sav_parse.getPropertyValue(subcategory[0], "IsUndefined")
+                                    if subIsUndefined == None:
+                                       subIsUndefined = False
+
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
                                     if blueprintNames != None:
-                                       print(f"   --- Subcategory: {subCategoryName} ---")
+                                       print(f"   --- Subcategory: {subCategoryName} --- idx={subMenuPriority}, undefined={subIsUndefined}")
                                        for blueprintName in blueprintNames:
                                           print(f"      {blueprintName}")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--sort" and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       blueprintNames.sort(reverse=False)
+                                       modifiedFlag = True
+
+                     if modifiedFlag:
+                        orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find subcategories to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 5 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--export" and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         categoryStructure = {}
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None:
+                           iconID = sav_parse.getPropertyValue(category[0], "IconID")
+                           if iconID == None:
+                              iconID = -1
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           subcategoryStructure = {}
+                           if subCategoryRecords != None:
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       subcategoryStructure[subCategoryName] = blueprintNames
+                           categoryStructure[categoryName] = {"Icon": iconID, "Subcategories": subcategoryStructure}
+
+         with open(outFilename, "w") as fout:
+            json.dump(categoryStructure, fout, indent=2)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--import" and os.path.isfile(sys.argv[3]) and os.path.isfile(sys.argv[4]):
+      savFilename = sys.argv[3]
+      inFilename = sys.argv[4]
+      outFilename = sys.argv[5]
+      changeTimeFlag = True
+      if len(sys.argv) == 7 and sys.argv[6] == "--same-time":
+         changeTimeFlag = False
+
+      with open(inFilename, "r") as fin:
+         categoryStructure = json.load(fin)
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+
+                     existingCategories = []
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None:
+                           existingCategories.append(categoryName)
+                     for categoryName in categoryStructure:
+                        if categoryName not in existingCategories:
+                           newCategory = getBlankCategory(categoryName, categoryStructure[categoryName]["Icon"])
+                           subCategoryRecords = sav_parse.getPropertyValue(newCategory[0], "SubCategoryRecords")
+                           del subCategoryRecords[0] # Remove blank categories "Undefined" subcategory
+                           blueprintCategoryRecords.append(newCategory)
+                           modifiedFlag = True
+
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None and categoryName in categoryStructure:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              subcategoryStructure = categoryStructure[categoryName]["Subcategories"]
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None and subCategoryName in subcategoryStructure:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       for blueprintName in blueprintNames:
+                                          if blueprintName in subcategoryStructure[subCategoryName]:
+                                             subcategoryStructure[subCategoryName].remove(blueprintName)
+                                       for blueprintName in subcategoryStructure[subCategoryName]:
+                                          blueprintNames.append(blueprintName)
+                                          modifiedFlag = True
+                                       del subcategoryStructure[subCategoryName]
+                              for subcategoryName in subcategoryStructure:
+                                 newSubcategory = getBlankSubcategory(subcategoryName)
+                                 blueprintNames = sav_parse.getPropertyValue(newSubcategory[0], "BlueprintNames")
+                                 for blueprintName in subcategoryStructure[subcategoryName]:
+                                    blueprintNames.append(blueprintName)
+                                 subCategoryRecords.append(newSubcategory)
+                                 modifiedFlag = True
+                              del categoryStructure[categoryName]
+
+                     if modifiedFlag:
+                        orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find blueprint category records to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
    elif len(sys.argv) in (6, 7) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--add-category" and os.path.isfile(sys.argv[4]):
-      category = sys.argv[3]
+      categoryToAdd = sys.argv[3]
       savFilename = sys.argv[4]
       outFilename = sys.argv[5]
       changeTimeFlag = True
@@ -1194,8 +1413,9 @@ if __name__ == '__main__':
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
                   if blueprintCategoryRecords != None:
-                     blueprintCategoryRecords.append(([('CategoryName', category), ('IconID', -1), ('MenuPriority', 0.0), ('IsUndefined', False), ('SubCategoryRecords', [([('SubCategoryName', 'Undefined'), ('MenuPriority', 0.0), ('IsUndefined', 1), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)])])], [('CategoryName', 'StrProperty', 0), ('IconID', 'IntProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'BoolProperty', 0), ('SubCategoryRecords', ('ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'), 0)]))
+                     blueprintCategoryRecords.append(getBlankCategory(categoryToAdd))
                      modifiedFlag = True
+                     orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
                      break
 
       except Exception as error:
@@ -1217,7 +1437,7 @@ if __name__ == '__main__':
 
    elif len(sys.argv) in (7, 8) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--add-subcategory" and os.path.isfile(sys.argv[5]):
       categoryToAddIn = sys.argv[3]
-      subcategory = sys.argv[4]
+      subcategoryToAdd = sys.argv[4]
       savFilename = sys.argv[5]
       outFilename = sys.argv[6]
       changeTimeFlag = True
@@ -1238,9 +1458,12 @@ if __name__ == '__main__':
                         if categoryName != None and categoryName == categoryToAddIn:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
                            if subCategoryRecords != None:
-                              subCategoryRecords.append(([('SubCategoryName', subcategory), ('MenuPriority', 0.0), ('IsUndefined', 0), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)]))
+                              subCategoryRecords.append(getBlankSubcategory(subcategoryToAdd))
                               modifiedFlag = True
                            break
+
+                     if modifiedFlag:
+                        orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -1343,6 +1566,9 @@ if __name__ == '__main__':
                               modifiedFlag = True
                            break
 
+                     if modifiedFlag:
+                        orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
+
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
@@ -1351,6 +1577,213 @@ if __name__ == '__main__':
             print(f"ERROR: Failed to find category '{categoryToRemove}' to remove.", file=sys.stderr)
          else:
             print(f"ERROR: Category '{categoryToRemove}' contains {numberOfBlueprints} blueprints.  Must be empty to remove.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (7, 8) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--remove-subcategory" and os.path.isfile(sys.argv[5]):
+      categoryToRemoveIn = sys.argv[3]
+      subcategoryToRemove = sys.argv[4]
+      savFilename = sys.argv[5]
+      outFilename = sys.argv[6]
+      changeTimeFlag = True
+      if len(sys.argv) == 8 and sys.argv[7] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      numberOfBlueprints = 0
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None and categoryName == categoryToRemoveIn:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None and subCategoryName == subcategoryToRemove:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       numberOfBlueprints = len(blueprintNames)
+                                       if numberOfBlueprints == 0:
+                                          subCategoryRecords.remove(subcategory)
+                                          modifiedFlag = True
+                                    break
+
+                     if modifiedFlag:
+                        orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         if numberOfBlueprints == 0:
+            print(f"ERROR: Failed to find category '{categoryToRemove}', subcategory '{subcategoryToRemove}' to remove.", file=sys.stderr)
+         else:
+            print(f"ERROR: Subcategory '{subcategoryToRemove}' contains {numberOfBlueprints} blueprints.  Must be empty to remove.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (8, 9) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--remove-blueprint" and os.path.isfile(sys.argv[6]):
+      categoryToRemoveIn = sys.argv[3]
+      subcategoryToRemoveIn = sys.argv[4]
+      blueprintToRemove = sys.argv[5]
+      savFilename = sys.argv[6]
+      outFilename = sys.argv[7]
+      changeTimeFlag = True
+      if len(sys.argv) == 9 and sys.argv[8] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None and categoryName == categoryToRemoveIn:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None and subCategoryName == subcategoryToRemoveIn:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       if blueprintToRemove in blueprintNames:
+                                          blueprintNames.remove(blueprintToRemove)
+                                          modifiedFlag = True
+                                    break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find blueprint '{blueprintToRemove}' to remove.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (10, 11) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--move-blueprint" and os.path.isfile(sys.argv[8]):
+      oldCategory = sys.argv[3]
+      oldSubcategory = sys.argv[4]
+      newCategory = sys.argv[5]
+      newSubcategory = sys.argv[6]
+      blueprintToMove = sys.argv[7]
+      savFilename = sys.argv[8]
+      outFilename = sys.argv[9]
+      changeTimeFlag = True
+      if len(sys.argv) == 11 and sys.argv[10] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedCount = 0
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     for category in blueprintCategoryRecords:
+                        categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
+                        if categoryName != None and categoryName == oldCategory:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None and subCategoryName == oldSubcategory:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       if blueprintToMove in blueprintNames:
+                                          blueprintNames.remove(blueprintToMove)
+                                          modifiedCount += 1
+                        if categoryName != None and categoryName == newCategory:
+                           subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
+                           if subCategoryRecords != None:
+                              for subcategory in subCategoryRecords:
+                                 subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
+                                 if subCategoryName != None and subCategoryName == newSubcategory:
+                                    blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
+                                    if blueprintNames != None:
+                                       blueprintNames.append(blueprintToMove)
+                                       modifiedCount += 1
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if modifiedCount != 2:
+         print("ERROR: Failed to move blueprint.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--blueprint" and sys.argv[2] == "--reset" and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
+                  blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
+                  if blueprintCategoryRecords != None:
+                     blueprintCategoryRecords[:] = []
+                     modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find blueprint category records to modify.", file=sys.stderr)
          exit(1)
 
       try:
