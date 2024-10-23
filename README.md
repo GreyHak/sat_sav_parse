@@ -129,7 +129,7 @@ fame.
 Thanks go to the Wiki authors who documented the old, but still very helpful,
 v0.6.1.3 version of the save file format at
 [Satisfactory GG Wiki Save Files](https://satisfactory.wiki.gg/wiki/Save_files#Save_file_format).
-I updated the Satisfactory GG Wiki for v1.0.0.3 based on the information I
+I updated the Satisfactory GG Wiki for v1.0.0.4 based on the information I
 gained during creation of this tools.
 
 ## License

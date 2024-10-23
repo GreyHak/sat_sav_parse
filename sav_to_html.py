@@ -281,6 +281,7 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
       crashSitesUnopenedKeys = list(crashSiteInstances.keys())
       numOpenAndEmptyCrashSites = 0
       numOpenAndFullCrashSites = 0
+      crashSiteInventoryPathName = {}
 
       numMinedResources = 0
       minedResources = []
@@ -295,15 +296,16 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
             elif object.instanceName in crashSiteInstances:
                hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
                if hasBeenOpened != None and hasBeenOpened:
-                  hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
-                  hasBeenLooted = hasBeenLooted != None and hasBeenLooted
                   crashSitesUnopenedKeys.remove(object.instanceName)
+                  hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
+                  if hasBeenLooted == None:
+                     crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any any open, but unlooted droppods from Update 8 will be empty in v1.0.
+                     hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
                   if hasBeenLooted:
                      numOpenAndEmptyCrashSites += 1
-                  else:
+                  else: # This case has not been observed
                      numOpenAndFullCrashSites += 1
                      crashSitesOpenWithDrive.append(crashSiteInstances[object.instanceName])
-
             elif object.instanceName == "Persistent_Level:PersistentLevel.schematicManager":
                paidOffSchematics = sav_parse.getPropertyValue(object.properties, "mPaidOffSchematic")
                if paidOffSchematics != None:
@@ -334,6 +336,20 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
                         activeSchematicDescription = f"{activeSchematicDescription}</ul>\n"
                elif activeSchematicDescription != None:
                   activeSchematicDescription = f"{activeSchematicDescription}<p>\n"
+
+      for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+         for object in objects:
+            if object.instanceName in crashSiteInventoryPathName:
+               inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
+               if inventoryStacks != None:
+                  item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
+                  if item != None:
+                     if len(item) == 2 and isinstance(item[0], str):
+                        if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
+                           numOpenAndEmptyCrashSites -= 1
+                           numOpenAndFullCrashSites += 1
+                           # Use inventory object to get droppod object to get location
+                           crashSitesOpenWithDrive.append(crashSiteInstances[crashSiteInventoryPathName[object.instanceName]])
 
       creatingMapImagesFlag = pilAvailableFlag and os.path.isfile(MAP_BASENAME_BLANK)
 

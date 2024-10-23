@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
          if archivePath != None:
             saveFileInfo = sav_parse.readSaveFileInfo(savFilename)
-            archiveFilePath = f"{archivePath}/{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.sav"
+            archiveFilePath = os.path.join(archivePath, f"{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.sav")
             if not os.path.exists(archiveFilePath):
                print(f"Archiving save to {archiveFilePath}")
                shutil.copy2(savFilename, archiveFilePath)
