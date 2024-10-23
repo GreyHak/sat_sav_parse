@@ -625,9 +625,10 @@ def addLevel(level):
          dataOH.extend(addString(actorOrComponentObjectHeader.instanceName))
          dataOH.extend(addString(actorOrComponentObjectHeader.parentActorName))
 
-   dataOH.extend(addUint32(len(collectables1)))
-   for levelPathName in collectables1:
-      dataOH.extend(addObjectReference(levelPathName))
+   if collectables1 != None:
+      dataOH.extend(addUint32(len(collectables1)))
+      for levelPathName in collectables1:
+         dataOH.extend(addObjectReference(levelPathName))
 
    dataObj = bytearray()
    dataObj.extend(addUint32(len(objects)))

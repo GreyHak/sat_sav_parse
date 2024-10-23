@@ -2335,7 +2335,6 @@ MILESTONE_COSTS = {
    },
 }
 
-skippedCollectableGroup1Flag = False
 satisfactoryCalculatorInteractiveMapExtras = []
 
 class ParseError(Exception):
@@ -2948,15 +2947,13 @@ def parseLevel(offset, data, persistentLevelFlag = False, progressBar = None):
          progressBar.add()
 
    # Collectables #1
-   collectables1 = []
+   collectables1 = None
    if objectHeaderAndCollectable1Size != offset - objectHeaderAndCollectable1StartOffset:
+      collectables1 = []
       (offset, collectedCount1) = parseUint32(offset, data)
       for idx in range(collectedCount1):
          (offset, objectReference) = parseObjectReference(offset, data)
          collectables1.append(objectReference)
-   else:
-      global skippedCollectableGroup1Flag
-      skippedCollectableGroup1Flag = True
 
    if objectHeaderAndCollectable1Size != offset - objectHeaderAndCollectable1StartOffset:
       raise ParseError(f"Level actor/object size mismatch: expect={objectHeaderAndCollectable1Size} != actual={offset - objectHeaderAndCollectable1StartOffset}")
@@ -3494,8 +3491,6 @@ def pathNameToReadableName(name):
    return f"{name} ({originalName})"
 
 def readFullSaveFile(filename, decompressedOutputFilename = None):
-   global skippedCollectableGroup1Flag
-   skippedCollectableGroup1Flag = False
    global satisfactoryCalculatorInteractiveMapExtras
    satisfactoryCalculatorInteractiveMapExtras = []
 
@@ -3576,9 +3571,6 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
       (offset, msLevelPathName) = parseObjectReference(offset, data)
       extraMercerShrineList.append(msLevelPathName)
 
-   if skippedCollectableGroup1Flag:
-      print("Skipped collectable group 1", file=sys.stderr)
-
    if len(satisfactoryCalculatorInteractiveMapExtras) > 0:
       print(f"File suspected of having been saved by satisfactory-calculator.com/en/interactive-map for {len(satisfactoryCalculatorInteractiveMapExtras)} reasons.", file=sys.stderr)
 
@@ -3656,7 +3648,8 @@ if __name__ == '__main__':
                (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
                progressBarTotal += len(actorAndComponentObjectHeaders)
                progressBarTotal += len(objects)
-               progressBarTotal += len(collectables1)
+               if collectables1 != None:
+                  progressBarTotal += len(collectables1)
                progressBarTotal += len(collectables2)
             progressBar = ProgressBar(progressBarTotal, "      Dumping: ")
          dumpOut.write("\nLevels:\n")
@@ -3671,10 +3664,11 @@ if __name__ == '__main__':
                dumpOut.write(f"    {object}\n")
                if PROGRESS_BAR_ENABLE_DUMP:
                   progressBar.add()
-            for collectable in collectables1:
-               dumpOut.write(f"    Collectable1: {collectable}\n")
-               if PROGRESS_BAR_ENABLE_DUMP:
-                  progressBar.add()
+            if collectables1 != None:
+               for collectable in collectables1:
+                  dumpOut.write(f"    Collectable1: {collectable}\n")
+                  if PROGRESS_BAR_ENABLE_DUMP:
+                     progressBar.add()
             for collectable in collectables2:
                dumpOut.write(f"    Collectable2: {collectable}\n")
                if PROGRESS_BAR_ENABLE_DUMP:
@@ -3730,9 +3724,10 @@ if __name__ == '__main__':
             slugOut.write(f"# Num slugs: {numSlug}")
 
             for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               for collectable in collectables1:
-                  if collectable.pathName.startswith("Persistent_Level:PersistentLevel.BP_Crystal"):
-                     slugOut.write(f"COLLECTED: {collectable.pathName}\n")
+               if collectables1 != None:
+                  for collectable in collectables1:
+                     if collectable.pathName.startswith("Persistent_Level:PersistentLevel.BP_Crystal"):
+                        slugOut.write(f"COLLECTED: {collectable.pathName}\n")
 
          with open(droppedItemsOutputFilename, "w") as dropOut:
             items = {}

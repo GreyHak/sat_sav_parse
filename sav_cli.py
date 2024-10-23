@@ -263,9 +263,10 @@ if __name__ == '__main__':
                try:
                   (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
                   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-                     for collectable in collectables1:
-                        if collectable.pathName in droppedInstances:
-                           del droppedInstances[collectable.pathName]
+                     if collectables1 != None:
+                        for collectable in collectables1:
+                           if collectable.pathName in droppedInstances:
+                              del droppedInstances[collectable.pathName]
                except Exception as error:
                   raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
@@ -986,10 +987,11 @@ if __name__ == '__main__':
          # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for collectable in collectables1:
-               if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
-                  collectables1.remove(collectable)
-                  print(f"Clearing removal of {collectable.pathName}")
+            if collectables1 != None:
+               for collectable in collectables1:
+                  if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
+                     collectables1.remove(collectable)
+                     print(f"Clearing removal of {collectable.pathName}")
             for collectable in collectables2:
                if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
                   collectables2.remove(collectable)
@@ -1059,15 +1061,16 @@ if __name__ == '__main__':
          # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            removeCollectables = []
-            for collectable in collectables1:
-               if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
-                  removeCollectables.append(collectable)
-                  print(f"Clearing removal of sphere {collectable.pathName}")
-               elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
-                  removeCollectables.append(collectable)
-                  print(f"Clearing removal of shrine {collectable.pathName}")
-            [collectables1.remove(x) for x in removeCollectables]
+            if collectables1 != None:
+               removeCollectables = []
+               for collectable in collectables1:
+                  if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
+                     removeCollectables.append(collectable)
+                     print(f"Clearing removal of sphere {collectable.pathName}")
+                  elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
+                     removeCollectables.append(collectable)
+                     print(f"Clearing removal of shrine {collectable.pathName}")
+               [collectables1.remove(x) for x in removeCollectables]
 
             removeCollectables = []
             for collectable in collectables2:

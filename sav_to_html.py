@@ -261,20 +261,21 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
                   for (name, position) in wireInstances[0][0]:
                      if name == "Locations":
                         wireLines.append((powerLines[object.instanceName], position))
-         for collectable in collectables1:  # Quantity should match collectables2
-            if collectable.pathName in uncollectedPowerSlugsBlue:
-               numCollectedSlugsMk1 += 1
-               del uncollectedPowerSlugsBlue[collectable.pathName]
-            if collectable.pathName in uncollectedPowerSlugsYellow:
-               numCollectedSlugsMk2 += 1
-               del uncollectedPowerSlugsYellow[collectable.pathName]
-            if collectable.pathName in uncollectedPowerSlugsPurple:
-               numCollectedSlugsMk3 += 1
-               del uncollectedPowerSlugsPurple[collectable.pathName]
-            if collectable.pathName in uncollectedSomersloops:
-               del uncollectedSomersloops[collectable.pathName]
-            if collectable.pathName in uncollectedMercerSpheres:
-               del uncollectedMercerSpheres[collectable.pathName]
+         if collectables1 != None:
+            for collectable in collectables1:  # Quantity should match collectables2
+               if collectable.pathName in uncollectedPowerSlugsBlue:
+                  numCollectedSlugsMk1 += 1
+                  del uncollectedPowerSlugsBlue[collectable.pathName]
+               if collectable.pathName in uncollectedPowerSlugsYellow:
+                  numCollectedSlugsMk2 += 1
+                  del uncollectedPowerSlugsYellow[collectable.pathName]
+               if collectable.pathName in uncollectedPowerSlugsPurple:
+                  numCollectedSlugsMk3 += 1
+                  del uncollectedPowerSlugsPurple[collectable.pathName]
+               if collectable.pathName in uncollectedSomersloops:
+                  del uncollectedSomersloops[collectable.pathName]
+               if collectable.pathName in uncollectedMercerSpheres:
+                  del uncollectedMercerSpheres[collectable.pathName]
 
       crashSitesOpenWithDrive = []
       crashSitesUnopenedKeys = list(crashSiteInstances.keys())
