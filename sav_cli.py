@@ -211,6 +211,7 @@ def printUsage():
    print("   py sav_cli.py --blueprint --remove-blueprint <category> <subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --move-blueprint <old-category> <old-subcategory> <new-category> <new-subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --reset <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --resave-only <original-save-filename> <new-save-filename>")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -1789,6 +1790,23 @@ if __name__ == '__main__':
       try:
          if changeTimeFlag:
             saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--resave-only" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      try:
          sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraMercerShrineList, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(outFilename)

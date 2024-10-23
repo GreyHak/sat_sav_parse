@@ -59,6 +59,7 @@ Usage:
   - `py sav_cli.py --blueprint --remove-blueprint <category> <subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --move-blueprint <old-category> <old-subcategory> <new-category> <new-subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --reset <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --resave-only <original-save-filename> <new-save-filename>`
 
 If `--find-free-stuff` is used inconjunction with `sav_to_html.py` and a blank
 map, it will generate a map of all the locations for the specified item.
