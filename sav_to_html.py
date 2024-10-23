@@ -352,8 +352,8 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
       playTimeHours = int(saveFileInfo.playDurationInSeconds / SECONDS_IN_HOUR)
       playTimeMinutes = (saveFileInfo.playDurationInSeconds - playTimeHours * SECONDS_IN_HOUR) / SECONDS_IN_MINUTE
       lines += f'Play Time: {playTimeHours} hours, {round(playTimeMinutes,1)} minutes<p style="margin-bottom:0px">\n'
-      if sav_parse.satisfactoryCalculatorInteractiveMapFlag:
-         lines += 'File suspected of having been saved by satisfactory-calculator.com/en/interactive-map.<p style="margin-bottom:0px">\n'
+      if len(sav_parse.satisfactoryCalculatorInteractiveMapExtras):
+         lines += f'File suspected of having been saved by satisfactory-calculator.com/en/interactive-map for {len(sav_parse.satisfactoryCalculatorInteractiveMapExtras)} reasons.<p style="margin-bottom:0px">\n'
 
       lines += f'Game Phase: {gamePhase}<p style="margin-bottom:0px">\n'
 

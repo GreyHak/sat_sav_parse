@@ -2336,7 +2336,7 @@ MILESTONE_COSTS = {
 }
 
 skippedCollectableGroup1Flag = False
-satisfactoryCalculatorInteractiveMapFlag = False
+satisfactoryCalculatorInteractiveMapExtras = []
 
 class ParseError(Exception):
     pass
@@ -2356,8 +2356,6 @@ def parseUint8(offset, data):
 def parseInt32(offset, data):
    nextOffset = offset + 4
    if nextOffset > len(data):
-      if satisfactoryCalculatorInteractiveMapFlag:
-         return (nextOffset, 0)
       raise ParseError(f"Offset {offset} too large for int32 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<i", data[offset:nextOffset])[0])
 
@@ -2815,9 +2813,9 @@ class Object:
             offset = confirmBasicType(offset, data, parseUint32, 0)
 
       if offset < offsetStartThis + objectSize: # Items here for save files saved by satisfactory-calculator.com/en/interactive-map
-         global satisfactoryCalculatorInteractiveMapFlag
-         satisfactoryCalculatorInteractiveMapFlag = True
+         global satisfactoryCalculatorInteractiveMapExtras
          if isinstance(actorOrComponentObjectHeader, ActorHeader):
+            satisfactoryCalculatorInteractiveMapExtras.append(actorOrComponentObjectHeader.typePath)
             if actorOrComponentObjectHeader.typePath in (
                   "/Script/FactoryGame.FGBlueprintProxy",
                   "/Script/FactoryGame.FGCentralStorageSubsystem",
@@ -2840,6 +2838,7 @@ class Object:
                   "/Script/FactoryGame.FGWorldSettings"):
                offset = confirmBasicType(offset, data, parseUint32, 0)
          else: # ComponentHeader
+            satisfactoryCalculatorInteractiveMapExtras.append(actorOrComponentObjectHeader.className)
             if actorOrComponentObjectHeader.className in (
                   "/Script/FactoryGame.FGBlueprintShortcut",
                   "/Script/FactoryGame.FGEmoteShortcut",
@@ -3497,8 +3496,8 @@ def pathNameToReadableName(name):
 def readFullSaveFile(filename, decompressedOutputFilename = None):
    global skippedCollectableGroup1Flag
    skippedCollectableGroup1Flag = False
-   global satisfactoryCalculatorInteractiveMapFlag
-   satisfactoryCalculatorInteractiveMapFlag = False
+   global satisfactoryCalculatorInteractiveMapExtras
+   satisfactoryCalculatorInteractiveMapExtras = []
 
    data = readCompressedSaveFile(filename)
    saveFileInfo = SaveFileInfo()
@@ -3561,14 +3560,14 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
    for idx in range(levelCount):
       (offset, level) = parseLevel(offset, data, False, progressBar)
       levels.append(level)
-   (offset, level) = parseLevel(offset, data, True, progressBar) # Potentially sets the global satisfactoryCalculatorInteractiveMapFlag
+   (offset, level) = parseLevel(offset, data, True, progressBar) # Potentially sets the global satisfactoryCalculatorInteractiveMapExtras
    levels.append(level)
 
-   if satisfactoryCalculatorInteractiveMapFlag:
-      print("File suspected of having been saved by satisfactory-calculator.com/en/interactive-map", file=sys.stderr)
-      data += b"\x00\x00\x00\x00"
-
    offset = confirmBasicType(offset, data, parseUint32, 0)
+
+   if offset == len(data):
+      satisfactoryCalculatorInteractiveMapExtras.append("Missing final array count") # This can cause the input save file to lose content
+      data += b"\x00\x00\x00\x00"
 
    (offset, extraMercerShrineCount) = parseUint32(offset, data)
    extraMercerShrineList = []
@@ -3579,6 +3578,9 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
 
    if skippedCollectableGroup1Flag:
       print("Skipped collectable group 1", file=sys.stderr)
+
+   if len(satisfactoryCalculatorInteractiveMapExtras) > 0:
+      print(f"File suspected of having been saved by satisfactory-calculator.com/en/interactive-map for {len(satisfactoryCalculatorInteractiveMapExtras)} reasons.", file=sys.stderr)
 
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
