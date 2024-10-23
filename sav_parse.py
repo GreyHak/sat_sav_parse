@@ -2619,22 +2619,20 @@ class Object:
             for idx in range(count):
                (offset, levelPathName) = parseObjectReference(offset, data)
                self.actorSpecificInfo.append(levelPathName)
-         elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C":
-            if trailingByteSize == 14:
-               offset = confirmBasicType(offset, data, parseUint32, 526065, "Player state first 32-bit integer")
-               offset = confirmBasicType(offset, data, parseUint8, 0, "Player state first 8-bit integer")
-               offset = confirmBasicType(offset, data, parseUint8, 0, "Player state second 8-bit integer")
-               (offset, h) = parseUint32(offset, data)
-               offset = confirmBasicType(offset, data, parseUint32, 0x1100001, "Player state last 32-bit integer") # 17825793
-               self.actorSpecificInfo = h
-            elif trailingByteSize == 1:
-               (offset, b) = parseInt8(offset, data)
-               self.actorSpecificInfo = b
+         elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C": # Format very similar to ClientIdentityInfo
+            (offset, playerStateType) = parseUint8(offset, data)
+            if trailingByteSize == 1 and playerStateType == 3:
+               self.actorSpecificInfo = playerStateType
+            elif playerStateType == 241: # = 0xF1
+               (offset, clientType) = parseUint8(offset, data) # Seen 1 or 6 (Maybe 1=Epic 6=Steam)
+               (offset, clientSize) = parseUint32(offset, data)
+               clientData = data[offset:offset+clientSize]
+               offset += clientSize
+               self.actorSpecificInfo = (clientType, clientData)
             else:
-               # Looks like data was 11 bytes in a prior or single-player version.  Data seemed random, and was consistent from save to save.  Did not appear to match code online.
                self.actorSpecificInfo = data[offset:offset+trailingByteSize]
                print(f"TO DO: Unexpected player state size {trailingByteSize} now allows greater parse testing: 0x{self.actorSpecificInfo.hex(',')}", file=sys.stderr)
-               offset = TESTING_ONLY_dumpData(offset, data, trailingByteSize, "BP_PlayerState")
+               offset += trailingByteSize
          elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Buildable/Factory/DroneStation/BP_DroneTransport.BP_DroneTransport_C":
             self.actorSpecificInfo = data[offset:offset+trailingByteSize]
             offset += trailingByteSize
@@ -3307,14 +3305,14 @@ def parseProperties(offset, data):
          elif structPropertyType == "DateTime":
             (offset, value) = parseInt64(offset, data)
             properties.append((propertyName, value))
-         elif structPropertyType == "ClientIdentityInfo":
-            (offset, vs) = parseString(offset, data)
+         elif structPropertyType == "ClientIdentityInfo": # Format very similar to BP_PlayerState_C
+            (offset, clientUuid) = parseString(offset, data)
             offset = confirmBasicType(offset, data, parseUint32, 1)
-            offset = confirmBasicType(offset, data, parseUint8, 6)
-            offset = confirmBasicType(offset, data, parseUint32, 8)
-            (offset, h) = parseUint32(offset, data)
-            offset = confirmBasicType(offset, data, parseUint32, 0x1100001) # 17825793
-            properties.append((propertyName, (vs, h)))
+            (offset, clientType) = parseUint8(offset, data) # Seen 1 or 6 (Maybe 1=Epic 6=Steam)
+            (offset, clientSize) = parseUint32(offset, data)
+            clientData = data[offset:offset+clientSize]
+            offset += clientSize
+            properties.append((propertyName, (clientUuid, clientType, clientData)))
          elif structPropertyType in (
                "BlueprintRecord",
                "BoomBoxPlayerState",
@@ -3324,6 +3322,7 @@ def parseProperties(offset, data):
                "FactoryCustomizationColorSlot",
                "FactoryCustomizationData",
                "InventoryStack",
+               "InventoryToRespawnWith",
                "LightSourceControlData",
                "MapMarker",
                "PersistentGlobalIconId", # 20240915\SatisFaction_20240915-002433.sav

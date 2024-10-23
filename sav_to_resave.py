@@ -329,13 +329,12 @@ def addProperties(properties, propertyTypes):
                         case "DateTime":
                            dataProp.extend(addInt64(propertyValue))
                         case "ClientIdentityInfo":
-                           (vs, h) = propertyValue
-                           dataProp.extend(addString(vs))
+                           (clientUuid, clientType, clientData) = propertyValue
+                           dataProp.extend(addString(clientUuid))
                            dataProp.extend(addUint32(1))
-                           dataProp.extend(addUint8(6))
-                           dataProp.extend(addUint32(8))
-                           dataProp.extend(addUint32(h))
-                           dataProp.extend(addUint32(0x1100001)) # 17825793
+                           dataProp.extend(addUint8(clientType))
+                           dataProp.extend(addUint32(len(clientData)))
+                           dataProp.extend(clientData)
                         case structPropertyType if structPropertyType in (
                               "BlueprintRecord",
                               "BoomBoxPlayerState",
@@ -345,6 +344,7 @@ def addProperties(properties, propertyTypes):
                               "FactoryCustomizationColorSlot",
                               "FactoryCustomizationData",
                               "InventoryStack",
+                              "InventoryToRespawnWith",
                               "LightSourceControlData",
                               "MapMarker",
                               "PersistentGlobalIconId", # 20240915\SatisFaction_20240915-002433.sav
@@ -437,11 +437,13 @@ def addObject(object, actorOrComponentObjectHeader):
             dataTrailing.extend(addObjectReference(objectReference))
       elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C":
          if isinstance(object.actorSpecificInfo, int):
-            dataTrailing.extend(addUint32(526065))
-            dataTrailing.extend(addUint8(0))
-            dataTrailing.extend(addUint8(0))
-            dataTrailing.extend(addUint32(object.actorSpecificInfo))
-            dataTrailing.extend(addUint32(0x1100001))
+            dataTrailing.extend(addUint8(object.actorSpecificInfo))
+         elif isinstance(object.actorSpecificInfo, tuple):
+            (clientType, clientData) = object.actorSpecificInfo
+            dataTrailing.extend(addUint8(241))
+            dataTrailing.extend(addUint8(clientType))
+            dataTrailing.extend(addUint32(len(clientData)))
+            dataTrailing.extend(clientData)
          elif isinstance(object.actorSpecificInfo, bytes):
             dataTrailing.extend(object.actorSpecificInfo)
          else:
