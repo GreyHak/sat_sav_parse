@@ -220,6 +220,7 @@ def addProperties(properties, propertyTypes):
                                        "FactoryCustomizationColorSlot",
                                        "FeetOffset",
                                        "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
+                                       "FGDroneFuelRuntimeData",
                                        "GCheckmarkUnlockData",
                                        "GlobalColorPreset",
                                        "HardDriveData",
@@ -484,7 +485,7 @@ def addObject(object, actorOrComponentObjectHeader):
             dataTrailing.extend(addUint32(0))
             dataTrailing.extend(addString(buildItemPathName))
             dataTrailing.extend(addUint32(len(lightweightBuildableInstances)))
-            for (rotationQuaternion, position, swatchPathName, (primaryColor, secondaryColor), recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
+            for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), maybeIndex, recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
                for xyzw in rotationQuaternion:
                   dataTrailing.extend(addDouble(xyzw))
                for xyz in position:
@@ -493,14 +494,18 @@ def addObject(object, actorOrComponentObjectHeader):
                   dataTrailing.extend(addDouble(1.0))
                dataTrailing.extend(addUint32(0))
                dataTrailing.extend(addString(swatchPathName))
-               for idx in range(6):
-                  dataTrailing.extend(addFloat(0.0))
+               for idx in range(3):
+                  dataTrailing.extend(addUint32(0))
+               dataTrailing.extend(addString(patternDescNumber))
+               dataTrailing.extend(addUint32(0))
+               dataTrailing.extend(addUint32(0))
                for component in primaryColor:
                   dataTrailing.extend(addFloat(component))
                for component in secondaryColor:
                   dataTrailing.extend(addFloat(component))
-               for idx in range(3):
-                  dataTrailing.extend(addFloat(0.0))
+               dataTrailing.extend(addUint32(0))
+               dataTrailing.extend(addUint32(0))
+               dataTrailing.extend(addUint32(maybeIndex))
                dataTrailing.extend(addUint8(0))
                dataTrailing.extend(addString(recipePathName))
                dataTrailing.extend(addObjectReference(blueprintProxyLevelPath))
@@ -544,6 +549,7 @@ def addObject(object, actorOrComponentObjectHeader):
             dataTrailing.extend(addUint32(0))
    else:
       if actorOrComponentObjectHeader.className in (
+            "/Script/FactoryGame.FGDroneMovementComponent",
             "/Script/FactoryGame.FGFactoryConnectionComponent",
             "/Script/FactoryGame.FGFactoryLegsComponent",
             "/Script/FactoryGame.FGHealthComponent",

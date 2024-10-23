@@ -2708,24 +2708,32 @@ class Object:
 
                   (offset, swatchPathName) = parseString(offset, data)
 
-                  for ldx in range(6):
-                     offset = confirmBasicType(offset, data, parseFloat, 0)
+                  for ldx in range(3):
+                     offset = confirmBasicType(offset, data, parseUint32, 0)
+
+                  (offset, patternDescNumber) = parseString(offset, data)
+                  offset = confirmBasicType(offset, data, parseUint32, 0)
+                  offset = confirmBasicType(offset, data, parseUint32, 0)
+
                   primaryColor = []
                   for ldx in range(4):
                      (offset, value) = parseFloat(offset, data)
                      primaryColor.append(value)
+
                   secondaryColor = []
                   for ldx in range(4):
                      (offset, value) = parseFloat(offset, data)
                      secondaryColor.append(value)
-                  for ldx in range(3):
-                     offset = confirmBasicType(offset, data, parseFloat, 0)
+
+                  offset = confirmBasicType(offset, data, parseUint32, 0)
+                  offset = confirmBasicType(offset, data, parseUint32, 0)
+                  (offset, maybeIndex) = parseUint32(offset, data) # seen 0-4
                   offset = confirmBasicType(offset, data, parseUint8, 0)
 
                   (offset, recipePathName) = parseString(offset, data)
                   (offset, blueprintProxyLevelPath) = parseObjectReference(offset, data)
 
-                  lightweightBuildableInstances.append((rotationQuaternion, position, swatchPathName, (primaryColor, secondaryColor), recipePathName, blueprintProxyLevelPath))
+                  lightweightBuildableInstances.append((rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), maybeIndex, recipePathName, blueprintProxyLevelPath))
 
                self.actorSpecificInfo.append((buildItemPathName, lightweightBuildableInstances))
          elif actorOrComponentObjectHeader.typePath in (
@@ -2789,6 +2797,7 @@ class Object:
                self.actorSpecificInfo = False
       else: # ComponentHeader
          if actorOrComponentObjectHeader.className in (
+               "/Script/FactoryGame.FGDroneMovementComponent", # Nothern_Forest_20232627_191024-123703.sav
                "/Script/FactoryGame.FGFactoryConnectionComponent",
                "/Script/FactoryGame.FGFactoryLegsComponent",
                "/Script/FactoryGame.FGHealthComponent",
@@ -3197,6 +3206,7 @@ def parseProperties(offset, data):
                      "FactoryCustomizationColorSlot",
                      "FeetOffset",
                      "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
+                     "FGDroneFuelRuntimeData", # Nothern_Forest_20232627_191024-123703.sav
                      "GCheckmarkUnlockData",
                      "GlobalColorPreset",
                      "HardDriveData",
