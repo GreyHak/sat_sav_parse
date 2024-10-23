@@ -2791,6 +2791,12 @@ class Object:
                offset = confirmBasicType(offset, data, parseUint32, 0)
             else:
                self.actorSpecificInfo = False
+         elif actorOrComponentObjectHeader.typePath in ( # Only observed in modded save
+               "/AB_CableMod/Cables_Heavy/Build_AB-PLHeavy-Cu.Build_AB-PLHeavy-Cu_C",
+               "/FlexSplines/Conveyor/Build_Belt2.Build_Belt2_C",
+               "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C"):
+            self.actorSpecificInfo = data[offset:offset+trailingByteSize]
+            offset += trailingByteSize
       else: # ComponentHeader
          if actorOrComponentObjectHeader.className in (
                "/Script/FactoryGame.FGDroneMovementComponent", # Nothern_Forest_20232627_191024-123703.sav
@@ -3170,19 +3176,21 @@ def parseProperties(offset, data):
             offset = confirmBasicType(offset, data, parseUint32, 0)
             offset = confirmBasicType(offset, data, parseUint8, 0)
             structStartOffset = offset
-            for jdx in range(arrayCount):
-               if structElementType == "LinearColor":
+            if structElementType == "LinearColor":
+               for jdx in range(arrayCount):
                   (offset, r) = parseFloat(offset, data)
                   (offset, g) = parseFloat(offset, data)
                   (offset, b) = parseFloat(offset, data)
                   (offset, a) = parseFloat(offset, data)
                   values.append((r, g, b, a))
-               elif structElementType == "Vector":
+            elif structElementType == "Vector":
+               for jdx in range(arrayCount):
                   (offset, x) = parseDouble(offset, data)
                   (offset, y) = parseDouble(offset, data)
                   (offset, z) = parseDouble(offset, data)
                   values.append((x, y, z))
-               elif structElementType == "SpawnData":
+            elif structElementType == "SpawnData":
+               for jdx in range(arrayCount):
                   (offset, name) = parseString(offset, data)
                   offset = confirmBasicType(offset, data, parseString, "ObjectProperty")
                   (offset, spawnDataSize) = parseUint32(offset, data)
@@ -3194,46 +3202,58 @@ def parseProperties(offset, data):
                      raise ParseError(f"Unexpected spawn data size. diff={offset - spawnDataStartOffset - spawnDataSize} type={propertyType}")
                   (offset, prop, propTypes) = parseProperties(offset, data)
                   values.append((name, levelPathName, prop, propTypes))
-               elif structElementType in (
-                     "BlueprintCategoryRecord",
-                     "BlueprintSubCategoryRecord",
-                     "DroneTripInformation",
-                     "FactoryCustomizationColorSlot",
-                     "FeetOffset",
-                     "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
-                     "FGDroneFuelRuntimeData", # Nothern_Forest_20232627_191024-123703.sav
-                     "GCheckmarkUnlockData",
-                     "GlobalColorPreset",
-                     "HardDriveData",
-                     "HighlightedMarkerPair",
-                     "Hotbar",
-                     "InventoryStack",
-                     "ItemAmount",
-                     "MapMarker",
-                     "MessageData",
-                     "MiniGameResult",
-                     "PhaseCost",
-                     "PrefabIconElementSaveData",
-                     "PrefabTextElementSaveData",
-                     "ProjectAssemblyLaunchSequenceValue",
-                     "ResearchData",
-                     "ResearchTime",
-                     "ResourceSinkHistory",
-                     "ScannableObjectData",
-                     "ScannableResourcePair",
-                     "SchematicCost",
-                     "ShoppingListBlueprintEntry",
-                     "ShoppingListClassEntry",
-                     "ShoppingListRecipeEntry",
-                     "SplinePointData",
-                     "SplitterSortRule",
-                     "SubCategoryMaterialDefault",
-                     "TimeTableStop",
-                     "WireInstance"):
+            elif structElementType in ("ConnectionData", "BuildingConnection"): # Only observed in modded save
+               values.append(data[offset:offset+structSize])
+               while len(values) < arrayCount:
+                  values.append(None)
+               offset += structSize
+            elif structElementType in (
+                  "BlueprintCategoryRecord",
+                  "BlueprintSubCategoryRecord",
+                  "DroneTripInformation",
+                  "FactoryCustomizationColorSlot",
+                  "FeetOffset",
+                  "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
+                  "FGDroneFuelRuntimeData", # Nothern_Forest_20232627_191024-123703.sav
+                  "GCheckmarkUnlockData",
+                  "GlobalColorPreset",
+                  "HardDriveData",
+                  "HighlightedMarkerPair",
+                  "Hotbar",
+                  "InventoryStack",
+                  "ItemAmount",
+                  "MapMarker",
+                  "MessageData",
+                  "MiniGameResult",
+                  "PhaseCost",
+                  "PrefabIconElementSaveData",
+                  "PrefabTextElementSaveData",
+                  "ProjectAssemblyLaunchSequenceValue",
+                  "ResearchData",
+                  "ResearchTime",
+                  "ResourceSinkHistory",
+                  "ScannableObjectData",
+                  "ScannableResourcePair",
+                  "SchematicCost",
+                  "ShoppingListBlueprintEntry",
+                  "ShoppingListClassEntry",
+                  "ShoppingListRecipeEntry",
+                  "SplinePointData",
+                  "SplitterSortRule",
+                  "SubCategoryMaterialDefault",
+                  "TimeTableStop",
+                  "WireInstance",
+                  "ManagedSignConnectionSettings", # Only observed in modded save
+                  "SignComponentData",             # Only observed in modded save
+                  "SignComponentVariableData",     # Only observed in modded save
+                  "SignComponentVariableMetaData", # Only observed in modded save
+                  "SwatchGroupData",               # Only observed in modded save
+                  ):
+               for jdx in range(arrayCount):
                   (offset, prop, propTypes) = parseProperties(offset, data)
                   values.append((prop, propTypes))
-               else:
-                  raise ParseError(f"Unsupported StructProperty structElementType '{structElementType}'")
+            else:
+               raise ParseError(f"Unsupported StructProperty structElementType '{structElementType}'")
             if structSize != offset - structStartOffset:
                raise ParseError(f"Unexpected StructProperty size. diff={offset - structStartOffset - structSize} type={propertyType}")
          else:
@@ -3313,6 +3333,9 @@ def parseProperties(offset, data):
             clientData = data[offset:offset+clientSize]
             offset += clientSize
             properties.append((propertyName, (clientUuid, clientType, clientData)))
+         elif structPropertyType == "SignComponentEditorMetadata": # Only observed in modded save
+            properties.append((propertyName, data[offset:offset+propertySize]))
+            offset += propertySize
          elif structPropertyType in (
                "BlueprintRecord",
                "BoomBoxPlayerState",
@@ -3335,7 +3358,10 @@ def parseProperties(offset, data):
                "TrainDockingRuleSet",
                "TrainSimulationData",
                "Transform",
-               "Vector_NetQuantize"):
+               "Vector_NetQuantize",
+               "BuildingConnections", # Only observed in modded save
+               "ManagedSignData",     # Only observed in modded save
+               ):
             (offset, prop, propTypes) = parseProperties(offset, data)
             properties.append((propertyName, (prop, propTypes)))
          else:
@@ -3378,6 +3404,8 @@ def parseProperties(offset, data):
                (offset, mapValue) = parseInt64(offset, data)
             elif valueType == "ByteProperty":
                (offset, mapValue) = parseUint8(offset, data)
+            elif valueType == "ObjectProperty": # Only observed in modded save
+               (offset, mapValue) = parseObjectReference(offset, data)
             else:
                raise ParseError(f"Unsupported map valueType {valueType}")
 
@@ -3596,7 +3624,7 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
 
 def readSaveFileInfo(filename):
    with open(filename, "rb") as fin:
-      data = fin.read(2048) # 400 should be good enough
+      data = fin.read() # 400 should be good enough for non-modded.  Needs to be 6k+ for modMetadata
    saveFileInfo = SaveFileInfo()
    offset = saveFileInfo.parse(data)
    return saveFileInfo

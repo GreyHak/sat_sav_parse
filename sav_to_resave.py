@@ -190,20 +190,22 @@ def addProperties(properties, propertyTypes):
                         case "StructProperty":
                            dataStruct = bytearray()
                            structElementType = propertyType[2]
-                           for value in propertyValue:
-                              match structElementType:
-                                 case "LinearColor":
+                           match structElementType:
+                              case "LinearColor":
+                                 for value in propertyValue:
                                     (r, g, b, a) = value
                                     dataStruct.extend(addFloat(r))
                                     dataStruct.extend(addFloat(g))
                                     dataStruct.extend(addFloat(b))
                                     dataStruct.extend(addFloat(a))
-                                 case "Vector":
+                              case "Vector":
+                                 for value in propertyValue:
                                     (x, y, z) = value
                                     dataStruct.extend(addDouble(x))
                                     dataStruct.extend(addDouble(y))
                                     dataStruct.extend(addDouble(z))
-                                 case "SpawnData":
+                              case "SpawnData":
+                                 for value in propertyValue:
                                     (name, levelPathName, prop, propTypes) = value
                                     dataSpawn = addObjectReference(levelPathName)
                                     dataStruct.extend(addString(name))
@@ -213,46 +215,55 @@ def addProperties(properties, propertyTypes):
                                     dataStruct.extend(addUint8(0))
                                     dataStruct.extend(dataSpawn)
                                     dataStruct.extend(addProperties(prop, propTypes))
-                                 case structElementType if structElementType in (
-                                       "BlueprintCategoryRecord",
-                                       "BlueprintSubCategoryRecord",
-                                       "DroneTripInformation",
-                                       "FactoryCustomizationColorSlot",
-                                       "FeetOffset",
-                                       "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
-                                       "FGDroneFuelRuntimeData",
-                                       "GCheckmarkUnlockData",
-                                       "GlobalColorPreset",
-                                       "HardDriveData",
-                                       "HighlightedMarkerPair",
-                                       "Hotbar",
-                                       "InventoryStack",
-                                       "ItemAmount",
-                                       "MapMarker",
-                                       "MessageData",
-                                       "MiniGameResult",
-                                       "PhaseCost",
-                                       "PrefabIconElementSaveData",
-                                       "PrefabTextElementSaveData",
-                                       "ProjectAssemblyLaunchSequenceValue",
-                                       "ResearchData",
-                                       "ResearchTime",
-                                       "ResourceSinkHistory",
-                                       "ScannableObjectData",
-                                       "ScannableResourcePair",
-                                       "SchematicCost",
-                                       "ShoppingListBlueprintEntry",
-                                       "ShoppingListClassEntry",
-                                       "ShoppingListRecipeEntry",
-                                       "SplinePointData",
-                                       "SplitterSortRule",
-                                       "SubCategoryMaterialDefault",
-                                       "TimeTableStop",
-                                       "WireInstance"):
+                              case structElementType if structElementType in ("ConnectionData", "BuildingConnection"):
+                                 dataStruct.extend(propertyValue[0])
+                              case structElementType if structElementType in (
+                                    "BlueprintCategoryRecord",
+                                    "BlueprintSubCategoryRecord",
+                                    "DroneTripInformation",
+                                    "FactoryCustomizationColorSlot",
+                                    "FeetOffset",
+                                    "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
+                                    "FGDroneFuelRuntimeData",
+                                    "GCheckmarkUnlockData",
+                                    "GlobalColorPreset",
+                                    "HardDriveData",
+                                    "HighlightedMarkerPair",
+                                    "Hotbar",
+                                    "InventoryStack",
+                                    "ItemAmount",
+                                    "MapMarker",
+                                    "MessageData",
+                                    "MiniGameResult",
+                                    "PhaseCost",
+                                    "PrefabIconElementSaveData",
+                                    "PrefabTextElementSaveData",
+                                    "ProjectAssemblyLaunchSequenceValue",
+                                    "ResearchData",
+                                    "ResearchTime",
+                                    "ResourceSinkHistory",
+                                    "ScannableObjectData",
+                                    "ScannableResourcePair",
+                                    "SchematicCost",
+                                    "ShoppingListBlueprintEntry",
+                                    "ShoppingListClassEntry",
+                                    "ShoppingListRecipeEntry",
+                                    "SplinePointData",
+                                    "SplitterSortRule",
+                                    "SubCategoryMaterialDefault",
+                                    "TimeTableStop",
+                                    "WireInstance",
+                                    "ManagedSignConnectionSettings", # Only observed in modded save
+                                    "SignComponentData",             # Only observed in modded save
+                                    "SignComponentVariableData",     # Only observed in modded save
+                                    "SignComponentVariableMetaData", # Only observed in modded save
+                                    "SwatchGroupData",               # Only observed in modded save
+                                    ):
+                                 for value in propertyValue:
                                     (prop, propTypes) = value
                                     dataStruct.extend(addProperties(prop, propTypes))
-                                 case _:
-                                    raise Exception(f"ERROR: Unknown structElementType '{structElementType}'")
+                              case _:
+                                 raise Exception(f"ERROR: Unknown structElementType '{structElementType}'")
 
                            dataProp.extend(addString(propertyName))
                            dataProp.extend(addString("StructProperty"))
@@ -335,6 +346,8 @@ def addProperties(properties, propertyTypes):
                            dataProp.extend(addUint8(clientType))
                            dataProp.extend(addUint32(len(clientData)))
                            dataProp.extend(clientData)
+                        case "SignComponentEditorMetadata": # Only observed in modded save
+                           dataProp.extend(propertyValue)
                         case structPropertyType if structPropertyType in (
                               "BlueprintRecord",
                               "BoomBoxPlayerState",
@@ -357,7 +370,10 @@ def addProperties(properties, propertyTypes):
                               "TrainDockingRuleSet",
                               "TrainSimulationData",
                               "Transform",
-                              "Vector_NetQuantize"):
+                              "Vector_NetQuantize",
+                              "BuildingConnections", # Only observed in modded save
+                              "ManagedSignData",     # Only observed in modded save
+                              ):
                            (prop, propTypes) = propertyValue
                            dataProp.extend(addProperties(prop, propTypes))
                         case _:
@@ -395,6 +411,8 @@ def addProperties(properties, propertyTypes):
                               dataProp.extend(addInt64(mapValue))
                            case "ByteProperty":
                               dataProp.extend(addUint8(mapValue))
+                           case "ObjectProperty":
+                              dataProp.extend(addObjectReference(mapValue))
                            case _:
                               raise Exception(f"ERROR: Unknown MapProperty valueType '{valueType}'")
                   case _:
@@ -549,6 +567,11 @@ def addObject(object, actorOrComponentObjectHeader):
       elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGItemPickup_Spawnable":
          if object.actorSpecificInfo:
             dataTrailing.extend(addUint32(0))
+      elif actorOrComponentObjectHeader.typePath in ( # Only observed in modded save
+            "/AB_CableMod/Cables_Heavy/Build_AB-PLHeavy-Cu.Build_AB-PLHeavy-Cu_C",
+            "/FlexSplines/Conveyor/Build_Belt2.Build_Belt2_C",
+            "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C"):
+         dataTrailing.extend(object.actorSpecificInfo)
    else:
       if actorOrComponentObjectHeader.className in (
             "/Script/FactoryGame.FGDroneMovementComponent",

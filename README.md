@@ -132,6 +132,11 @@ v0.6.1.3 version of the save file format at
 I updated the Satisfactory GG Wiki for v1.0.0.4 based on the information I
 gained during creation of this tools.
 
+Thanks to
+[robison4th](https://github.com/robison4th) and
+[JP Eagles and Katz](https://www.youtube.com/channel/UCgIwAJga0I6i68bWfwPdj1w)
+for sharing their save files to allow for expanded support.
+
 ## License
 
 This program is free software: you can redistribute it and/or modify
