@@ -278,7 +278,10 @@ def addProperties(properties, propertyTypes):
                            (itemName, itemProperties) = propertyValue
                            dataProp.extend(addUint32(0))
                            dataProp.extend(addString(itemName))
-                           if itemProperties == None:
+                           if itemProperties == 1:
+                              dataProp.extend(addUint32(0))
+                           elif itemProperties == 2:
+                              dataProp.extend(addUint32(0))
                               dataProp.extend(addUint32(0))
                            else:
                               dataProp.extend(addUint32(1))
@@ -503,6 +506,7 @@ def addObject(object, actorOrComponentObjectHeader):
                dataTrailing.extend(addObjectReference(blueprintProxyLevelPath))
       elif actorOrComponentObjectHeader.typePath in (
              "/Script/FactoryGame.FGConveyorChainActor",
+             "/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeMedium",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeLarge",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeHuge"):
@@ -535,6 +539,9 @@ def addObject(object, actorOrComponentObjectHeader):
             dataTrailing.extend(addString(itemPath))
             dataTrailing.extend(addUint32(0))
             dataTrailing.extend(addUint32(h))
+      elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGItemPickup_Spawnable":
+         if object.actorSpecificInfo:
+            dataTrailing.extend(addUint32(0))
    else:
       if actorOrComponentObjectHeader.className in (
             "/Script/FactoryGame.FGFactoryConnectionComponent",

@@ -2730,6 +2730,7 @@ class Object:
                self.actorSpecificInfo.append((buildItemPathName, lightweightBuildableInstances))
          elif actorOrComponentObjectHeader.typePath in (
                 "/Script/FactoryGame.FGConveyorChainActor",
+                "/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull",
                 "/Script/FactoryGame.FGConveyorChainActor_RepSizeMedium",
                 "/Script/FactoryGame.FGConveyorChainActor_RepSizeLarge",
                 "/Script/FactoryGame.FGConveyorChainActor_RepSizeHuge"):
@@ -2780,6 +2781,12 @@ class Object:
 
             # Note: Able to reconstruct starting and ending belts and the ConveyorChainActor is the same for all belts
             self.actorSpecificInfo = (levelPathName_conveyorChainActor, chainBelts, chainItems, cuint32, cint32a, cint32b, cint32c)
+         elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGItemPickup_Spawnable":
+            if trailingByteSize == 4:
+               self.actorSpecificInfo = True
+               offset = confirmBasicType(offset, data, parseUint32, 0)
+            else:
+               self.actorSpecificInfo = False
       else: # ComponentHeader
          if actorOrComponentObjectHeader.className in (
                "/Script/FactoryGame.FGFactoryConnectionComponent",
@@ -2810,7 +2817,6 @@ class Object:
                   "/Script/FactoryGame.FGDroneStationInfo",
                   "/Script/FactoryGame.FGFoliageRemovalSubsystem",
                   "/Script/FactoryGame.FGGameRulesSubsystem",
-                  "/Script/FactoryGame.FGItemPickup_Spawnable",
                   "/Script/FactoryGame.FGMapManager",
                   "/Script/FactoryGame.FGPipeNetwork",
                   "/Script/FactoryGame.FGPipeSubsystem",
@@ -3243,7 +3249,7 @@ def parseProperties(offset, data):
             offset = confirmBasicType(offset, data, parseUint32, 0)
             (offset, itemName) = parseString(offset, data)
             (offset, itemHasPropertiesFlag) = parseBool(offset, data, parseUint32, "StructProperty.InventoryItem.itemHasPropertiesFlag")
-            itemProperties = None
+            itemProperties = 1
             if itemHasPropertiesFlag:
                offset = confirmBasicType(offset, data, parseUint32, 0)
                (offset, typePath) = parseString(offset, data)
@@ -3253,6 +3259,9 @@ def parseProperties(offset, data):
                itemProperties = (typePath, prop, propTypes)
                if itemPropertySize != offset - itemPropertyStart:
                   raise ParseError(f"Unexpected InventoryItem size. diff={offset - itemPropertyStart - itemPropertySize}")
+            elif propertyStartOffset + propertySize - offset == 4: # Observed only in a v0.8-created save resaved in v1.0, but does not correlate to objectGameVersion. Some times itemName is empty, and sometimes not.
+               itemProperties = 2
+               offset = confirmBasicType(offset, data, parseUint32, 0)
             properties.append((propertyName, (itemName, itemProperties)))
          elif structPropertyType == "LinearColor":
             (offset, r) = parseFloat(offset, data)
