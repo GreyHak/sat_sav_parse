@@ -45,6 +45,10 @@ import zlib
 import glob
 import enum
 
+PROGRESS_BAR_ENABLE_DECOMPRESS = True
+PROGRESS_BAR_ENABLE_PARSE = True
+PROGRESS_BAR_ENABLE_DUMP = True
+
 class Purity(enum.Enum):
    UNKNOWN = 0
    IMPURE = 1
@@ -3416,7 +3420,8 @@ class ProgressBar():
 
 def decompressSaveFile(offset, data):
    decompressedData = b""
-   progressBar = ProgressBar(len(data), "Decompression: ")
+   if PROGRESS_BAR_ENABLE_DECOMPRESS:
+      progressBar = ProgressBar(len(data), "Decompression: ")
    while offset < len(data):
       offset = confirmBasicType(offset, data, parseUint32, 0x9e2a83c1)  # unrealEnginePackageSignature
       offset = confirmBasicType(offset, data, parseUint32, 0x22222222)
@@ -3441,9 +3446,11 @@ def decompressSaveFile(offset, data):
          raise ParseError(f"Decompression didn't return the expected amount return={len(dData)} != expected={currentChunkUncompressedLength1}")
       decompressedData += dData
       offset += currentChunkCompressedLength1
-      progressBar.set(offset)
+      if PROGRESS_BAR_ENABLE_DECOMPRESS:
+         progressBar.set(offset)
 
-   progressBar.complete()
+   if PROGRESS_BAR_ENABLE_DECOMPRESS:
+      progressBar.complete()
    return decompressedData
 
 def pathNameToReadableName(name):
@@ -3517,17 +3524,20 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
    levels = []
    (offset, levelCount) = parseUint32(offset, data)
 
-   totalLevelSize = 0
-   levelSizes = []
-   tmpOffset = offset
-   for idx in range(levelCount):
-      (tmpOffset, levelSize) = getLevelSize(tmpOffset, data)
+   if PROGRESS_BAR_ENABLE_PARSE:
+      totalLevelSize = 0
+      levelSizes = []
+      tmpOffset = offset
+      for idx in range(levelCount):
+         (tmpOffset, levelSize) = getLevelSize(tmpOffset, data)
+         totalLevelSize += levelSize
+         levelSizes.append(levelSize)
+      (tmpOffset, levelSize) = getLevelSize(tmpOffset, data, True)
       totalLevelSize += levelSize
       levelSizes.append(levelSize)
-   (tmpOffset, levelSize) = getLevelSize(tmpOffset, data, True)
-   totalLevelSize += levelSize
-   levelSizes.append(levelSize)
-   progressBar = ProgressBar(totalLevelSize, "      Parsing: ")
+      progressBar = ProgressBar(totalLevelSize, "      Parsing: ")
+   else:
+      progressBar = None
 
    for idx in range(levelCount):
       (offset, level) = parseLevel(offset, data, False, progressBar)
@@ -3553,7 +3563,8 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
 
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
-   progressBar.complete()
+   if PROGRESS_BAR_ENABLE_PARSE:
+      progressBar.complete()
 
    return (saveFileInfo, (headhex1, headhex2), grids, levels, extraMercerShrineList)
 
@@ -3618,31 +3629,37 @@ if __name__ == '__main__':
          for grid in grids:
             dumpOut.write(f"  {grid}\n")
 
-         progressBarTotal = 0
-         for level in levels:
-            (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
-            progressBarTotal += len(actorAndComponentObjectHeaders)
-            progressBarTotal += len(objects)
-            progressBarTotal += len(collectables1)
-            progressBarTotal += len(collectables2)
-         progressBar = ProgressBar(progressBarTotal, "      Dumping: ")
+         if PROGRESS_BAR_ENABLE_DUMP:
+            progressBarTotal = 0
+            for level in levels:
+               (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
+               progressBarTotal += len(actorAndComponentObjectHeaders)
+               progressBarTotal += len(objects)
+               progressBarTotal += len(collectables1)
+               progressBarTotal += len(collectables2)
+            progressBar = ProgressBar(progressBarTotal, "      Dumping: ")
          dumpOut.write("\nLevels:\n")
          for level in levels:
             (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
             dumpOut.write(f"  Level: {levelName}\n")
             for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
                dumpOut.write(f"    {actorOrComponentObjectHeader}\n")
-               progressBar.add()
+               if PROGRESS_BAR_ENABLE_DUMP:
+                  progressBar.add()
             for object in objects:
                dumpOut.write(f"    {object}\n")
-               progressBar.add()
+               if PROGRESS_BAR_ENABLE_DUMP:
+                  progressBar.add()
             for collectable in collectables1:
                dumpOut.write(f"    Collectable1: {collectable}\n")
-               progressBar.add()
+               if PROGRESS_BAR_ENABLE_DUMP:
+                  progressBar.add()
             for collectable in collectables2:
                dumpOut.write(f"    Collectable2: {collectable}\n")
-               progressBar.add()
-         progressBar.complete()
+               if PROGRESS_BAR_ENABLE_DUMP:
+                  progressBar.add()
+         if PROGRESS_BAR_ENABLE_DUMP:
+            progressBar.complete()
 
          dumpOut.write("\nAdditional object references:\n")
          for msLevelPathName in extraMercerShrineList:
