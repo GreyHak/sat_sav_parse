@@ -3607,8 +3607,8 @@ if __name__ == '__main__':
    if (len(sys.argv) <= 1 or len(sys.argv[1]) == 0) and os.path.isdir(".config/Epic/FactoryGame/Saved/SaveGames/server"):
       allSaveFiles = glob.glob(".config/Epic/FactoryGame/Saved/SaveGames/server/*.sav")
       savFilename = max(allSaveFiles, key=os.path.getmtime)
-   elif (len(sys.argv) <= 1 or len(sys.argv[1]) == 0) and "LOCALAPPDATA" in os.environ and os.path.isdir(f"{os.environ['LOCALAPPDATA']}/FactoryGame/Saved/SaveGames"):
-      allSaveFiles = glob.glob(f"{os.environ['LOCALAPPDATA']}/FactoryGame/Saved/SaveGames/*/*.sav")
+   elif (len(sys.argv) <= 1 or len(sys.argv[1]) == 0) and "LOCALAPPDATA" in os.environ and os.path.isdir(f"{os.environ['LOCALAPPDATA']}\\FactoryGame\\Saved\\SaveGames"):
+      allSaveFiles = glob.glob(f"{os.environ['LOCALAPPDATA']}\\FactoryGame\\Saved\\SaveGames\\*\\*.sav")
       savFilename = max(allSaveFiles, key=os.path.getmtime)
    elif len(sys.argv) <= 1:
       print("ERROR: Please supply save file path/name to perform parsing.", file=sys.stderr)
