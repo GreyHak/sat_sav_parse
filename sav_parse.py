@@ -48,6 +48,7 @@ import enum
 PROGRESS_BAR_ENABLE_DECOMPRESS = True
 PROGRESS_BAR_ENABLE_PARSE = True
 PROGRESS_BAR_ENABLE_DUMP = True
+PRINT_DEBUG = False
 
 class Purity(enum.Enum):
    UNKNOWN = 0
@@ -3571,13 +3572,26 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
       (offset, msLevelPathName) = parseObjectReference(offset, data)
       extraMercerShrineList.append(msLevelPathName)
 
-   if len(satisfactoryCalculatorInteractiveMapExtras) > 0:
-      print(f"File suspected of having been saved by satisfactory-calculator.com/en/interactive-map for {len(satisfactoryCalculatorInteractiveMapExtras)} reasons.", file=sys.stderr)
-
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
    if PROGRESS_BAR_ENABLE_PARSE:
       progressBar.complete()
+
+   if len(satisfactoryCalculatorInteractiveMapExtras) > 0:
+      print(f"File suspected of having been saved by satisfactory-calculator.com/en/interactive-map for {len(satisfactoryCalculatorInteractiveMapExtras)} reasons.", file=sys.stderr)
+
+   if PRINT_DEBUG:
+      countOfNoneCollectables1 = 0
+      emptyCollectables1 = 0
+      for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+         if collectables1 == None:
+            countOfNoneCollectables1 += 1
+         elif len(collectables1) == 0:
+            emptyCollectables1 += 1
+      if countOfNoneCollectables1 > 0:
+         print(f"Skipped {countOfNoneCollectables1} level collectables1 with {emptyCollectables1} empty collectables1")
+      if extraMercerShrineCount > 0:
+         print(f"extraMercerShrineCount={extraMercerShrineCount}")
 
    return (saveFileInfo, (headhex1, headhex2), grids, levels, extraMercerShrineList)
 
