@@ -345,7 +345,7 @@ if __name__ == '__main__':
 
                               extraInformation = item[0][1][1]
                               extraInformationStr = ""
-                              if extraInformation != None:
+                              if isinstance(extraInformation, tuple):
                                  # Jetpack:  ('/Script/FactoryGame.FGJetPackItemState', [('CurrentFuel', 1.0), ('CurrentFuelType', 2), ('SelectedFuelType', 0)], [('CurrentFuel', 'FloatProperty', 0), ('CurrentFuelType', 'IntProperty', 0), ('SelectedFuelType', 'IntProperty', 0)])
                                  # Chainsaw: ('/Script/FactoryGame.FGChainsawItemState', [('EnergyStored', 79.14283752441406)], [('EnergyStored', 'FloatProperty', 0)])
                                  extraInformationStr = f": {sav_parse.toString(extraInformation[1])}"
@@ -385,10 +385,10 @@ if __name__ == '__main__':
                            itemName = item[0][1][0]
                            if len(itemName) == 0:
                               inventoryContents.append(None)
-                           elif item[0][1][1] == None:
-                              inventoryContents.append((itemName, item[1][1]))
-                           else:
+                           elif isinstance(item[0][1][1], tuple):
                               inventoryContents.append((itemName, item[1][1], item[0][1][1][0], item[0][1][1][1]))
+                           else:
+                              inventoryContents.append((itemName, item[1][1]))
 
          with open(outFilename, "w") as fout:
             json.dump(inventoryContents, fout, indent=2)
@@ -438,12 +438,12 @@ if __name__ == '__main__':
                         if idx < len(inventoryContents):
                            print(f"Replacing {sav_parse.toString(inventoryStacks[idx][0])}")
                            if inventoryContents[idx] == None:
-                              inventoryStacks[idx][0][0] = ("Item", ("", None))
+                              inventoryStacks[idx][0][0] = ("Item", ("", 1))
                               inventoryStacks[idx][0][1] = ("NumItems", 0)
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to be Empty")
                            elif len(inventoryContents[idx]) == 2:
                               (itemPathName, itemQuantity) = inventoryContents[idx]
-                              inventoryStacks[idx][0][0] = ("Item", (itemPathName, None))
+                              inventoryStacks[idx][0][0] = ("Item", (itemPathName, 1))
                               inventoryStacks[idx][0][1] = ("NumItems", itemQuantity)
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to include {itemQuantity} x {sav_parse.pathNameToReadableName(itemPathName)}")
                            elif len(inventoryContents[idx]) == 4:
@@ -485,8 +485,19 @@ if __name__ == '__main__':
          changeTimeFlag = False
 
       if tweakItemName not in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
-         print(f"ERROR: {tweakItemName} not a valid item path name.")
-         exit(1)
+         for className in sav_parse.READABLE_PATH_NAME_CORRECTIONS:
+            if tweakItemName == sav_parse.READABLE_PATH_NAME_CORRECTIONS[className]:
+               suffixSearch = f".{className}"
+               for pathName in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
+                  if pathName.endswith(suffixSearch):
+                     print(f"Using '{pathName}' for {tweakItemName}")
+                     tweakItemName = pathName
+                     break
+               break
+
+         if tweakItemName not in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
+            print(f"ERROR: {tweakItemName} not a valid item path name.")
+            exit(1)
 
       modifiedFlag = False
       try:
@@ -510,7 +521,7 @@ if __name__ == '__main__':
                      for idx in range(len(inventoryStacks)):
                         if idx == tweakSlotIdx:
                            print(f"Replacing {sav_parse.toString(inventoryStacks[idx][0])}")
-                           inventoryStacks[idx][0][0] = ("Item", (tweakItemName, None))
+                           inventoryStacks[idx][0][0] = ("Item", (tweakItemName, 1))
                            inventoryStacks[idx][0][1] = ("NumItems", tweakQuantity)
                            print(f"Setting player {playerInventory}'s inventory slot {tweakSlotIdx} to include {tweakQuantity} x {sav_parse.pathNameToReadableName(tweakItemName)}")
                            modifiedFlag = True
