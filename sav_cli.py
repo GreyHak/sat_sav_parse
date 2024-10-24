@@ -55,7 +55,7 @@ def getPlayerPaths(levels):
          if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C":
             playerStateInstances.append(actorOrComponentObjectHeader.instanceName)
 
-   playerCharacterInstances = {}
+   playerCharacterInstances = {} # Looked up by playerCharacter for the playerState value
    for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
       for object in objects:
          if object.instanceName in playerStateInstances:
@@ -104,6 +104,9 @@ def getPlayerName(levels, playerCharacter):
             if cachedPlayerName != None:
                return cachedPlayerName
    return None
+
+def characterPlayerMatch(characterPlayer, playerId):
+   return characterPlayer == f"Persistent_Level:PersistentLevel.Char_Player_C_{playerId}"
 
 def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
    for categoryIdx in range(len(blueprintCategoryRecords)):
@@ -187,18 +190,18 @@ def printUsage():
    print("USAGE:")
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
-   print("   py sav_cli.py --list-player-inventory <player-state-num> <save-filename>")
-   print("   py sav_cli.py --export-player-inventory <player-state-num> <save-filename> <output-json-filename>")
-   print("   py sav_cli.py --import-player-inventory <player-state-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
-   print("   py sav_cli.py --tweak-player-inventory <player-state-num> <slot-index> <item> <quantity> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
+   print("   py sav_cli.py --export-player-inventory <player-num> <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --import-player-inventory <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --tweak-player-inventory <player-num> <slot-index> <item> <quantity> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --rotate-foundations <primary-color-hex-or-preset> <secondary-color-hex-or-preset> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --clear-fog <original-save-filename> <new-save-filename> [--same-time]")
-   print("   py sav_cli.py --export-hotbar <player-state-num> <save-filename> <output-json-filename>")
-   print("   py sav_cli.py --import-hotbar <player-state-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --export-hotbar <player-num> <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --import-hotbar <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
-   print("   py sav_cli.py --remember-username <player-state-num> <username-alias>")
+   print("   py sav_cli.py --remember-username <player-num> <username-alias>")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -306,9 +309,9 @@ if __name__ == '__main__':
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
             playerName = getPlayerName(levels, characterPlayer)
             if playerName == None:
-               print(playerStateInstanceName)
+               print(characterPlayer)
             else:
-               print(f"{playerStateInstanceName} ({playerName})")
+               print(f"{characterPlayer} ({playerName})")
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
@@ -321,7 +324,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if playerId in playerStateInstanceName:
+            if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
          if playerInventory == None:
@@ -365,7 +368,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if playerId in playerStateInstanceName:
+            if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
          if playerInventory == None:
@@ -422,7 +425,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if playerId in playerStateInstanceName:
+            if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
          if playerInventory == None:
@@ -506,7 +509,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if playerId in playerStateInstanceName:
+            if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
          if playerInventory == None:
@@ -664,7 +667,7 @@ if __name__ == '__main__':
          playerState = None
          playerCharacter = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if playerId in playerStateInstanceName:
+            if characterPlayerMatch(characterPlayer, playerId):
                playerState = playerStateInstanceName
                playerCharacter = characterPlayer
 
@@ -768,7 +771,7 @@ if __name__ == '__main__':
          playerState = None
          playerCharacter = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if playerId in playerStateInstanceName:
+            if characterPlayerMatch(characterPlayer, playerId):
                playerState = playerStateInstanceName
                playerCharacter = characterPlayer
 
