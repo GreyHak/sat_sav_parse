@@ -2468,7 +2468,7 @@ class SaveFileInfo:
       offset = confirmBasicType(offset, data, parseUint32, 1)
       (offset, random1) = parseUint64(offset, data)
       (offset, random2) = parseUint64(offset, data)
-      self.random = (random1, random2)
+      self.random = [random1, random2]
       (offset, self.cheatFlag) = parseBool(offset, data, parseUint32, "SaveFileInfo.cheatFlag")
 
       self.validFlag = True
@@ -2506,17 +2506,17 @@ class ActorHeader:
       (offset, yRotation) = parseFloat(offset, data)
       (offset, zRotation) = parseFloat(offset, data)
       (offset, wRotation) = parseFloat(offset, data)
-      self.rotation = (xRotation, yRotation, zRotation, wRotation)
+      self.rotation = [xRotation, yRotation, zRotation, wRotation]
 
       (offset, xPosition) = parseFloat(offset, data)
       (offset, yPosition) = parseFloat(offset, data)
       (offset, zPosition) = parseFloat(offset, data)
-      self.position = (xPosition, yPosition, zPosition)
+      self.position = [xPosition, yPosition, zPosition]
 
       (offset, xScale) = parseFloat(offset, data)
       (offset, yScale) = parseFloat(offset, data)
       (offset, zScale) = parseFloat(offset, data)
-      self.scale = (xScale, yScale, zScale)
+      self.scale = [xScale, yScale, zScale]
 
       (offset, self.wasPlacedInLevel) = parseUint32(offset, data)
       self.validFlag = True
@@ -2592,7 +2592,7 @@ class Object:
          for jdx in range(actorComponentReferenceCount):
             (offset, actorComponentReference) = parseObjectReference(offset, data)
             actorComponentReferences.append(actorComponentReference)
-         self.actorReferenceAssociations = (parentObjectReference, actorComponentReferences)
+         self.actorReferenceAssociations = [parentObjectReference, actorComponentReferences]
 
       (offset, self.properties, self.propertyTypes) = parseProperties(offset, data)
 
@@ -2610,7 +2610,7 @@ class Object:
                offset = confirmBasicType(offset, data, parseString, "")
                offset = confirmBasicType(offset, data, parseString, "")
                (offset, position) = parseFloat(offset, data)
-               self.actorSpecificInfo.append((length, name, position))
+               self.actorSpecificInfo.append([length, name, position])
          elif actorOrComponentObjectHeader.typePath in (
                "/Game/FactoryGame/-Shared/Blueprint/BP_GameMode.BP_GameMode_C",
                "/Game/FactoryGame/-Shared/Blueprint/BP_GameState.BP_GameState_C"):
@@ -2628,7 +2628,7 @@ class Object:
                (offset, clientSize) = parseUint32(offset, data)
                clientData = data[offset:offset+clientSize]
                offset += clientSize
-               self.actorSpecificInfo = (clientType, clientData)
+               self.actorSpecificInfo = [clientType, clientData]
             else:
                self.actorSpecificInfo = data[offset:offset+trailingByteSize]
                print(f"TO DO: Unexpected player state size {trailingByteSize} now allows greater parse testing: 0x{self.actorSpecificInfo.hex(',')}", file=sys.stderr)
@@ -2642,13 +2642,13 @@ class Object:
             for idx in range(numCircuits):
                (offset, circuitId) = parseUint32(offset, data)
                (offset, circuitReference) = parseObjectReference(offset, data)
-               self.actorSpecificInfo.append((circuitId, circuitReference))
+               self.actorSpecificInfo.append([circuitId, circuitReference])
          elif actorOrComponentObjectHeader.typePath in (
                "/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Build_PowerLine_C",
                "/Game/FactoryGame/Events/Christmas/Buildings/PowerLineLights/Build_XmassLightsLine.Build_XmassLightsLine_C"):
             (offset, source) = parseObjectReference(offset, data)
             (offset, target) = parseObjectReference(offset, data)
-            self.actorSpecificInfo = (source, target)
+            self.actorSpecificInfo = [source, target]
          elif actorOrComponentObjectHeader.typePath in (
                "/Game/FactoryGame/Buildable/Vehicle/Train/Locomotive/BP_Locomotive.BP_Locomotive_C",
                "/Game/FactoryGame/Buildable/Vehicle/Train/Wagon/BP_FreightWagon.BP_FreightWagon_C"):
@@ -2665,7 +2665,7 @@ class Object:
             #print(f"   previous={toString(previous)}")
             (offset, next) = parseObjectReference(offset, data)
             #print(f"   next={toString(next)}")
-            self.actorSpecificInfo = (trainList, previous, next)
+            self.actorSpecificInfo = [trainList, previous, next]
          elif actorOrComponentObjectHeader.typePath in (
                "/Game/FactoryGame/Buildable/Vehicle/Cyberwagon/Testa_BP_WB.Testa_BP_WB_C",
                "/Game/FactoryGame/Buildable/Vehicle/Explorer/BP_Explorer.BP_Explorer_C",
@@ -2676,7 +2676,7 @@ class Object:
             self.actorSpecificInfo = []
             for idx in range(numVehicles):
                (offset, name) = parseString(offset, data)
-               self.actorSpecificInfo.append((name, data[offset:offset+105]))
+               self.actorSpecificInfo.append([name, data[offset:offset+105]])
                offset += 105
          elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGLightweightBuildableSubsystem": # Becomes <Object: instanceName=Persistent_Level:PersistentLevel.LightweightBuildableSubsystem ...>
             (offset, count1) = parseUint32(offset, data)
@@ -2729,9 +2729,9 @@ class Object:
                   (offset, recipePathName) = parseString(offset, data)
                   (offset, blueprintProxyLevelPath) = parseObjectReference(offset, data)
 
-                  lightweightBuildableInstances.append((rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), maybeIndex, recipePathName, blueprintProxyLevelPath))
+                  lightweightBuildableInstances.append([rotationQuaternion, position, swatchPathName, patternDescNumber, [primaryColor, secondaryColor], maybeIndex, recipePathName, blueprintProxyLevelPath])
 
-               self.actorSpecificInfo.append((buildItemPathName, lightweightBuildableInstances))
+               self.actorSpecificInfo.append([buildItemPathName, lightweightBuildableInstances])
          elif actorOrComponentObjectHeader.typePath in (
                 "/Script/FactoryGame.FGConveyorChainActor",
                 "/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull",
@@ -2767,7 +2767,7 @@ class Object:
                (offset, bint32b) = parseInt32(offset, data)
                offset = confirmBasicType(offset, data, parseUint32, idx)
 
-               chainBelts.append((levelPathName_belt, chainBeltElements, buint32a, buint32b, buint32c, bint32a, bint32b))
+               chainBelts.append([levelPathName_belt, chainBeltElements, buint32a, buint32b, buint32c, bint32a, bint32b])
 
             (offset, cuint32) = parseUint32(offset, data)
             (offset, cint32a) = parseInt32(offset, data)
@@ -2781,10 +2781,10 @@ class Object:
                (offset, itemPath) = parseString(offset, data)
                offset = confirmBasicType(offset, data, parseUint32, 0)
                (offset, h) = parseUint32(offset, data)
-               chainItems.append((itemPath, h))
+               chainItems.append([itemPath, h])
 
             # Note: Able to reconstruct starting and ending belts and the ConveyorChainActor is the same for all belts
-            self.actorSpecificInfo = (levelPathName_conveyorChainActor, chainBelts, chainItems, cuint32, cint32a, cint32b, cint32c)
+            self.actorSpecificInfo = [levelPathName_conveyorChainActor, chainBelts, chainItems, cuint32, cint32a, cint32b, cint32c]
          elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGItemPickup_Spawnable":
             if trailingByteSize == 4:
                self.actorSpecificInfo = True
@@ -3005,7 +3005,7 @@ def parseProperties(offset, data):
       propertyStartOffset = 0
       if propertyType == "BoolProperty":
          (offset, value) = parseBool(offset, data, parseUint8, "Property.BoolProperty.value")
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          if propertySize != offset - propertyStartOffset:
@@ -3016,52 +3016,52 @@ def parseProperties(offset, data):
          propertyStartOffset = offset
          if intOrString == "None":
             (offset, value) = parseUint8(offset, data)
-            properties.append((propertyName, value))
+            properties.append([propertyName, value])
          else: # This case exists for 5 EGamePhase
             (offset, value) = parseString(offset, data)
-            properties.append((propertyName, (intOrString, value)))
+            properties.append([propertyName, [intOrString, value]])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "Int8Property":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseInt8(offset, data)
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "IntProperty":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseInt32(offset, data)
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "UInt32Property":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseUint32(offset, data)
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "Int64Property":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseInt64(offset, data)
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "FloatProperty":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseFloat(offset, data)
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "DoubleProperty":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseDouble(offset, data)
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "EnumProperty":
@@ -3069,14 +3069,14 @@ def parseProperties(offset, data):
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseString(offset, data)
-         properties.append((propertyName, (name, value)))
+         properties.append([propertyName, [name, value]])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType in ("StrProperty", "NameProperty"):
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseString(offset, data)
-         properties.append((propertyName, value))
+         properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "TextProperty":
@@ -3086,35 +3086,35 @@ def parseProperties(offset, data):
          (offset, historyType) = parseInt8(offset, data)
          (offset, isTextCultureInvariant) = parseUint32(offset, data)
          (offset, s) = parseString(offset, data)
-         properties.append((propertyName, (flags, historyType, isTextCultureInvariant, s)))
+         properties.append([propertyName, [flags, historyType, isTextCultureInvariant, s]])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "SetProperty":
-         (offset, type) = parseString(offset, data)
+         (offset, setType) = parseString(offset, data)
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          offset = confirmBasicType(offset, data, parseUint32, 0)
          (offset, typeCount) = parseUint32(offset, data)
          values = []
-         if type == "UInt32Property":
+         if setType == "UInt32Property":
             for jdx in range(typeCount):
                (offset, value) = parseUint32(offset, data)
                values.append(value)
-         elif type == "StructProperty":
+         elif setType == "StructProperty":
             for jdx in range(typeCount):
                 (offset, value1) = parseUint64(offset, data)
                 (offset, value2) = parseUint64(offset, data)
-                values.append((value1, value2))
+                values.append([value1, value2])
          else:
-            raise ParseError(f"Unhandled SetProperty type {type}")
-         properties.append((propertyName, (type, values)))
+            raise ParseError(f"Unhandled SetProperty type {setType}")
+         properties.append([propertyName, [setType, values]])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "ObjectProperty":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, levelPathName) = parseObjectReference(offset, data)
-         properties.append((propertyName, levelPathName))
+         properties.append([propertyName, levelPathName])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "SoftObjectProperty":
@@ -3122,46 +3122,46 @@ def parseProperties(offset, data):
          propertyStartOffset = offset
          (offset, levelPathName) = parseObjectReference(offset, data)
          (offset, value) = parseUint32(offset, data)
-         properties.append((propertyName, (levelPathName, value)))
+         properties.append([propertyName, [levelPathName, value]])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "ArrayProperty":
-         (offset, type) = parseString(offset, data)
-         retainedPropertyType = (propertyType, type)
+         (offset, arrayType) = parseString(offset, data)
+         retainedPropertyType = [propertyType, arrayType]
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, arrayCount) = parseUint32(offset, data)
          values = []
-         if type == "IntProperty":
+         if arrayType == "IntProperty":
             for jdx in range(arrayCount):
                (offset, value) = parseInt32(offset, data)
                values.append(value)
-         elif type == "Int64Property":
+         elif arrayType == "Int64Property":
             for jdx in range(arrayCount):
                (offset, value) = parseInt64(offset, data)
                values.append(value)
-         elif type == "ByteProperty":
+         elif arrayType == "ByteProperty":
             for jdx in range(arrayCount):
                (offset, value) = parseUint8(offset, data)
                values.append(value)
-         elif type == "FloatProperty":
+         elif arrayType == "FloatProperty":
             for jdx in range(arrayCount):
                (offset, value) = parseFloat(offset, data)
                values.append(value)
-         elif type in ("StrProperty", "EnumProperty"):
+         elif arrayType in ("StrProperty", "EnumProperty"):
             for jdx in range(arrayCount):
                (offset, value) = parseString(offset, data)
                values.append(value)
-         elif type == "SoftObjectProperty":
+         elif arrayType == "SoftObjectProperty":
             for jdx in range(arrayCount):
                (offset, levelPathName) = parseObjectReference(offset, data)
                (offset, value) = parseUint32(offset, data)
-               values.append((levelPathName, value))
-         elif type in ("InterfaceProperty", "ObjectProperty"):
+               values.append([levelPathName, value])
+         elif arrayType in ("InterfaceProperty", "ObjectProperty"):
             for jdx in range(arrayCount):
                (offset, levelPathName) = parseObjectReference(offset, data)
                values.append(levelPathName)
-         elif type == "StructProperty":
+         elif arrayType == "StructProperty":
             (offset, name) = parseString(offset, data)
             if name != propertyName:
                raise ParseError(f"Unexpected StructProperty name '{name}' != propertyName '{propertyName}'")
@@ -3169,7 +3169,7 @@ def parseProperties(offset, data):
             (offset, structSize) = parseUint32(offset, data)
             offset = confirmBasicType(offset, data, parseUint32, 0)
             (offset, structElementType) = parseString(offset, data)
-            retainedPropertyType = (propertyType, type, structElementType)
+            retainedPropertyType = [propertyType, arrayType, structElementType]
             offset = confirmBasicType(offset, data, parseUint32, 0)
             offset = confirmBasicType(offset, data, parseUint32, 0)
             offset = confirmBasicType(offset, data, parseUint32, 0)
@@ -3182,13 +3182,13 @@ def parseProperties(offset, data):
                   (offset, g) = parseFloat(offset, data)
                   (offset, b) = parseFloat(offset, data)
                   (offset, a) = parseFloat(offset, data)
-                  values.append((r, g, b, a))
+                  values.append([r, g, b, a])
             elif structElementType == "Vector":
                for jdx in range(arrayCount):
                   (offset, x) = parseDouble(offset, data)
                   (offset, y) = parseDouble(offset, data)
                   (offset, z) = parseDouble(offset, data)
-                  values.append((x, y, z))
+                  values.append([x, y, z])
             elif structElementType == "SpawnData":
                for jdx in range(arrayCount):
                   (offset, name) = parseString(offset, data)
@@ -3201,7 +3201,7 @@ def parseProperties(offset, data):
                   if spawnDataSize != offset - spawnDataStartOffset:
                      raise ParseError(f"Unexpected spawn data size. diff={offset - spawnDataStartOffset - spawnDataSize} type={propertyType}")
                   (offset, prop, propTypes) = parseProperties(offset, data)
-                  values.append((name, levelPathName, prop, propTypes))
+                  values.append([name, levelPathName, prop, propTypes])
             elif structElementType in ("ConnectionData", "BuildingConnection"): # Only observed in modded save
                values.append(data[offset:offset+structSize])
                while len(values) < arrayCount:
@@ -3251,19 +3251,19 @@ def parseProperties(offset, data):
                   ):
                for jdx in range(arrayCount):
                   (offset, prop, propTypes) = parseProperties(offset, data)
-                  values.append((prop, propTypes))
+                  values.append([prop, propTypes])
             else:
                raise ParseError(f"Unsupported StructProperty structElementType '{structElementType}'")
             if structSize != offset - structStartOffset:
                raise ParseError(f"Unexpected StructProperty size. diff={offset - structStartOffset - structSize} type={propertyType}")
          else:
-            raise ParseError(f"Unsupported ArrayProperty type '{type}'")
+            raise ParseError(f"Unsupported ArrayProperty type '{arrayType}'")
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
-         properties.append((propertyName, values))
+         properties.append([propertyName, values])
       elif propertyType == "StructProperty":
          (offset, structPropertyType) = parseString(offset, data)
-         retainedPropertyType = (propertyType, structPropertyType)
+         retainedPropertyType = [propertyType, structPropertyType]
          offset = confirmBasicType(offset, data, parseUint32, 0)
          offset = confirmBasicType(offset, data, parseUint32, 0)
          offset = confirmBasicType(offset, data, parseUint32, 0)
@@ -3281,30 +3281,30 @@ def parseProperties(offset, data):
                (offset, itemPropertySize) = parseUint32(offset, data)
                itemPropertyStart = offset
                (offset, prop, propTypes) = parseProperties(offset, data)
-               itemProperties = (typePath, prop, propTypes)
+               itemProperties = [typePath, prop, propTypes]
                if itemPropertySize != offset - itemPropertyStart:
                   raise ParseError(f"Unexpected InventoryItem size. diff={offset - itemPropertyStart - itemPropertySize}")
             elif propertyStartOffset + propertySize - offset == 4: # Observed only in a v0.8-created save resaved in v1.0, but does not correlate to objectGameVersion. Some times itemName is empty, and sometimes not.
                itemProperties = 2
                offset = confirmBasicType(offset, data, parseUint32, 0)
-            properties.append((propertyName, (itemName, itemProperties)))
+            properties.append([propertyName, [itemName, itemProperties]])
          elif structPropertyType == "LinearColor":
             (offset, r) = parseFloat(offset, data)
             (offset, g) = parseFloat(offset, data)
             (offset, b) = parseFloat(offset, data)
             (offset, a) = parseFloat(offset, data)
-            properties.append((propertyName, (r, g, b, a)))
+            properties.append([propertyName, [r, g, b, a]])
          elif structPropertyType == "Vector":
             (offset, x) = parseDouble(offset, data)
             (offset, y) = parseDouble(offset, data)
             (offset, z) = parseDouble(offset, data)
-            properties.append((propertyName, (x, y, z)))
+            properties.append([propertyName, [x, y, z]])
          elif structPropertyType == "Quat":
             (offset, x) = parseDouble(offset, data)
             (offset, y) = parseDouble(offset, data)
             (offset, z) = parseDouble(offset, data)
             (offset, w) = parseDouble(offset, data)
-            properties.append((propertyName, (x, y, z, w)))
+            properties.append([propertyName, [x, y, z, w]])
          elif structPropertyType == "Box":
             (offset, minx) = parseDouble(offset, data)
             (offset, miny) = parseDouble(offset, data)
@@ -3313,18 +3313,18 @@ def parseProperties(offset, data):
             (offset, maxy) = parseDouble(offset, data)
             (offset, maxz) = parseDouble(offset, data)
             (offset, flag) = parseBool(offset, data, parseUint8, "StructProperty.Box.flag")
-            properties.append((propertyName, (minx, miny, minz, maxx, maxy, maxz, flag)))
+            properties.append([propertyName, [minx, miny, minz, maxx, maxy, maxz, flag]])
          elif structPropertyType == "FluidBox":
             (offset, value) = parseFloat(offset, data)
-            properties.append((propertyName, value))
+            properties.append([propertyName, value])
          elif structPropertyType == "RailroadTrackPosition":
             (offset, levelPathName) = parseObjectReference(offset, data)
             (offset, rtpOffset) = parseFloat(offset, data)
             (offset, forward) = parseFloat(offset, data)
-            properties.append((propertyName, (levelPathName, rtpOffset, forward)))
+            properties.append([propertyName, [levelPathName, rtpOffset, forward]])
          elif structPropertyType == "DateTime":
             (offset, value) = parseInt64(offset, data)
-            properties.append((propertyName, value))
+            properties.append([propertyName, value])
          elif structPropertyType == "ClientIdentityInfo": # Format very similar to BP_PlayerState_C
             (offset, clientUuid) = parseString(offset, data)
             offset = confirmBasicType(offset, data, parseUint32, 1)
@@ -3332,9 +3332,9 @@ def parseProperties(offset, data):
             (offset, clientSize) = parseUint32(offset, data)
             clientData = data[offset:offset+clientSize]
             offset += clientSize
-            properties.append((propertyName, (clientUuid, clientType, clientData)))
+            properties.append([propertyName, [clientUuid, clientType, clientData]])
          elif structPropertyType == "SignComponentEditorMetadata": # Only observed in modded save
-            properties.append((propertyName, data[offset:offset+propertySize]))
+            properties.append([propertyName, data[offset:offset+propertySize]])
             offset += propertySize
          elif structPropertyType in (
                "BlueprintRecord",
@@ -3363,7 +3363,7 @@ def parseProperties(offset, data):
                "ManagedSignData",     # Only observed in modded save
                ):
             (offset, prop, propTypes) = parseProperties(offset, data)
-            properties.append((propertyName, (prop, propTypes)))
+            properties.append([propertyName, [prop, propTypes]])
          else:
             raise ParseError(f"Unsupported structPropertyType '{structPropertyType}'")
          if propertySize != offset - propertyStartOffset:
@@ -3372,7 +3372,7 @@ def parseProperties(offset, data):
       elif propertyType == "MapProperty":
          (offset, keyType) = parseString(offset, data)
          (offset, valueType) = parseString(offset, data)
-         retainedPropertyType = (propertyType, keyType, valueType)
+         retainedPropertyType = [propertyType, keyType, valueType]
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          offset = confirmBasicType(offset, data, parseUint32, 0)
@@ -3386,7 +3386,7 @@ def parseProperties(offset, data):
                (offset, int1) = parseInt32(offset, data)
                (offset, int2) = parseInt32(offset, data) # Can be negative
                (offset, int3) = parseInt32(offset, data)
-               mapKey = (int1, int2, int3)
+               mapKey = [int1, int2, int3]
             elif keyType == "ObjectProperty":
                (offset, levelPathName) = parseObjectReference(offset, data)
                mapKey = levelPathName
@@ -3409,17 +3409,17 @@ def parseProperties(offset, data):
             else:
                raise ParseError(f"Unsupported map valueType {valueType}")
 
-            values.append((mapKey, mapValue))
-         properties.append((propertyName, values))
+            values.append([mapKey, mapValue])
+         properties.append([propertyName, values])
          if valueType == "StructProperty":
-            retainedPropertyType = (propertyType, keyType, valueType, propTypess)
+            retainedPropertyType = [propertyType, keyType, valueType, propTypess]
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
 
       else:
          raise ParseError(f"Unsupported propertyType '{propertyType}' for property '{propertyName}'")
 
-      propertyTypes.append((propertyName, retainedPropertyType, propertyIndex))
+      propertyTypes.append([propertyName, retainedPropertyType, propertyIndex])
 
       if len(properties) != len(propertyTypes):
          raise ParseError(f"Logic error: Number of properties {len(properties)} != Number of property types {len(propertyTypes)}")
@@ -3558,8 +3558,8 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
       for jdx in range(count):
          (offset, levelName) = parseString(offset, data)
          (offset, lhex) = parseUint32(offset, data)
-         gridLevels.append((levelName, lhex))
-      grids.append((gridName, i, ghex, gridLevels))
+         gridLevels.append([levelName, lhex])
+      grids.append([gridName, i, ghex, gridLevels])
 
    # Levels
    levels = []
@@ -3790,7 +3790,7 @@ if __name__ == '__main__':
                            if numItems != None:
                               if item not in specificItems:
                                  specificItems[item] = []
-                              specificItems[item].append((object.instanceName, numItems, items[object.instanceName]))
+                              specificItems[item].append([object.instanceName, numItems, items[object.instanceName]])
             dropOut.write("# Exported from Satisfactory \n")
             dropOut.write("FREE_DROPPED_ITEMS = {\n")
             for item in specificItems:

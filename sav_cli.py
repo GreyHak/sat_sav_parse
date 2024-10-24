@@ -36,10 +36,10 @@ VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
 
 def getBlankCategory(categoryName, iconId = -1):
-   return ([('CategoryName', categoryName), ('IconID', iconId), ('MenuPriority', 0.0), ('IsUndefined', False), ('SubCategoryRecords', [([('SubCategoryName', 'Undefined'), ('MenuPriority', 0.0), ('IsUndefined', 1), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)])])], [('CategoryName', 'StrProperty', 0), ('IconID', 'IntProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'BoolProperty', 0), ('SubCategoryRecords', ('ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'), 0)])
+   return [[['CategoryName', categoryName], ['IconID', iconId], ['MenuPriority', 0.0], ['IsUndefined', False], ['SubCategoryRecords', [[[['SubCategoryName', 'Undefined'], ['MenuPriority', 0.0], ['IsUndefined', 1], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]]]], [['CategoryName', 'StrProperty', 0], ['IconID', 'IntProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'BoolProperty', 0], ['SubCategoryRecords', ['ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'], 0]]]
 
 def getBlankSubcategory(subcategoryName):
-   return ([('SubCategoryName', subcategoryName), ('MenuPriority', 0.0), ('IsUndefined', 0), ('BlueprintNames', [])], [('SubCategoryName', 'StrProperty', 0), ('MenuPriority', 'FloatProperty', 0), ('IsUndefined', 'ByteProperty', 0), ('BlueprintNames', ('ArrayProperty', 'StrProperty'), 0)])
+   return [[['SubCategoryName', subcategoryName], ['MenuPriority', 0.0], ['IsUndefined', 0], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]
 
 playerUsernames = {}
 
@@ -114,7 +114,7 @@ def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
       for propertyIdx in range(len(category[0])):
          if category[0][propertyIdx][0] == "MenuPriority":
             # Must preserve the same propertyIdx because the property type is at this index
-            category[0][propertyIdx] = (category[0][propertyIdx][0], float(categoryIdx))
+            category[0][propertyIdx] = [category[0][propertyIdx][0], float(categoryIdx)]
       subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
       if subCategoryRecords != None:
          for subcategoryIdx in range(len(subCategoryRecords)):
@@ -122,7 +122,7 @@ def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
             for propertyIdx in range(len(subcategory[0])):
                if subcategory[0][propertyIdx][0] == "MenuPriority":
                   # Must preserve the same propertyIdx because the property type is at this index
-                  subcategory[0][propertyIdx] = (subcategory[0][propertyIdx][0], float(subcategoryIdx))
+                  subcategory[0][propertyIdx] = [subcategory[0][propertyIdx][0], float(subcategoryIdx)]
 
 # Converts an sRGB component in hex to a luminance component (a linear measure of light)
 #def hexToLc(channel):
@@ -348,7 +348,7 @@ if __name__ == '__main__':
 
                               extraInformation = item[0][1][1]
                               extraInformationStr = ""
-                              if isinstance(extraInformation, tuple):
+                              if isinstance(extraInformation, list):
                                  # Jetpack:  ('/Script/FactoryGame.FGJetPackItemState', [('CurrentFuel', 1.0), ('CurrentFuelType', 2), ('SelectedFuelType', 0)], [('CurrentFuel', 'FloatProperty', 0), ('CurrentFuelType', 'IntProperty', 0), ('SelectedFuelType', 'IntProperty', 0)])
                                  # Chainsaw: ('/Script/FactoryGame.FGChainsawItemState', [('EnergyStored', 79.14283752441406)], [('EnergyStored', 'FloatProperty', 0)])
                                  extraInformationStr = f": {sav_parse.toString(extraInformation[1])}"
@@ -388,10 +388,10 @@ if __name__ == '__main__':
                            itemName = item[0][1][0]
                            if len(itemName) == 0:
                               inventoryContents.append(None)
-                           elif isinstance(item[0][1][1], tuple):
-                              inventoryContents.append((itemName, item[1][1], item[0][1][1][0], item[0][1][1][1]))
+                           elif isinstance(item[0][1][1], list):
+                              inventoryContents.append([itemName, item[1][1], item[0][1][1][0], item[0][1][1][1]])
                            else:
-                              inventoryContents.append((itemName, item[1][1]))
+                              inventoryContents.append([itemName, item[1][1]])
 
          with open(outFilename, "w") as fout:
             json.dump(inventoryContents, fout, indent=2)
@@ -441,21 +441,21 @@ if __name__ == '__main__':
                         if idx < len(inventoryContents):
                            print(f"Replacing {sav_parse.toString(inventoryStacks[idx][0])}")
                            if inventoryContents[idx] == None:
-                              inventoryStacks[idx][0][0] = ("Item", ("", 1))
-                              inventoryStacks[idx][0][1] = ("NumItems", 0)
+                              inventoryStacks[idx][0][0] = ["Item", ["", 1]]
+                              inventoryStacks[idx][0][1] = ["NumItems", 0]
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to be Empty")
                            elif len(inventoryContents[idx]) == 2:
                               (itemPathName, itemQuantity) = inventoryContents[idx]
-                              inventoryStacks[idx][0][0] = ("Item", (itemPathName, 1))
-                              inventoryStacks[idx][0][1] = ("NumItems", itemQuantity)
+                              inventoryStacks[idx][0][0] = ["Item", [itemPathName, 1]]
+                              inventoryStacks[idx][0][1] = ["NumItems", itemQuantity]
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to include {itemQuantity} x {sav_parse.pathNameToReadableName(itemPathName)}")
                            elif len(inventoryContents[idx]) == 4:
                               (itemPathName, itemQuantity, itemPropName, itemProps) = inventoryContents[idx]
                               if itemPropName == "/Script/FactoryGame.FGJetPackItemState":
-                                 inventoryStacks[idx][0][0] = ("Item", (itemPathName, (itemPropName, itemProps, [('CurrentFuel', 'FloatProperty', 0), ('CurrentFuelType', 'IntProperty', 0), ('SelectedFuelType', 'IntProperty', 0)])))
+                                 inventoryStacks[idx][0][0] = ["Item", [itemPathName, [itemPropName, itemProps, [['CurrentFuel', 'FloatProperty', 0], ['CurrentFuelType', 'IntProperty', 0], ['SelectedFuelType', 'IntProperty', 0]]]]]
                               if itemPropName == "/Script/FactoryGame.FGChainsawItemState":
-                                 inventoryStacks[idx][0][0] = ("Item", (itemPathName, (itemPropName, itemProps, [('EnergyStored', 'FloatProperty', 0)])))
-                              inventoryStacks[idx][0][1] = ("NumItems", itemQuantity)
+                                 inventoryStacks[idx][0][0] = ["Item", [itemPathName, [itemPropName, itemProps, [['EnergyStored', 'FloatProperty', 0]]]]]
+                              inventoryStacks[idx][0][1] = ["NumItems", itemQuantity]
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to include {itemQuantity} x {sav_parse.pathNameToReadableName(itemPathName)} with {sav_parse.toString(itemProps)}")
                            modifiedFlag = True
 
@@ -524,8 +524,8 @@ if __name__ == '__main__':
                      for idx in range(len(inventoryStacks)):
                         if idx == tweakSlotIdx:
                            print(f"Replacing {sav_parse.toString(inventoryStacks[idx][0])}")
-                           inventoryStacks[idx][0][0] = ("Item", (tweakItemName, 1))
-                           inventoryStacks[idx][0][1] = ("NumItems", tweakQuantity)
+                           inventoryStacks[idx][0][0] = ["Item", [tweakItemName, 1]]
+                           inventoryStacks[idx][0][1] = ["NumItems", tweakQuantity]
                            print(f"Setting player {playerInventory}'s inventory slot {tweakSlotIdx} to include {tweakQuantity} x {sav_parse.pathNameToReadableName(tweakItemName)}")
                            modifiedFlag = True
 
@@ -966,7 +966,7 @@ if __name__ == '__main__':
                         if propertyValue >= newNumInventorySlots:
                            print(f"WARNING: Decreasing inventory from {propertyValue} to {newNumInventorySlots}")
                         print(f"Changing number of inventory slots from {propertyValue} to {newNumInventorySlots}")
-                        object.properties[idx] = ("mNumTotalInventorySlots", newNumInventorySlots)
+                        object.properties[idx] = ["mNumTotalInventorySlots", newNumInventorySlots]
                         modifiedFlag = True
 
       except Exception as error:
@@ -1020,7 +1020,7 @@ if __name__ == '__main__':
                   newActor.needTransform = 0
                   newActor.rotation = rotation
                   newActor.position = position
-                  newActor.scale = (1.600000023841858, 1.600000023841858, 1.600000023841858)
+                  newActor.scale = [1.600000023841858, 1.600000023841858, 1.600000023841858]
                   newActor.wasPlacedInLevel = 1
                   newActor.validFlag = True
                   actorAndComponentObjectHeaders.append(newActor)
@@ -1033,7 +1033,7 @@ if __name__ == '__main__':
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
                   nullParentObjectReference.validFlag = True
-                  newObject.actorReferenceAssociations = (nullParentObjectReference, [])
+                  newObject.actorReferenceAssociations = [nullParentObjectReference, []]
                   newObject.properties    = []
                   newObject.propertyTypes = []
                   newObject.actorSpecificInfo = None
@@ -1101,7 +1101,7 @@ if __name__ == '__main__':
                   newActor.needTransform = 0
                   newActor.rotation = rotation
                   newActor.position = position
-                  newActor.scale = (2.700000047683716, 2.6999998092651367, 2.6999998092651367)
+                  newActor.scale = [2.700000047683716, 2.6999998092651367, 2.6999998092651367]
                   newActor.wasPlacedInLevel = 1
                   newActor.validFlag = True
                   actorAndComponentObjectHeaders.append(newActor)
@@ -1114,7 +1114,7 @@ if __name__ == '__main__':
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
                   nullParentObjectReference.validFlag = True
-                  newObject.actorReferenceAssociations = (nullParentObjectReference, [])
+                  newObject.actorReferenceAssociations = [nullParentObjectReference, []]
                   newObject.properties    = []
                   newObject.propertyTypes = []
                   newObject.actorSpecificInfo = None
@@ -1137,7 +1137,7 @@ if __name__ == '__main__':
                   newActor.needTransform = 0
                   newActor.rotation = rotation
                   newActor.position = position
-                  newActor.scale = (scale, scale, scale)
+                  newActor.scale = [scale, scale, scale]
                   newActor.wasPlacedInLevel = 1
                   newActor.validFlag = True
                   actorAndComponentObjectHeaders.append(newActor)
@@ -1150,7 +1150,7 @@ if __name__ == '__main__':
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
                   nullParentObjectReference.validFlag = True
-                  newObject.actorReferenceAssociations = (nullParentObjectReference, [])
+                  newObject.actorReferenceAssociations = [nullParentObjectReference, []]
                   newObject.properties    = []
                   newObject.propertyTypes = []
                   newObject.actorSpecificInfo = None

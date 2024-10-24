@@ -79,12 +79,12 @@ def addProperties(properties, propertyTypes):
             propertyStartSize = len(dataProp)
          case "ByteProperty":
             intOrString = "None"
-            if isinstance(propertyValue, tuple):
+            if isinstance(propertyValue, list):
                intOrString = propertyValue[0]
             dataProp.extend(addString(intOrString))
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
-            if isinstance(propertyValue, tuple):
+            if isinstance(propertyValue, list):
                dataProp.extend(addString(propertyValue[1]))
             else:
                dataProp.extend(addUint8(propertyValue))
@@ -130,21 +130,21 @@ def addProperties(properties, propertyTypes):
             dataProp.extend(addUint32(isTextCultureInvariant))
             dataProp.extend(addString(s))
          case "SetProperty":
-            (type, values) = propertyValue
-            dataProp.extend(addString(type))
+            (setType, values) = propertyValue
+            dataProp.extend(addString(setType))
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
             dataProp.extend(addUint32(0))
             dataProp.extend(addUint32(len(values)))
-            if type == "UInt32Property":
+            if setType == "UInt32Property":
                for value in values:
                   dataProp.extend(addUint32(value))
-            elif type == "StructProperty":
+            elif setType == "StructProperty":
                for (value1, value2) in values:
                   dataProp.extend(addUint64(value1))
                   dataProp.extend(addUint64(value2))
             else:
-               raise Exception(f"ERROR: Unknown SetProperty type '{type}'")
+               raise Exception(f"ERROR: Unknown SetProperty type '{setType}'")
          case "ObjectProperty":
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
@@ -156,15 +156,15 @@ def addProperties(properties, propertyTypes):
             dataProp.extend(addObjectReference(levelPathName))
             dataProp.extend(addUint32(value))
          case _:
-            if isinstance(propertyType, tuple): # "ArrayProperty", "StructProperty" or "MapProperty"
+            if isinstance(propertyType, list): # "ArrayProperty", "StructProperty" or "MapProperty"
                match propertyType[0]:
                   case "ArrayProperty":
-                     type = propertyType[1]
-                     dataProp.extend(addString(type))
+                     arrayType = propertyType[1]
+                     dataProp.extend(addString(arrayType))
                      dataProp.extend(addUint8(0))
                      propertyStartSize = len(dataProp)
                      dataProp.extend(addUint32(len(propertyValue)))
-                     match type:
+                     match arrayType:
                         case "IntProperty":
                            for value in propertyValue:
                               dataProp.extend(addInt32(value))
@@ -177,14 +177,14 @@ def addProperties(properties, propertyTypes):
                         case "FloatProperty":
                            for value in propertyValue:
                               dataProp.extend(addFloat(value))
-                        case type if type in ("StrProperty", "EnumProperty"):
+                        case arrayType if arrayType in ("StrProperty", "EnumProperty"):
                            for value in propertyValue:
                               dataProp.extend(addString(value))
                         case "SoftObjectProperty":
                            for (levelPathName, value) in propertyValue:
                               dataProp.extend(addObjectReference(levelPathName))
                               dataProp.extend(addUint32(value))
-                        case type if type in ("InterfaceProperty", "ObjectProperty"):
+                        case arrayType if arrayType in ("InterfaceProperty", "ObjectProperty"):
                            for value in propertyValue:
                               dataProp.extend(addObjectReference(value))
                         case "StructProperty":
@@ -276,6 +276,8 @@ def addProperties(properties, propertyTypes):
                            dataProp.extend(addUint32(0))
                            dataProp.extend(addUint8(0))
                            dataProp.extend(dataStruct)
+                        case _:
+                           raise Exception(f"ERROR: Unknown ArrayProperty type '{arrayType}'")
                   case "StructProperty":
                      structPropertyType = propertyType[1]
                      dataProp.extend(addString(structPropertyType))
@@ -416,12 +418,12 @@ def addProperties(properties, propertyTypes):
                            case _:
                               raise Exception(f"ERROR: Unknown MapProperty valueType '{valueType}'")
                   case _:
-                     raise Exception(f"ERROR: Unknown tuple propertyType '{propertyType}'")
+                     raise Exception(f"ERROR: Unknown list propertyType '{propertyType}'")
             else:
                raise Exception(f"ERROR: Unknown propertyType '{propertyType}'")
 
       data.extend(addString(propertyName))
-      if isinstance(propertyType, tuple):
+      if isinstance(propertyType, list):
          data.extend(addString(propertyType[0]))
       else:
          data.extend(addString(propertyType))
@@ -456,7 +458,7 @@ def addObject(object, actorOrComponentObjectHeader):
       elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C":
          if isinstance(object.actorSpecificInfo, int):
             dataTrailing.extend(addUint8(object.actorSpecificInfo))
-         elif isinstance(object.actorSpecificInfo, tuple):
+         elif isinstance(object.actorSpecificInfo, list):
             (clientType, clientData) = object.actorSpecificInfo
             dataTrailing.extend(addUint8(241))
             dataTrailing.extend(addUint8(clientType))

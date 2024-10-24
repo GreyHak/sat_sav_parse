@@ -155,11 +155,11 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
                      minerInstances.append(actorOrComponentObjectHeader.instanceName)
                      minerTypesInstanceAndPositions.append((typePath, actorOrComponentObjectHeader.instanceName, actorOrComponentObjectHeader.position))
                if typePath in sav_parse.MINED_RESOURCES:
-                  type = None
+                  resourceType = None
                   purity = None
                   if actorOrComponentObjectHeader.instanceName in sav_parse.RESOURCE_PURITY: # Won't be found for BP_FrackingCore_C
-                     (type, purity) = sav_parse.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
-                  minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, type, purity)
+                     (resourceType, purity) = sav_parse.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
+                  minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, resourceType, purity)
                elif typePath == sav_parse.CRASH_SITE:
                   crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
                elif typePath == sav_parse.POWER_LINE:
