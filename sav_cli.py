@@ -328,7 +328,7 @@ if __name__ == '__main__':
                playerInventory = inventoryPath
 
          if playerInventory == None:
-            print("Unable to match player '{playerId}'", file=sys.stderr)
+            print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
@@ -372,7 +372,7 @@ if __name__ == '__main__':
                playerInventory = inventoryPath
 
          if playerInventory == None:
-            print("Unable to match player '{playerId}'", file=sys.stderr)
+            print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
          inventoryContents = []
@@ -429,7 +429,7 @@ if __name__ == '__main__':
                playerInventory = inventoryPath
 
          if playerInventory == None:
-            print("Unable to match player '{playerId}'")
+            print(f"Unable to match player '{playerId}'")
             exit(1)
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
@@ -513,7 +513,7 @@ if __name__ == '__main__':
                playerInventory = inventoryPath
 
          if playerInventory == None:
-            print("Unable to match player '{playerId}'")
+            print(f"Unable to match player '{playerId}'")
             exit(1)
 
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
@@ -672,7 +672,7 @@ if __name__ == '__main__':
                playerCharacter = characterPlayer
 
          if playerState == None:
-            print("Unable to match player '{playerId}'", file=sys.stderr)
+            print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
          playerName = getPlayerName(levels, playerCharacter)
@@ -776,7 +776,7 @@ if __name__ == '__main__':
                playerCharacter = characterPlayer
 
          if playerState == None:
-            print("Unable to match player '{playerId}'", file=sys.stderr)
+            print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
          playerName = getPlayerName(levels, playerCharacter)
