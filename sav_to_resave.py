@@ -292,7 +292,10 @@ def addProperties(properties, propertyTypes):
                            dataProp.extend(addUint32(len(dataStruct)))
                            dataProp.extend(addUint32(0))
                            dataProp.extend(addString(structElementType))
-                           dataProp.extend(propertyType[3])
+                           uuid = bytearray(17)
+                           if len(propertyType) == 4:
+                              uuid = propertyType[3]
+                           dataProp.extend(uuid)
                            dataProp.extend(dataStruct)
                         case _:
                            raise Exception(f"ERROR: Unknown ArrayProperty type '{arrayType}'")

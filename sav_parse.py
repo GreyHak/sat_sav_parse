@@ -2411,6 +2411,11 @@ def parseString(offset, data):
       raise ParseError(f"String decode failure at offset {offset} of length {strlen}: {error}")
    return (offset + strlen, string)
 
+def parseData(offset, data, length):
+   if offset + length > len(data):
+      raise ParseError(f"Offset {offset} too large for data of length {length} in {len(data)}-byte data.")
+   return (offset + length, data[offset:offset+length])
+
 def TESTING_ONLY_dumpSection(offset, data, sectionStart, sectionSize, name = ""):
    if offset > sectionStart + sectionSize:
       print(f"ERROR: TESTING_ONLY_dumpSection called already passed end offset")
@@ -2626,17 +2631,14 @@ class Object:
             elif playerStateType == 241: # = 0xF1
                (offset, clientType) = parseUint8(offset, data) # Seen 1 or 6 (Maybe 1=Epic 6=Steam)
                (offset, clientSize) = parseUint32(offset, data)
-               clientData = data[offset:offset+clientSize]
-               offset += clientSize
+               (offset, clientData) = parseData(offset, data, clientSize)
                self.actorSpecificInfo = [clientType, clientData]
             else: # Only observed in modded save
                offset -= 1
-               self.actorSpecificInfo = data[offset:offset+trailingByteSize]
+               (offset, self.actorSpecificInfo) = parseData(offset, data, trailingByteSize)
                #print(f"TO DO: Unexpected player state {playerStateType} of size {trailingByteSize} now allows greater parse testing: 0x{self.actorSpecificInfo.hex(',')}", file=sys.stderr)
-               offset += trailingByteSize
          elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Buildable/Factory/DroneStation/BP_DroneTransport.BP_DroneTransport_C":
-            self.actorSpecificInfo = data[offset:offset+trailingByteSize]
-            offset += trailingByteSize
+            (offset, self.actorSpecificInfo) = parseData(offset, data, trailingByteSize)
          elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/-Shared/Blueprint/BP_CircuitSubsystem.BP_CircuitSubsystem_C":
             (offset, numCircuits) = parseUint32(offset, data)
             self.actorSpecificInfo = []
@@ -2677,8 +2679,8 @@ class Object:
             self.actorSpecificInfo = []
             for idx in range(numVehicles):
                (offset, name) = parseString(offset, data)
-               self.actorSpecificInfo.append([name, data[offset:offset+105]])
-               offset += 105
+               (offset, vehicleData) = parseData(offset, data, 105)
+               self.actorSpecificInfo.append([name, vehicleData])
          elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGLightweightBuildableSubsystem": # Becomes <Object: instanceName=Persistent_Level:PersistentLevel.LightweightBuildableSubsystem ...>
             (offset, count1) = parseUint32(offset, data)
             self.actorSpecificInfo = []
@@ -2797,8 +2799,7 @@ class Object:
                "/FlexSplines/Conveyor/Build_Belt2.Build_Belt2_C",
                "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C",
                "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C"):
-            self.actorSpecificInfo = data[offset:offset+trailingByteSize]
-            offset += trailingByteSize
+            (offset, self.actorSpecificInfo) = parseData(offset, data, trailingByteSize)
       else: # ComponentHeader
          if actorOrComponentObjectHeader.className in (
                "/Script/FactoryGame.FGDroneMovementComponent", # Nothern_Forest_20232627_191024-123703.sav
@@ -3196,9 +3197,10 @@ def parseProperties(offset, data):
             (offset, structSize) = parseUint32(offset, data)
             offset = confirmBasicType(offset, data, parseUint32, 0)
             (offset, structElementType) = parseString(offset, data)
-            uuid = data[offset:offset+17] # Always zero except in modded save
-            offset += 17
-            retainedPropertyType = [propertyType, arrayType, structElementType, uuid]
+            retainedPropertyType = [propertyType, arrayType, structElementType]
+            (offset, uuid) = parseData(offset, data, 17) # Always zero except in modded save
+            if any(byte != 0 for byte in uuid):
+               retainedPropertyType.append(uuid)
             structStartOffset = offset
             if structElementType == "LinearColor":
                for jdx in range(arrayCount):
@@ -3227,10 +3229,10 @@ def parseProperties(offset, data):
                   (offset, prop, propTypes) = parseProperties(offset, data)
                   values.append([name, levelPathName, prop, propTypes])
             elif structElementType in ("ConnectionData", "BuildingConnection", "STRUCT_ProgElevator_Floor"): # Only observed in modded save
-               values.append(data[offset:offset+structSize])
+               (offset, allValues) = parseData(offset, data, structSize)
+               values.append(allValues)
                while len(values) < arrayCount:
                   values.append(None)
-               offset += structSize
             elif structElementType in (
                   "BlueprintCategoryRecord",
                   "BlueprintSubCategoryRecord",
@@ -3354,12 +3356,11 @@ def parseProperties(offset, data):
             offset = confirmBasicType(offset, data, parseUint32, 1)
             (offset, clientType) = parseUint8(offset, data) # Seen 1 or 6 (Maybe 1=Epic 6=Steam)
             (offset, clientSize) = parseUint32(offset, data)
-            clientData = data[offset:offset+clientSize]
-            offset += clientSize
+            (offset, clientData) = parseData(offset, data, clientSize)
             properties.append([propertyName, [clientUuid, clientType, clientData]])
          elif structPropertyType in ("Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
-            properties.append([propertyName, data[offset:offset+propertySize]])
-            offset += propertySize
+            (offset, rawData) = parseData(offset, data, propertySize)
+            properties.append([propertyName, rawData])
          elif structPropertyType in (
                "BlueprintRecord",
                "BoomBoxPlayerState",
