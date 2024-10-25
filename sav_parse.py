@@ -3105,6 +3105,10 @@ def parseProperties(offset, data):
                 (offset, value1) = parseUint64(offset, data)
                 (offset, value2) = parseUint64(offset, data)
                 values.append([value1, value2])
+         elif setType == "ObjectProperty":
+            for jdx in range(typeCount):
+               (offset, objectReference) = parseObjectReference(offset, data)
+               values.append(objectReference)
          else:
             raise ParseError(f"Unhandled SetProperty type {setType}")
          properties.append([propertyName, [setType, values]])

@@ -133,8 +133,9 @@ I updated the Satisfactory GG Wiki for v1.0.0.4 based on the information I
 gained during creation of this tools.
 
 Thanks to
-[robison4th](https://github.com/robison4th) and
-[JP Eagles and Katz](https://www.youtube.com/channel/UCgIwAJga0I6i68bWfwPdj1w)
+[robison4th](https://github.com/robison4th),
+[JP Eagles and Katz](https://www.youtube.com/channel/UCgIwAJga0I6i68bWfwPdj1w),
+and [Buggy](https://github.com/Buggy123)
 for sharing their save files to allow for expanded support.
 
 ## License

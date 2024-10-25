@@ -143,6 +143,9 @@ def addProperties(properties, propertyTypes):
                for (value1, value2) in values:
                   dataProp.extend(addUint64(value1))
                   dataProp.extend(addUint64(value2))
+            elif setType == "ObjectProperty":
+               for value in values:
+                  dataProp.extend(addObjectReference(value))
             else:
                raise Exception(f"ERROR: Unknown SetProperty type '{setType}'")
          case "ObjectProperty":
