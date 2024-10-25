@@ -2629,9 +2629,10 @@ class Object:
                clientData = data[offset:offset+clientSize]
                offset += clientSize
                self.actorSpecificInfo = [clientType, clientData]
-            else:
+            else: # Only observed in modded save
+               offset -= 1
                self.actorSpecificInfo = data[offset:offset+trailingByteSize]
-               print(f"TO DO: Unexpected player state size {trailingByteSize} now allows greater parse testing: 0x{self.actorSpecificInfo.hex(',')}", file=sys.stderr)
+               #print(f"TO DO: Unexpected player state {playerStateType} of size {trailingByteSize} now allows greater parse testing: 0x{self.actorSpecificInfo.hex(',')}", file=sys.stderr)
                offset += trailingByteSize
          elif actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/Buildable/Factory/DroneStation/BP_DroneTransport.BP_DroneTransport_C":
             self.actorSpecificInfo = data[offset:offset+trailingByteSize]
@@ -2794,7 +2795,8 @@ class Object:
          elif actorOrComponentObjectHeader.typePath in ( # Only observed in modded save
                "/AB_CableMod/Cables_Heavy/Build_AB-PLHeavy-Cu.Build_AB-PLHeavy-Cu_C",
                "/FlexSplines/Conveyor/Build_Belt2.Build_Belt2_C",
-               "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C"):
+               "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C",
+               "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C"):
             self.actorSpecificInfo = data[offset:offset+trailingByteSize]
             offset += trailingByteSize
       else: # ComponentHeader
@@ -3083,10 +3085,31 @@ def parseProperties(offset, data):
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, flags) = parseUint32(offset, data)
-         (offset, historyType) = parseInt8(offset, data)
-         (offset, isTextCultureInvariant) = parseUint32(offset, data)
-         (offset, s) = parseString(offset, data)
-         properties.append([propertyName, [flags, historyType, isTextCultureInvariant, s]])
+         (offset, historyType) = parseUint8(offset, data)
+         if historyType == 255:
+            (offset, isTextCultureInvariant) = parseUint32(offset, data)
+            (offset, s) = parseString(offset, data)
+            properties.append([propertyName, [flags, historyType, isTextCultureInvariant, s]])
+         elif historyType == 3: # Only observed in modded save (for propertyName="mMapText")
+            offset = confirmBasicType(offset, data, parseUint32, 8)
+            offset = confirmBasicType(offset, data, parseUint8, 0)
+            offset = confirmBasicType(offset, data, parseUint32, 1)
+            offset = confirmBasicType(offset, data, parseUint8, 0)
+            (offset, uuid) = parseString(offset, data)
+            (offset, format) = parseString(offset, data)
+            (offset, argCount) = parseUint32(offset, data)
+            args = []
+            for idx in range(argCount):
+               (offset, argName) = parseString(offset, data)
+               offset = confirmBasicType(offset, data, parseUint8, 4)
+               offset = confirmBasicType(offset, data, parseUint32, 18) # flags
+               offset = confirmBasicType(offset, data, parseUint8, 255) # historyType
+               offset = confirmBasicType(offset, data, parseUint32, 1)  # isTextCultureInvariant
+               (offset, argValue) = parseString(offset, data)
+               args.append([argName, argValue])
+            properties.append([propertyName, [flags, historyType, uuid, format, args]])
+         else:
+            raise ParseError(f"Unexpected TextProperty historyType {historyType}")
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "SetProperty":
@@ -3173,12 +3196,9 @@ def parseProperties(offset, data):
             (offset, structSize) = parseUint32(offset, data)
             offset = confirmBasicType(offset, data, parseUint32, 0)
             (offset, structElementType) = parseString(offset, data)
-            retainedPropertyType = [propertyType, arrayType, structElementType]
-            offset = confirmBasicType(offset, data, parseUint32, 0)
-            offset = confirmBasicType(offset, data, parseUint32, 0)
-            offset = confirmBasicType(offset, data, parseUint32, 0)
-            offset = confirmBasicType(offset, data, parseUint32, 0)
-            offset = confirmBasicType(offset, data, parseUint8, 0)
+            uuid = data[offset:offset+17] # Always zero except in modded save
+            offset += 17
+            retainedPropertyType = [propertyType, arrayType, structElementType, uuid]
             structStartOffset = offset
             if structElementType == "LinearColor":
                for jdx in range(arrayCount):
@@ -3206,7 +3226,7 @@ def parseProperties(offset, data):
                      raise ParseError(f"Unexpected spawn data size. diff={offset - spawnDataStartOffset - spawnDataSize} type={propertyType}")
                   (offset, prop, propTypes) = parseProperties(offset, data)
                   values.append([name, levelPathName, prop, propTypes])
-            elif structElementType in ("ConnectionData", "BuildingConnection"): # Only observed in modded save
+            elif structElementType in ("ConnectionData", "BuildingConnection", "STRUCT_ProgElevator_Floor"): # Only observed in modded save
                values.append(data[offset:offset+structSize])
                while len(values) < arrayCount:
                   values.append(None)
@@ -3337,7 +3357,7 @@ def parseProperties(offset, data):
             clientData = data[offset:offset+clientSize]
             offset += clientSize
             properties.append([propertyName, [clientUuid, clientType, clientData]])
-         elif structPropertyType == "SignComponentEditorMetadata": # Only observed in modded save
+         elif structPropertyType in ("Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
             properties.append([propertyName, data[offset:offset+propertySize]])
             offset += propertySize
          elif structPropertyType in (
@@ -3396,6 +3416,10 @@ def parseProperties(offset, data):
                mapKey = levelPathName
             elif keyType == "IntProperty":
                (offset, mapKey) = parseInt32(offset, data)
+            elif keyType == "NameProperty": # Only observed in modded save
+               (offset, mapKey) = parseString(offset, data)
+            elif keyType == "EnumProperty": # Only observed in modded save
+               (offset, mapKey) = parseString(offset, data)
             else:
                raise ParseError(f"Unsupported map keyType {keyType}")
 

@@ -124,11 +124,30 @@ def addProperties(properties, propertyTypes):
          case "TextProperty":
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
-            (flags, historyType, isTextCultureInvariant, s) = propertyValue
-            dataProp.extend(addUint32(flags))
-            dataProp.extend(addInt8(historyType))
-            dataProp.extend(addUint32(isTextCultureInvariant))
-            dataProp.extend(addString(s))
+            if len(propertyValue) == 4 and propertyValue[1] == 255:
+               (flags, historyType, isTextCultureInvariant, s) = propertyValue
+               dataProp.extend(addUint32(flags))
+               dataProp.extend(addUint8(historyType))
+               dataProp.extend(addUint32(isTextCultureInvariant))
+               dataProp.extend(addString(s))
+            elif len(propertyValue) == 5 and propertyValue[1] == 3:
+               (flags, historyType, uuid, format, args) = propertyValue
+               dataProp.extend(addUint32(flags))
+               dataProp.extend(addUint8(historyType))
+               dataProp.extend(addUint32(8))
+               dataProp.extend(addUint8(0))
+               dataProp.extend(addUint32(1))
+               dataProp.extend(addUint8(0))
+               dataProp.extend(addString(uuid))
+               dataProp.extend(addString(format))
+               dataProp.extend(addUint32(len(args)))
+               for (argName, argValue) in args:
+                  dataProp.extend(addString(argName))
+                  dataProp.extend(addUint8(4))
+                  dataProp.extend(addUint32(18))
+                  dataProp.extend(addUint8(255))
+                  dataProp.extend(addUint32(1))
+                  dataProp.extend(addString(argValue))
          case "SetProperty":
             (setType, values) = propertyValue
             dataProp.extend(addString(setType))
@@ -218,7 +237,7 @@ def addProperties(properties, propertyTypes):
                                     dataStruct.extend(addUint8(0))
                                     dataStruct.extend(dataSpawn)
                                     dataStruct.extend(addProperties(prop, propTypes))
-                              case structElementType if structElementType in ("ConnectionData", "BuildingConnection"):
+                              case structElementType if structElementType in ("ConnectionData", "BuildingConnection", "STRUCT_ProgElevator_Floor"):
                                  dataStruct.extend(propertyValue[0])
                               case structElementType if structElementType in (
                                     "BlueprintCategoryRecord",
@@ -273,11 +292,7 @@ def addProperties(properties, propertyTypes):
                            dataProp.extend(addUint32(len(dataStruct)))
                            dataProp.extend(addUint32(0))
                            dataProp.extend(addString(structElementType))
-                           dataProp.extend(addUint32(0))
-                           dataProp.extend(addUint32(0))
-                           dataProp.extend(addUint32(0))
-                           dataProp.extend(addUint32(0))
-                           dataProp.extend(addUint8(0))
+                           dataProp.extend(propertyType[3])
                            dataProp.extend(dataStruct)
                         case _:
                            raise Exception(f"ERROR: Unknown ArrayProperty type '{arrayType}'")
@@ -351,7 +366,7 @@ def addProperties(properties, propertyTypes):
                            dataProp.extend(addUint8(clientType))
                            dataProp.extend(addUint32(len(clientData)))
                            dataProp.extend(clientData)
-                        case "SignComponentEditorMetadata": # Only observed in modded save
+                        case structPropertyType if structPropertyType in ("Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
                            dataProp.extend(propertyValue)
                         case structPropertyType if structPropertyType in (
                               "BlueprintRecord",
@@ -404,6 +419,10 @@ def addProperties(properties, propertyTypes):
                               dataProp.extend(addObjectReference(mapKey))
                            case "IntProperty":
                               dataProp.extend(addInt32(mapKey))
+                           case "NameProperty":
+                              dataProp.extend(addString(mapKey))
+                           case "EnumProperty":
+                              dataProp.extend(addString(mapKey))
                            case _:
                               raise Exception(f"ERROR: Unknown MapProperty keyType '{keyType}'")
 
@@ -575,7 +594,8 @@ def addObject(object, actorOrComponentObjectHeader):
       elif actorOrComponentObjectHeader.typePath in ( # Only observed in modded save
             "/AB_CableMod/Cables_Heavy/Build_AB-PLHeavy-Cu.Build_AB-PLHeavy-Cu_C",
             "/FlexSplines/Conveyor/Build_Belt2.Build_Belt2_C",
-            "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C"):
+            "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C",
+            "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C"):
          dataTrailing.extend(object.actorSpecificInfo)
    else:
       if actorOrComponentObjectHeader.className in (

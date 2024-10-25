@@ -135,7 +135,8 @@ gained during creation of this tools.
 Thanks to
 [robison4th](https://github.com/robison4th),
 [JP Eagles and Katz](https://www.youtube.com/channel/UCgIwAJga0I6i68bWfwPdj1w),
-and [Buggy](https://github.com/Buggy123)
+[Buggy](https://github.com/Buggy123), and
+[Tomtores](https://github.com/Tomtores)
 for sharing their save files to allow for expanded support.
 
 ## License
