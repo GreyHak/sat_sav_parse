@@ -736,6 +736,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Desc_StingerSmall_C": "Small Stinger",
    "Char_AlphaHog_C": "Alpha Hog",
    "Char_CliffHog_C": "Cliff Hog",
+   "Char_CrabHatcher_C": "Flying Crab Hatchers",
    "Char_EliteStinger_C": "Gas Stinger",
    "Char_Hog_C": "Fluffy-tailed Hog",
    "Char_NonFlyingBird_C": "Non-flying Bird",  # Technically "Non-flying Birb"
@@ -764,6 +765,8 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Beam_Support_C": "Beam Support",
    "Build_Blender_C": "Blender",
    "Build_BlueprintDesigner_C": "Blueprint Designer",
+   "Build_BlueprintDesigner_MK2_C": "Blueprint Designer Mk.2",
+   "Build_BlueprintDesigner_Mk3_C": "Blueprint Designer Mk.3",
    "Build_Blueprint_C": "Factory Blueprint",
    "Build_CandyCaneDecor_C": "Candy Cane",
    "Build_CatwalkCorner_C": "Catwalk Corner",
@@ -918,7 +921,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_PipelineJunction_Cross_C": "Pipeline Junction Cross",
    "Build_PipelineMK2_C": "Pipeline Mk.2",
    "Build_PipelineMK2_NoIndicator_C": "Pipeline Mk.2 (No Indicator)",
-   "Build_PipelinePumpMK2_C": "Pipeline Pump Mk.2",
+   "Build_PipelinePumpMk2_C": "Pipeline Pump Mk.2",
    "Build_PipelinePump_C": "Pipeline Pump Mk.1",
    "Build_PipelineSupportWallHole_C": "Pipeline Wall Hole",
    "Build_PipelineSupportWall_C": "Pipeline Wall Support",
@@ -1313,6 +1316,8 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Desc_Fabric_C": "Fabric",
    "Desc_FicsiteIngot_C": "Ficsite Ingot",
    "Desc_FicsiteMesh_C": "Ficsite Trigon",
+   "Desc_Ficsonium_C": "Ficsonium",
+   "Desc_FicsoniumFuelRod_C": "Ficsonium Fuel Rod",
    "Desc_Filter_C": "Gas Filter",
    "Desc_Fireworks_Projectile_01_C": "Sweet Fireworks",
    "Desc_Fireworks_Projectile_02_C": "Fancy Fireworks",
@@ -1326,6 +1331,8 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Desc_Gift_C": "FICSMAS Gift",
    "Desc_GoldIngot_C": "Caterium Ingot",
    "Desc_GoldenNut_Statue_C": "Golden Nut Statue",
+   "Desc_GolfCart_C": "Factory Cart(TM)",
+   "Desc_GolfCartGold_C": "Golden Factory Cart(TM)",
    "Desc_GunpowderMK2_C": "Smokeless Powder",
    "Desc_Gunpowder_C": "Black Powder",
    "Desc_HUBParts_C": "HUB Parts",
@@ -1378,6 +1385,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Desc_OreUranium_C": "Uranium",
    "Desc_PackagedAlumina_C": "Packaged Alumina Solution",
    "Desc_PackagedBiofuel_C": "Packaged Liquid Biofuel",
+   "Desc_PackagedIonizedFuel_C": "Packaged Ionized Fuel",
    "Desc_PackagedNitricAcid_C": "Packaged Nitric Acid",
    "Desc_PackagedNitrogenGas_C": "Packaged Nitrogen Gas",
    "Desc_PackagedOilResidue_C": "Packaged Heavy Oil Residue",
@@ -1549,6 +1557,8 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Environment/Nut/Desc_Nut.Desc_Nut_C",
    "/Game/FactoryGame/Resource/Equipment/Beacon/Desc_Parachute.Desc_Parachute_C",
    "/Game/FactoryGame/Resource/Equipment/GemstoneScanner/BP_EquipmentDescriptorObjectScanner.BP_EquipmentDescriptorObjectScanner_C",
+   "/Game/FactoryGame/Resource/Equipment/GolfCart/Desc_GolfCart.Desc_GolfCart_C",
+   "/Game/FactoryGame/Resource/Equipment/GolfCart/Desc_GolfCartGold.Desc_GolfCartGold_C",
    "/Game/FactoryGame/Resource/Equipment/HoverPack/BP_EquipmentDescriptorHoverPack.BP_EquipmentDescriptorHoverPack_C",
    "/Game/FactoryGame/Resource/Equipment/JetPack/BP_EquipmentDescriptorJetPack.BP_EquipmentDescriptorJetPack_C",
    "/Game/FactoryGame/Resource/Equipment/JumpingStilts/BP_EquipmentDescriptorJumpingStilts.BP_EquipmentDescriptorJumpingStilts_C",
@@ -1587,6 +1597,8 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Parts/CopperSheet/Desc_CopperSheet.Desc_CopperSheet_C",
    "/Game/FactoryGame/Resource/Parts/CrystalOscillator/Desc_CrystalOscillator.Desc_CrystalOscillator_C",
    "/Game/FactoryGame/Resource/Parts/ElectromagneticControlRod/Desc_ElectromagneticControlRod.Desc_ElectromagneticControlRod_C",
+   "/Game/FactoryGame/Resource/Parts/Ficsonium/Desc_Ficsonium.Desc_Ficsonium_C",
+   "/Game/FactoryGame/Resource/Parts/FicsoniumFuelRod/Desc_FicsoniumFuelRod.Desc_FicsoniumFuelRod_C",
    "/Game/FactoryGame/Resource/Parts/Filter/Desc_Filter.Desc_Filter_C",
    "/Game/FactoryGame/Resource/Parts/FluidCanister/Desc_FluidCanister.Desc_FluidCanister_C",
    "/Game/FactoryGame/Resource/Parts/Fuel/Desc_Fuel.Desc_Fuel_C",
@@ -1603,6 +1615,7 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Parts/HighSpeedConnector/Desc_HighSpeedConnector.Desc_HighSpeedConnector_C",
    "/Game/FactoryGame/Resource/Parts/HighSpeedWire/Desc_HighSpeedWire.Desc_HighSpeedWire_C",
    "/Game/FactoryGame/Resource/Parts/IodineInfusedFilter/Desc_HazmatFilter.Desc_HazmatFilter_C",
+   "/Game/FactoryGame/Resource/Parts/IonizedFuel/Desc_PackagedIonizedFuel.Desc_PackagedIonizedFuel_C",
    "/Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C",
    "/Game/FactoryGame/Resource/Parts/IronPlate/Desc_IronPlate.Desc_IronPlate_C",
    "/Game/FactoryGame/Resource/Parts/IronPlateReinforced/Desc_IronPlateReinforced.Desc_IronPlateReinforced_C",
@@ -2451,10 +2464,10 @@ class SaveFileInfo:
 
    def parse(self, data):
       (offset, self.saveHeaderType) = parseUint32(0, data)
-      if self.saveHeaderType != 13: # For v0.8.3.3 thru v1.0.0.3
+      if self.saveHeaderType != 13: # For v0.8.3.3 thru v1.0.0.4
          raise ParseError(f"Unsupported save header version number {self.saveHeaderType}.")
       (offset, self.saveVersion) = parseUint32(offset, data)
-      if self.saveVersion != 46:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1 & v1.0.0.3
+      if self.saveVersion != 46:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1 - v1.0.0.4
          raise ParseError(f"Unsupported save version number {self.saveVersion}.")
       (offset, self.buildVersion) = parseUint32(offset, data)
       (offset, self.mapName) = parseString(offset, data)

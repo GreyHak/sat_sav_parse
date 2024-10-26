@@ -457,7 +457,7 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
          for creature in creaturesKilled:
             shortName = sav_parse.pathNameToReadableName(creature[0])
             lines += f"<li>{creature[1]} x {shortName}</li>\n"
-         lines += f"<li>Flying Crab Hatchers not tracked as of v1.0.0.3</li>\n"
+         lines += f"<li>Flying Crab Hatchers not tracked as of v1.0.0.4</li>\n"
          lines += "</ul>\n"
 
       lines += "</td></th></table>\n"
