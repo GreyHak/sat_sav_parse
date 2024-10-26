@@ -2479,7 +2479,7 @@ class SaveFileInfo:
       (offset, self.sessionVisibility) = parseInt8(offset, data)
       (offset, self.editorObjectVersion) = parseUint32(offset, data)
       (offset, self.modMetadata) = parseString(offset, data)
-      (offset, self.isModdedSave) = parseUint32(offset, data)
+      (offset, self.isModdedSave) = parseBool(offset, data, parseUint32, "isModdedSave")
       (offset, self.persistentSaveIdentifier) = parseString(offset, data)
 
       offset = confirmBasicType(offset, data, parseUint32, 1)

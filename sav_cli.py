@@ -188,6 +188,7 @@ def eulerToQuaternion(euler):
 def printUsage():
    print()
    print("USAGE:")
+   print("   py sav_cli.py --info <save-filename>")
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
@@ -237,6 +238,25 @@ if __name__ == '__main__':
 
    if len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help")):
       printUsage()
+
+   elif len(sys.argv) == 3 and sys.argv[1] == "--info" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      saveFileInfo = sav_parse.readSaveFileInfo(savFilename)
+      print(f"Save Header Type: {saveFileInfo.saveHeaderType}")
+      print(f"Save Version: {saveFileInfo.saveVersion}")
+      print(f"Build Version: {saveFileInfo.buildVersion}")
+      print(f"MapName: {saveFileInfo.mapName}")
+      print(f"Map Options: {saveFileInfo.mapOptions}")
+      print(f"Session Name: {saveFileInfo.sessionName}")
+      print(f"Play Duration: {saveFileInfo.playDurationInSeconds} seconds")
+      print(f"Save Date Time: {saveFileInfo.saveDateTimeInTicks} ticks ({saveFileInfo.saveDatetime.strftime('%m/%d/%Y %I:%M:%S %p')})")
+      print(f"Session Visibility: {saveFileInfo.sessionVisibility}")
+      print(f"Editor Object Version: {saveFileInfo.editorObjectVersion}")
+      print(f"Mod Metadata: {saveFileInfo.modMetadata}")
+      print(f"Is Modded Save: {saveFileInfo.isModdedSave}")
+      print(f"Persistent Save Identifier: {saveFileInfo.persistentSaveIdentifier}")
+      print(f"Random: {saveFileInfo.random}")
+      print(f"Cheat Flag: {saveFileInfo.cheatFlag}")
 
    elif len(sys.argv) in (2, 3, 4) and sys.argv[1] == "--find-free-stuff" and (len(sys.argv) < 4 or os.path.isfile(sys.argv[3])):
 
