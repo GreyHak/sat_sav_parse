@@ -189,6 +189,7 @@ def printUsage():
    print()
    print("USAGE:")
    print("   py sav_cli.py --info <save-filename>")
+   print("   py sav_cli.py --to-json <save-filename> <output-json-filename>")
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
@@ -257,6 +258,37 @@ if __name__ == '__main__':
       print(f"Persistent Save Identifier: {saveFileInfo.persistentSaveIdentifier}")
       print(f"Random: {saveFileInfo.random}")
       print(f"Cheat Flag: {saveFileInfo.cheatFlag}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--to-json" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+      changeTimeFlag = True
+      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+
+         jdata = {}
+         jdata["saveFileInfo"] = sav_parse.toJSON(saveFileInfo)
+         jdata["headhex"] = sav_parse.toJSON(headhex)
+         jdata["grids"] = sav_parse.toJSON(grids)
+         ldata = jdata["levels"] = {}
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            ldata[levelName] = {
+               "objectHeaders": sav_parse.toJSON(actorAndComponentObjectHeaders),
+               "collectables1": sav_parse.toJSON(collectables1),
+               "objects": sav_parse.toJSON(objects),
+               "collectables2": sav_parse.toJSON(collectables2)}
+         jdata["extraMercerShrineList"] = sav_parse.toJSON(extraMercerShrineList)
+
+         print(f"Writing {outFilename}")
+         with open(outFilename, "w") as fout:
+            json.dump(jdata, fout, indent=2)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) in (2, 3, 4) and sys.argv[1] == "--find-free-stuff" and (len(sys.argv) < 4 or os.path.isfile(sys.argv[3])):
 
@@ -912,7 +944,6 @@ if __name__ == '__main__':
             newComponentHeader.rootObject = "Persistent_Level"
             newComponentHeader.instanceName = replacementHotbarItemNewInstanceName
             newComponentHeader.parentActorName = replacementHotbarItemNewParentName
-            newComponentHeader.validFlag = True
             actorAndComponentObjectHeaders.append(newComponentHeader)
             #print(f"Created new component header {newComponentHeader.instanceName}")
 
@@ -929,14 +960,12 @@ if __name__ == '__main__':
                newRecipeObjectReference = sav_parse.ObjectReference()
                newRecipeObjectReference.levelName = ""
                newRecipeObjectReference.pathName = replacementHotbarItem
-               newRecipeObjectReference.validFlag = True
                newObject.properties    = [("mRecipeToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mRecipeToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGEmoteShortcut":
                newRecipeObjectReference = sav_parse.ObjectReference()
                newRecipeObjectReference.levelName = ""
                newRecipeObjectReference.pathName = replacementHotbarItem
-               newRecipeObjectReference.validFlag = True
                newObject.properties    = [("mEmoteToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mEmoteToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGBlueprintShortcut":
@@ -944,7 +973,6 @@ if __name__ == '__main__':
                newObject.propertyTypes = [("mBlueprintName", "StrProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
 
             newObject.actorSpecificInfo = None
-            newObject.validFlag = True
             objects.append(newObject)
             print(f"Created new object {newObject.instanceName} containing {replacementHotbarItem}")
 
@@ -1042,7 +1070,6 @@ if __name__ == '__main__':
                   newActor.position = position
                   newActor.scale = [1.600000023841858, 1.600000023841858, 1.600000023841858]
                   newActor.wasPlacedInLevel = 1
-                  newActor.validFlag = True
                   actorAndComponentObjectHeaders.append(newActor)
 
                   newObject = sav_parse.Object()
@@ -1052,12 +1079,10 @@ if __name__ == '__main__':
                   nullParentObjectReference = sav_parse.ObjectReference()
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
-                  nullParentObjectReference.validFlag = True
                   newObject.actorReferenceAssociations = [nullParentObjectReference, []]
                   newObject.properties    = []
                   newObject.propertyTypes = []
                   newObject.actorSpecificInfo = None
-                  newObject.validFlag = True
                   objects.append(newObject)
 
                   modifiedFlag = True
@@ -1123,7 +1148,6 @@ if __name__ == '__main__':
                   newActor.position = position
                   newActor.scale = [2.700000047683716, 2.6999998092651367, 2.6999998092651367]
                   newActor.wasPlacedInLevel = 1
-                  newActor.validFlag = True
                   actorAndComponentObjectHeaders.append(newActor)
 
                   newObject = sav_parse.Object()
@@ -1133,12 +1157,10 @@ if __name__ == '__main__':
                   nullParentObjectReference = sav_parse.ObjectReference()
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
-                  nullParentObjectReference.validFlag = True
                   newObject.actorReferenceAssociations = [nullParentObjectReference, []]
                   newObject.properties    = []
                   newObject.propertyTypes = []
                   newObject.actorSpecificInfo = None
-                  newObject.validFlag = True
                   objects.append(newObject)
 
                   modifiedFlag = True
@@ -1159,7 +1181,6 @@ if __name__ == '__main__':
                   newActor.position = position
                   newActor.scale = [scale, scale, scale]
                   newActor.wasPlacedInLevel = 1
-                  newActor.validFlag = True
                   actorAndComponentObjectHeaders.append(newActor)
 
                   newObject = sav_parse.Object()
@@ -1169,12 +1190,10 @@ if __name__ == '__main__':
                   nullParentObjectReference = sav_parse.ObjectReference()
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
-                  nullParentObjectReference.validFlag = True
                   newObject.actorReferenceAssociations = [nullParentObjectReference, []]
                   newObject.properties    = []
                   newObject.propertyTypes = []
                   newObject.actorSpecificInfo = None
-                  newObject.validFlag = True
                   objects.append(newObject)
 
                   modifiedFlag = True

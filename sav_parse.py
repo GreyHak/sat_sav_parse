@@ -2460,7 +2460,6 @@ def confirmBasicType(originalOffset, data, parser, expectedValue, message = None
 TICKS_IN_SECOND = 10 * 1000 * 1000
 EPOCH_1_TO_1970 = 719162 * 24 * 60 * 60
 class SaveFileInfo:
-   validFlag = False
 
    def parse(self, data):
       (offset, self.saveHeaderType) = parseUint32(0, data)
@@ -2489,7 +2488,6 @@ class SaveFileInfo:
       self.random = [random1, random2]
       (offset, self.cheatFlag) = parseBool(offset, data, parseUint32, "SaveFileInfo.cheatFlag")
 
-      self.validFlag = True
       return offset
 
    def __str__(self):
@@ -2512,13 +2510,12 @@ class SaveFileInfo:
       return string
 
 class ActorHeader:
-   validFlag = False
 
    def parse(self, offset, data):
       (offset, self.typePath) = parseString(offset, data)
       (offset, self.rootObject) = parseString(offset, data)
       (offset, self.instanceName) = parseString(offset, data)
-      (offset, self.needTransform) = parseUint32(offset, data)
+      (offset, self.needTransform) = parseBool(offset, data, parseUint32, "needTransform")
 
       (offset, xRotation) = parseFloat(offset, data)
       (offset, yRotation) = parseFloat(offset, data)
@@ -2536,32 +2533,53 @@ class ActorHeader:
       (offset, zScale) = parseFloat(offset, data)
       self.scale = [xScale, yScale, zScale]
 
-      (offset, self.wasPlacedInLevel) = parseUint32(offset, data)
-      self.validFlag = True
+      (offset, self.wasPlacedInLevel) = parseBool(offset, data, parseUint32, "wasPlacedInLevel")
       return offset
 
    def __str__(self):
-      if self.validFlag:
-         return f"<ActorHeader: typePath={self.typePath}, rootObject={self.rootObject}, instanceName={self.instanceName}, needTransform={self.needTransform}, rotation={self.rotation}, position={self.position}, scale={self.scale}, wasPlacedInLevel={self.wasPlacedInLevel}>"
-      else:
-         raise ParseError("Unable to convert invalid ActorHeader to str")
+      return f"<ActorHeader: typePath={self.typePath}, rootObject={self.rootObject}, instanceName={self.instanceName}, needTransform={self.needTransform}, rotation={self.rotation}, position={self.position}, scale={self.scale}, wasPlacedInLevel={self.wasPlacedInLevel}>"
 
 class ComponentHeader:
-   validFlag = False
 
    def parse(self, offset, data):
       (offset, self.className) = parseString(offset, data)
       (offset, self.rootObject) = parseString(offset, data)
       (offset, self.instanceName) = parseString(offset, data)
       (offset, self.parentActorName) = parseString(offset, data)
-      self.validFlag = True
       return offset
 
    def __str__(self):
-      if self.validFlag:
-         return f"<ComponentHeader: className={self.className}, rootObject={self.rootObject}, instanceName={self.instanceName}, parentActorName={self.parentActorName}>"
-      else:
-         raise ParseError("Unable to convert invalid ComponentHeader to str")
+      return f"<ComponentHeader: className={self.className}, rootObject={self.rootObject}, instanceName={self.instanceName}, parentActorName={self.parentActorName}>"
+
+def toJSON(object):
+   if object == None or isinstance(object, (str, int, float, bool, complex)):
+      return object
+
+   if isinstance(object, bytes):
+      return object.hex()
+
+   if isinstance(object, datetime.datetime):
+      return object.strftime('%m/%d/%Y %I:%M:%S %p')
+
+   if isinstance(object, (tuple, list)):
+      value = []
+      for element in object:
+         value.append(toJSON(element))
+      return value
+
+   if isinstance(object, dict):
+      value = {}
+      for key in object:
+         value[key] = toJSON(object[key])
+      return value
+
+   if callable(getattr(object, "__json__", None)):
+      return object.__json__()
+
+   jdata = {}
+   for element in object.__dict__:
+      jdata[element] = toJSON(object.__dict__[element])
+   return jdata
 
 def toString(value):
    if isinstance(value, str):
@@ -2593,7 +2611,6 @@ def getPropertyValue(properties, needlePropertyName):
    return None
 
 class Object:
-   validFlag = False
 
    def parse(self, offset, data, actorOrComponentObjectHeader):
       self.instanceName = actorOrComponentObjectHeader.instanceName
@@ -2878,40 +2895,46 @@ class Object:
             raise ParseError(f"Found {offsetStartThis + objectSize - offset} extra trailing bytes for ComponentHeader {actorOrComponentObjectHeader.className}.")
          offset = offsetStartThis + objectSize
 
-      self.validFlag = True
       return offset
 
    def __str__(self):
-      if self.validFlag:
-         actorReferenceAssociationsStr = "n/a"
-         if self.actorReferenceAssociations != None:
-            actorReferenceAssociationsStr = ""
-            for levelPathName in self.actorReferenceAssociations[1]:
-               if len(actorReferenceAssociationsStr) > 0:
-                  actorReferenceAssociationsStr += ", "
-               actorReferenceAssociationsStr += str(levelPathName)
-            actorReferenceAssociationsStr = f"({self.actorReferenceAssociations[0]}, [{actorReferenceAssociationsStr}])"
-         return f"<Object: instanceName={self.instanceName}, objectGameVersion={self.objectGameVersion}, flag={self.flag}, actorReferenceAssociations={actorReferenceAssociationsStr}, properties={toString(self.properties)}, actorSpecificInfo={toString(self.actorSpecificInfo)}>"
-      else:
-         raise ParseError("Unable to convert invalid Object to str")
+      actorReferenceAssociationsStr = "n/a"
+      if self.actorReferenceAssociations != None:
+         actorReferenceAssociationsStr = ""
+         for levelPathName in self.actorReferenceAssociations[1]:
+            if len(actorReferenceAssociationsStr) > 0:
+               actorReferenceAssociationsStr += ", "
+            actorReferenceAssociationsStr += str(levelPathName)
+         actorReferenceAssociationsStr = f"({self.actorReferenceAssociations[0]}, [{actorReferenceAssociationsStr}])"
+      return f"<Object: instanceName={self.instanceName}, objectGameVersion={self.objectGameVersion}, flag={self.flag}, actorReferenceAssociations={actorReferenceAssociationsStr}, properties={toString(self.properties)}, actorSpecificInfo={toString(self.actorSpecificInfo)}>"
+
+   def __json__(self):
+      araData = None
+      if self.actorReferenceAssociations != None:
+         (parentObjectReference, actorComponentReferences) = self.actorReferenceAssociations
+         acrData = []
+         for actorComponentReference in actorComponentReferences:
+            acrData.append(toJSON(actorComponentReference))
+         araData = {"parentObjectReference": toJSON(parentObjectReference), "actorComponentReferences": acrData}
+      return {"instanceName": self.instanceName,
+              "objectGameVersion": self.objectGameVersion,
+              "flag": self.flag,
+              "actorReferenceAssociations": araData,
+              "properties": toJSON(self.properties),
+              "actorSpecificInfo": toJSON(self.actorSpecificInfo)}
 
 class ObjectReference:
-   validFlag = False
 
    def parse(self, offset, data):
       (offset, self.levelName) = parseString(offset, data)
       (offset, self.pathName) = parseString(offset, data)
-      self.validFlag = True
       return offset
 
    def __str__(self):
-      if self.validFlag:
-         if self.levelName == "" and self.pathName == "":
-            return "<ObjectReference/>"
-         else:
-            return f"<ObjectReference: levelName={self.levelName}, pathName={self.pathName}>"
+      if self.levelName == "" and self.pathName == "":
+         return "<ObjectReference/>"
       else:
-         raise ParseError("Unable to convert invalid ObjectReference to str")
+         return f"<ObjectReference: levelName={self.levelName}, pathName={self.pathName}>"
 
 def parseObjectReference(offset, data):
    objectReference = ObjectReference()

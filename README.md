@@ -33,6 +33,7 @@ provide specific information from the save file or change data in a save file.
 
 Usage:
   - `py sav_cli.py --help`
+  - `py sav_cli.py --to-json <save-filename> <output-json-filename>`
   - `py sav_cli.py --info <save-filename>`
   - `py sav_cli.py --find-free-stuff [item] [save-filename]`
   - `py sav_cli.py --list-players <save-filename>`
