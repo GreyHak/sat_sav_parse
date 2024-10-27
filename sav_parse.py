@@ -2551,36 +2551,6 @@ class ComponentHeader:
    def __str__(self):
       return f"<ComponentHeader: className={self.className}, rootObject={self.rootObject}, instanceName={self.instanceName}, parentActorName={self.parentActorName}>"
 
-def toJSON(object):
-   if object == None or isinstance(object, (str, int, float, bool, complex)):
-      return object
-
-   if isinstance(object, bytes):
-      return object.hex()
-
-   if isinstance(object, datetime.datetime):
-      return object.strftime('%m/%d/%Y %I:%M:%S %p')
-
-   if isinstance(object, (tuple, list)):
-      value = []
-      for element in object:
-         value.append(toJSON(element))
-      return value
-
-   if isinstance(object, dict):
-      value = {}
-      for key in object:
-         value[key] = toJSON(object[key])
-      return value
-
-   if callable(getattr(object, "__json__", None)):
-      return object.__json__()
-
-   jdata = {}
-   for element in object.__dict__:
-      jdata[element] = toJSON(object.__dict__[element])
-   return jdata
-
 def toString(value):
    if isinstance(value, str):
       return f"'{value}'"
@@ -2907,21 +2877,6 @@ class Object:
             actorReferenceAssociationsStr += str(levelPathName)
          actorReferenceAssociationsStr = f"({self.actorReferenceAssociations[0]}, [{actorReferenceAssociationsStr}])"
       return f"<Object: instanceName={self.instanceName}, objectGameVersion={self.objectGameVersion}, flag={self.flag}, actorReferenceAssociations={actorReferenceAssociationsStr}, properties={toString(self.properties)}, actorSpecificInfo={toString(self.actorSpecificInfo)}>"
-
-   def __json__(self):
-      araData = None
-      if self.actorReferenceAssociations != None:
-         (parentObjectReference, actorComponentReferences) = self.actorReferenceAssociations
-         acrData = []
-         for actorComponentReference in actorComponentReferences:
-            acrData.append(toJSON(actorComponentReference))
-         araData = {"parentObjectReference": toJSON(parentObjectReference), "actorComponentReferences": acrData}
-      return {"instanceName": self.instanceName,
-              "objectGameVersion": self.objectGameVersion,
-              "flag": self.flag,
-              "actorReferenceAssociations": araData,
-              "properties": toJSON(self.properties),
-              "actorSpecificInfo": toJSON(self.actorSpecificInfo)}
 
 class ObjectReference:
 

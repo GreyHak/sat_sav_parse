@@ -19,6 +19,7 @@ import os
 import sys
 import json
 import math
+import datetime
 import sav_parse
 import sav_to_resave
 import sav_data_somersloop
@@ -185,6 +186,48 @@ def eulerToQuaternion(euler):
    qw = math.cos(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
    return (qx, qy, qz, qw)
 
+def toJSON(object):
+   if object == None or isinstance(object, (str, int, float, bool, complex)):
+      return object
+
+   if isinstance(object, bytes):
+      return object.hex()
+
+   if isinstance(object, datetime.datetime):
+      return object.strftime('%m/%d/%Y %I:%M:%S %p')
+
+   if isinstance(object, (tuple, list)):
+      value = []
+      for element in object:
+         value.append(toJSON(element))
+      return value
+
+   if isinstance(object, dict):
+      value = {}
+      for key in object:
+         value[key] = toJSON(object[key])
+      return value
+
+   if isinstance(object, sav_parse.Object):
+      araData = None
+      if object.actorReferenceAssociations != None:
+         (parentObjectReference, actorComponentReferences) = object.actorReferenceAssociations
+         acrData = []
+         for actorComponentReference in actorComponentReferences:
+            acrData.append(toJSON(actorComponentReference))
+         araData = {"parentObjectReference": toJSON(parentObjectReference), "actorComponentReferences": acrData}
+      return {"instanceName": object.instanceName,
+              "objectGameVersion": object.objectGameVersion,
+              "flag": object.flag,
+              "actorReferenceAssociations": araData,
+              "properties": toJSON(object.properties),
+              "actorSpecificInfo": toJSON(object.actorSpecificInfo)}
+
+   jdata = {}
+   for element in object.__dict__:
+      jdata[element] = toJSON(object.__dict__[element])
+   return jdata
+
 def printUsage():
    print()
    print("USAGE:")
@@ -271,17 +314,17 @@ if __name__ == '__main__':
          (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
 
          jdata = {}
-         jdata["saveFileInfo"] = sav_parse.toJSON(saveFileInfo)
-         jdata["headhex"] = sav_parse.toJSON(headhex)
-         jdata["grids"] = sav_parse.toJSON(grids)
+         jdata["saveFileInfo"] = toJSON(saveFileInfo)
+         jdata["headhex"] = toJSON(headhex)
+         jdata["grids"] = toJSON(grids)
          ldata = jdata["levels"] = {}
          for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
             ldata[levelName] = {
-               "objectHeaders": sav_parse.toJSON(actorAndComponentObjectHeaders),
-               "collectables1": sav_parse.toJSON(collectables1),
-               "objects": sav_parse.toJSON(objects),
-               "collectables2": sav_parse.toJSON(collectables2)}
-         jdata["extraObjectReferenceList"] = sav_parse.toJSON(extraObjectReferenceList)
+               "objectHeaders": toJSON(actorAndComponentObjectHeaders),
+               "collectables1": toJSON(collectables1),
+               "objects": toJSON(objects),
+               "collectables2": toJSON(collectables2)}
+         jdata["extraObjectReferenceList"] = toJSON(extraObjectReferenceList)
 
          print(f"Writing {outFilename}")
          with open(outFilename, "w") as fout:
