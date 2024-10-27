@@ -305,9 +305,6 @@ if __name__ == '__main__':
    elif len(sys.argv) == 4 and sys.argv[1] == "--to-json" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
       outFilename = sys.argv[3]
-      changeTimeFlag = True
-      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
-         changeTimeFlag = False
 
       modifiedFlag = False
       try:
