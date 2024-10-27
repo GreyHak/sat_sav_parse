@@ -247,6 +247,8 @@ def printUsage():
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --remember-username <player-num> <username-alias>")
+   print("   py sav_cli.py --list-vehicle-paths <save-filename>")
+   print("   py sav_cli.py --export-vehicle-path <path-name> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -1274,6 +1276,95 @@ if __name__ == '__main__':
 
       with open(USERNAME_FILENAME, "w") as fout:
          json.dump(playerUsernames, fout, indent=2)
+
+   elif len(sys.argv) == 3 and sys.argv[1] == "--list-vehicle-paths" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+
+         savedPathList = []
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
+                  savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
+                  if savedPaths != None:
+                     for savedPath in savedPaths:
+                        savedPathList.append(savedPath.pathName)
+               if object.instanceName in savedPathList:
+                  pathName = sav_parse.getPropertyValue(object.properties, "mPathName")
+                  if pathName != None:
+                     print(pathName)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) == 5 and sys.argv[1] == "--export-vehicle-path" and os.path.isfile(sys.argv[3]):
+      savedPathName = sys.argv[2]
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+
+         jdata = {}
+         savedPathList = []
+         targetListPathName = None
+         targetListNextWaypoint = None
+         targetListLastWaypoint = None
+         targetListWaypoints = []
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
+                  savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
+                  if savedPaths != None:
+                     for savedPath in savedPaths:
+                        savedPathList.append(savedPath.pathName)
+               if object.instanceName in savedPathList:
+                  pathName = sav_parse.getPropertyValue(object.properties, "mPathName")
+                  if pathName != None and pathName == savedPathName:
+                     jdata["mPathName"] = pathName
+                     targetList = sav_parse.getPropertyValue(object.properties, "mTargetList")
+                     if targetList != None:
+                        targetListPathName = targetList.pathName
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            for object in objects:
+               if object.instanceName == targetListPathName:
+                  first = sav_parse.getPropertyValue(object.properties, "mFirst")
+                  last = sav_parse.getPropertyValue(object.properties, "mLast")
+                  vehicleType = sav_parse.getPropertyValue(object.properties, "mVehicleType")
+                  pathFuelConsumption = sav_parse.getPropertyValue(object.properties, "mPathFuelConsumption")
+                  if first != None and last != None and vehicleType != None and pathFuelConsumption != None:
+                     targetListNextWaypoint = first.pathName
+                     targetListLastWaypoint = last.pathName
+                     jdata["mVehicleType"] = vehicleType.pathName
+                     jdata["mPathFuelConsumption"] = pathFuelConsumption
+               if targetListNextWaypoint != None and object.instanceName == targetListNextWaypoint:
+                  # The final element has no mNext or mWaitTime, just mTargetSpeed=0.
+                  # So no details are being preserved for the final waypoint.
+                  next = sav_parse.getPropertyValue(object.properties, "mNext")
+                  targetSpeed = sav_parse.getPropertyValue(object.properties, "mTargetSpeed")
+                  waitTime = sav_parse.getPropertyValue(object.properties, "mWaitTime") # Only the first element seems to have mWaitTime
+                  if next != None:
+                     targetListNextWaypoint = next.pathName
+                     targetListWaypoints.append((next.pathName, targetSpeed, waitTime))
+                  elif object.instanceName != targetListLastWaypoint:
+                     print("ERROR: Failed to follow the full vehicle path.", file=sys.stderr)
+                     exit(1)
+         targetList = jdata["mTargetList"] = []
+
+         for (waypointPathName, targetSpeed, waitTime) in targetListWaypoints:
+            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+                  if actorOrComponentObjectHeader.instanceName == waypointPathName:
+                     targetList.append((actorOrComponentObjectHeader.position, actorOrComponentObjectHeader.rotation, targetSpeed, waitTime))
+
+         print(f"Saving {len(targetList)} waypoints to {outFilename}")
+         with open(outFilename, "w") as fout:
+            json.dump(jdata, fout, indent=2)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--show" and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[3]

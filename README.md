@@ -49,6 +49,8 @@ Usage:
   - `py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --remember-username <player-num> <username-alias>`
+  - `py sav_cli.py --list-vehicle-paths <save-filename>`
+  - `py sav_cli.py --export-vehicle-path <path-name> <save-filename> <output-json-filename>`
   - `py sav_cli.py --blueprint --show <save-filename>`
   - `py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --export <save-filename> <output-json-filename>`
