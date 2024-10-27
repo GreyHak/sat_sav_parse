@@ -35,6 +35,7 @@ Usage:
   - `py sav_cli.py --help`
   - `py sav_cli.py --info <save-filename>`
   - `py sav_cli.py --to-json <save-filename> <output-json-filename>`
+  - `py sav_cli.py --from-json <input-json-filename> <new-save-filename>`
   - `py sav_cli.py --find-free-stuff [item] [save-filename]`
   - `py sav_cli.py --list-players <save-filename>`
   - `py sav_cli.py --list-player-inventory <player-num> <save-filename>`

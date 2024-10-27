@@ -191,7 +191,7 @@ def toJSON(object):
       return object
 
    if isinstance(object, bytes):
-      return object.hex()
+      return {"jsonhexstr": object.hex()}
 
    if isinstance(object, datetime.datetime):
       return object.strftime('%m/%d/%Y %I:%M:%S %p')
@@ -221,6 +221,7 @@ def toJSON(object):
               "flag": object.flag,
               "actorReferenceAssociations": araData,
               "properties": toJSON(object.properties),
+              "propertyTypes": toJSON(object.propertyTypes),
               "actorSpecificInfo": toJSON(object.actorSpecificInfo)}
 
    jdata = {}
@@ -228,11 +229,34 @@ def toJSON(object):
       jdata[element] = toJSON(object.__dict__[element])
    return jdata
 
+def fromJSON(object):
+   if object == None or isinstance(object, (str, int, float, bool, complex)):
+      return object
+
+   if isinstance(object, dict) and len(object) == 1 and "jsonhexstr" in object:
+      return bytes.fromhex(object["jsonhexstr"])
+
+   if isinstance(object, dict) and len(object) == 2 and "levelName" in object and "pathName" in object:
+      objectReference = sav_parse.ObjectReference()
+      objectReference.levelName = object["levelName"]
+      objectReference.pathName = object["pathName"]
+      return objectReference
+
+   if isinstance(object, (tuple, list)):
+      value = []
+      for element in object:
+         value.append(fromJSON(element))
+      return value
+
+   print(object)
+   return None
+
 def printUsage():
    print()
    print("USAGE:")
    print("   py sav_cli.py --info <save-filename>")
    print("   py sav_cli.py --to-json <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --from-json <input-json-filename> <new-save-filename>")
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
@@ -331,6 +355,100 @@ if __name__ == '__main__':
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--from-json" and os.path.isfile(sys.argv[2]):
+      jsonFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      print("Reading JSON")
+      with open(jsonFilename, "r") as fin:
+         jdata = json.load(fin)
+
+      print("Parsing JSON")
+      saveFileInfo = sav_parse.SaveFileInfo()
+      saveFileInfo.saveHeaderType = jdata["saveFileInfo"]["saveHeaderType"]
+      saveFileInfo.saveVersion = jdata["saveFileInfo"]["saveVersion"]
+      saveFileInfo.buildVersion = jdata["saveFileInfo"]["buildVersion"]
+      saveFileInfo.mapName = jdata["saveFileInfo"]["mapName"]
+      saveFileInfo.mapOptions = jdata["saveFileInfo"]["mapOptions"]
+      saveFileInfo.sessionName = jdata["saveFileInfo"]["sessionName"]
+      saveFileInfo.playDurationInSeconds = jdata["saveFileInfo"]["playDurationInSeconds"]
+      saveFileInfo.saveDateTimeInTicks = jdata["saveFileInfo"]["saveDateTimeInTicks"]
+      saveFileInfo.saveDatetime = datetime.datetime.fromtimestamp(saveFileInfo.saveDateTimeInTicks / sav_parse.TICKS_IN_SECOND - sav_parse.EPOCH_1_TO_1970)
+      saveFileInfo.sessionVisibility = fromJSON(jdata["saveFileInfo"]["sessionVisibility"])
+      saveFileInfo.editorObjectVersion = jdata["saveFileInfo"]["editorObjectVersion"]
+      saveFileInfo.modMetadata = jdata["saveFileInfo"]["modMetadata"]
+      saveFileInfo.isModdedSave = jdata["saveFileInfo"]["isModdedSave"]
+      saveFileInfo.persistentSaveIdentifier = jdata["saveFileInfo"]["persistentSaveIdentifier"]
+      saveFileInfo.random = jdata["saveFileInfo"]["random"]
+      saveFileInfo.cheatFlag = jdata["saveFileInfo"]["cheatFlag"]
+      headhex = jdata["headhex"]
+      grids = jdata["grids"]
+      extraObjectReferenceList = []
+      for objectReference in jdata["extraObjectReferenceList"]:
+         extraObjectReferenceList.append(fromJSON(objectReference))
+
+      levels = []
+      for level in jdata["levels"]:
+         levelName = level
+         if levelName == "null":
+            levelName = None
+         levelData = jdata["levels"][level]
+
+         actorAndComponentObjectHeaders = []
+         for objectHeaderJson in levelData["objectHeaders"]:
+            if len(objectHeaderJson) == 8:
+               objectHeaderCopy = sav_parse.ActorHeader()
+               objectHeaderCopy.typePath = objectHeaderJson["typePath"]
+               objectHeaderCopy.rootObject = objectHeaderJson["rootObject"]
+               objectHeaderCopy.instanceName = objectHeaderJson["instanceName"]
+               objectHeaderCopy.needTransform = objectHeaderJson["needTransform"]
+               objectHeaderCopy.rotation = objectHeaderJson["rotation"]
+               objectHeaderCopy.position = objectHeaderJson["position"]
+               objectHeaderCopy.scale = objectHeaderJson["scale"]
+               objectHeaderCopy.wasPlacedInLevel = objectHeaderJson["wasPlacedInLevel"]
+            else:
+               objectHeaderCopy = sav_parse.ComponentHeader()
+               objectHeaderCopy.className = objectHeaderJson["className"]
+               objectHeaderCopy.rootObject = objectHeaderJson["rootObject"]
+               objectHeaderCopy.instanceName = objectHeaderJson["instanceName"]
+               objectHeaderCopy.parentActorName = objectHeaderJson["parentActorName"]
+            actorAndComponentObjectHeaders.append(objectHeaderCopy)
+
+         collectables1 = None
+         if levelData["collectables1"] != None:
+            collectables1 = []
+            for objectReference in levelData["collectables1"]:
+               collectables1.append(fromJSON(objectReference))
+
+         objects = []
+         for objectJson in levelData["objects"]:
+            objectCopy = sav_parse.Object()
+            objectCopy.instanceName = objectJson["instanceName"]
+            objectCopy.objectGameVersion = objectJson["objectGameVersion"]
+            objectCopy.flag = objectJson["flag"]
+            objectCopy.actorReferenceAssociations = None
+            if objectJson["actorReferenceAssociations"] != None:
+               objectCopy.actorReferenceAssociations = [fromJSON(objectJson["actorReferenceAssociations"]["parentObjectReference"]), fromJSON(objectJson["actorReferenceAssociations"]["actorComponentReferences"])]
+            objectCopy.properties = fromJSON(objectJson["properties"])
+            objectCopy.propertyTypes = fromJSON(objectJson["propertyTypes"])
+            objectCopy.actorSpecificInfo = fromJSON(objectJson["actorSpecificInfo"])
+            objects.append(objectCopy)
+
+         collectables2 = []
+         for objectReference in levelData["collectables2"]:
+            collectables2.append(fromJSON(objectReference))
+
+         levels.append([levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2])
+
+      print("Writing Save")
+      try:
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         print("Validating Save")
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+         print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating save to '{outFilename}': {error}")
 
    elif len(sys.argv) in (2, 3, 4) and sys.argv[1] == "--find-free-stuff" and (len(sys.argv) < 4 or os.path.isfile(sys.argv[3])):
 
