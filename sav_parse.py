@@ -3657,12 +3657,11 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
       satisfactoryCalculatorInteractiveMapExtras.append("Missing final array count") # This can cause the input save file to lose content
       data += b"\x00\x00\x00\x00"
 
-   (offset, extraMercerShrineCount) = parseUint32(offset, data)
-   extraMercerShrineList = []
-   for idx in range(extraMercerShrineCount):
-      # Persistent_Level:PersistentLevel.BP_MercerShrine_C_*
-      (offset, msLevelPathName) = parseObjectReference(offset, data)
-      extraMercerShrineList.append(msLevelPathName)
+   (offset, extraObjectReferenceCount) = parseUint32(offset, data)
+   extraObjectReferenceList = []
+   for idx in range(extraObjectReferenceCount):
+      (offset, objectReference) = parseObjectReference(offset, data)
+      extraObjectReferenceList.append(objectReference)
 
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
@@ -3682,10 +3681,10 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
             emptyCollectables1 += 1
       if countOfNoneCollectables1 > 0:
          print(f"Skipped {countOfNoneCollectables1} level collectables1 with {emptyCollectables1} empty collectables1")
-      if extraMercerShrineCount > 0:
-         print(f"extraMercerShrineCount={extraMercerShrineCount}")
+      if extraObjectReferenceCount > 0:
+         print(f"extraObjectReferenceCount={extraObjectReferenceCount}")
 
-   return (saveFileInfo, (headhex1, headhex2), grids, levels, extraMercerShrineList)
+   return (saveFileInfo, (headhex1, headhex2), grids, levels, extraObjectReferenceList)
 
 def readSaveFileInfo(filename):
    with open(filename, "rb") as fin:
@@ -3740,7 +3739,7 @@ if __name__ == '__main__':
          exit(1)
       dumpOut.write("\n=== Full File ===\n")
       try:
-         (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = readFullSaveFile(savFilename, decompressedOutputFilename)
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = readFullSaveFile(savFilename, decompressedOutputFilename)
          dumpOut.write("Successfully parsed save file\n\n")
 
          dumpOut.write(str(saveFileInfo))
@@ -3783,7 +3782,7 @@ if __name__ == '__main__':
             progressBar.complete()
 
          dumpOut.write("\nAdditional object references:\n")
-         for msLevelPathName in extraMercerShrineList:
+         for msLevelPathName in extraObjectReferenceList:
             dumpOut.write(f"  {msLevelPathName}\n")
 
          with open(somersloopOutputFilename, "w") as somersloopOut:

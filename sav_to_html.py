@@ -106,7 +106,7 @@ def getStackSize(itemName, itemCount):
 def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT_HTML_BASENAME):
    htmlFilename = f"{outputDir}/{htmlBasename}"
    try:
-      (saveFileInfo, headhex, grids, levels, extraMercerShrineList) = sav_parse.readFullSaveFile(savFilename)
+      (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
       #htmlFilename = f"save_{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.html"
 
       uncollectedPowerSlugsBlue = sav_data_slug.POWER_SLUGS_BLUE.copy()
