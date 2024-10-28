@@ -19,6 +19,7 @@ import os
 import sys
 import json
 import math
+import uuid
 import datetime
 import sav_parse
 import sav_to_resave
@@ -963,7 +964,6 @@ if __name__ == '__main__':
       with open(inFilename, "r") as fin:
          hotbarContents = json.load(fin)
 
-      addIndex = 3000000000  # This number is arbitrary.  What would be a better choice?
       modifiedFlag = False
       try:
          (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
@@ -1037,8 +1037,7 @@ if __name__ == '__main__':
                                  replacementHotbarItemNewClassName = "FGBlueprintShortcut"
 
                               replacementHotbarItemNewParentName = object.instanceName
-                              replacementHotbarItemNewInstanceName = f"{replacementHotbarItemNewParentName}.{replacementHotbarItemNewClassName}_{addIndex}"
-                              addIndex += 1
+                              replacementHotbarItemNewInstanceName = f"{replacementHotbarItemNewParentName}.{replacementHotbarItemNewClassName}_{uuid.uuid4().hex}"
 
                         item = shortcuts[hotbarItemIdx].pathName
                         if len(item) == 0:
