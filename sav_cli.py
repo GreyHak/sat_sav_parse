@@ -969,17 +969,6 @@ if __name__ == '__main__':
          (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(levels)
 
-         #names = []
-         #for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-         #   for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
-         #      names.append(actorOrComponentObjectHeader.instanceName)
-         #   for object in objects:
-         #      names.append(object.instanceName)
-         #for name in names:
-         #   name = name[-10:]
-         #   print(name)
-         #exit(1)
-
          playerState = None
          playerCharacter = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
