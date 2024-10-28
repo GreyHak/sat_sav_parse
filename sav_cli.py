@@ -274,6 +274,7 @@ def printUsage():
    print("   py sav_cli.py --remember-username <player-num> <username-alias>")
    print("   py sav_cli.py --list-vehicle-paths <save-filename>")
    print("   py sav_cli.py --export-vehicle-path <path-name> <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --import-vehicle-path <path-name> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -1412,58 +1413,61 @@ if __name__ == '__main__':
 
       try:
          (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[-1]
+
+         savedPathList = []
+         for object in objects:
+            if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
+               savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
+               if savedPaths != None:
+                  for savedPath in savedPaths:
+                     savedPathList.append(savedPath.pathName)
 
          jdata = {}
-         savedPathList = []
          targetListPathName = None
+         for object in objects:
+            if object.instanceName in savedPathList:
+               pathName = sav_parse.getPropertyValue(object.properties, "mPathName")
+               if pathName != None and pathName == savedPathName:
+                  jdata["mPathName"] = pathName
+                  targetList = sav_parse.getPropertyValue(object.properties, "mTargetList")
+                  if targetList != None:
+                     targetListPathName = targetList.pathName
+
          targetListNextWaypoint = None
          targetListLastWaypoint = None
-         targetListWaypoints = []
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
-               if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
-                  savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
-                  if savedPaths != None:
-                     for savedPath in savedPaths:
-                        savedPathList.append(savedPath.pathName)
-               if object.instanceName in savedPathList:
-                  pathName = sav_parse.getPropertyValue(object.properties, "mPathName")
-                  if pathName != None and pathName == savedPathName:
-                     jdata["mPathName"] = pathName
-                     targetList = sav_parse.getPropertyValue(object.properties, "mTargetList")
-                     if targetList != None:
-                        targetListPathName = targetList.pathName
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
-               if object.instanceName == targetListPathName:
-                  first = sav_parse.getPropertyValue(object.properties, "mFirst")
-                  last = sav_parse.getPropertyValue(object.properties, "mLast")
-                  vehicleType = sav_parse.getPropertyValue(object.properties, "mVehicleType")
-                  pathFuelConsumption = sav_parse.getPropertyValue(object.properties, "mPathFuelConsumption")
-                  if first != None and last != None and vehicleType != None and pathFuelConsumption != None:
-                     targetListNextWaypoint = first.pathName
-                     targetListLastWaypoint = last.pathName
-                     jdata["mVehicleType"] = vehicleType.pathName
-                     jdata["mPathFuelConsumption"] = pathFuelConsumption
-               if targetListNextWaypoint != None and object.instanceName == targetListNextWaypoint:
-                  # The final element has no mNext or mWaitTime, just mTargetSpeed=0.
-                  # So no details are being preserved for the final waypoint.
-                  next = sav_parse.getPropertyValue(object.properties, "mNext")
-                  targetSpeed = sav_parse.getPropertyValue(object.properties, "mTargetSpeed")
-                  waitTime = sav_parse.getPropertyValue(object.properties, "mWaitTime") # Only the first element seems to have mWaitTime
-                  if next != None:
-                     targetListNextWaypoint = next.pathName
-                     targetListWaypoints.append((next.pathName, targetSpeed, waitTime))
-                  elif object.instanceName != targetListLastWaypoint:
-                     print("ERROR: Failed to follow the full vehicle path.", file=sys.stderr)
-                     exit(1)
-         targetList = jdata["mTargetList"] = []
+         for object in objects:
+            if object.instanceName == targetListPathName:
+               first = sav_parse.getPropertyValue(object.properties, "mFirst")
+               last = sav_parse.getPropertyValue(object.properties, "mLast")
+               vehicleType = sav_parse.getPropertyValue(object.properties, "mVehicleType")
+               pathFuelConsumption = sav_parse.getPropertyValue(object.properties, "mPathFuelConsumption")
+               if first != None and last != None and vehicleType != None and pathFuelConsumption != None:
+                  targetListNextWaypoint = first.pathName
+                  targetListLastWaypoint = last.pathName
+                  jdata["mVehicleType"] = vehicleType.pathName
+                  jdata["mPathFuelConsumption"] = pathFuelConsumption
 
+         targetListWaypoints = []
+         for object in objects:
+            if targetListNextWaypoint != None and object.instanceName == targetListNextWaypoint:
+               # The final element has no mNext or mWaitTime, just mTargetSpeed=0.
+               # So no details are being preserved for the final waypoint.
+               next = sav_parse.getPropertyValue(object.properties, "mNext")
+               targetSpeed = sav_parse.getPropertyValue(object.properties, "mTargetSpeed")
+               waitTime = sav_parse.getPropertyValue(object.properties, "mWaitTime") # Only the first element seems to have mWaitTime
+               targetListWaypoints.append((object.instanceName, targetSpeed, waitTime))
+               if next != None:
+                  targetListNextWaypoint = next.pathName
+               elif object.instanceName != targetListLastWaypoint:
+                  print("ERROR: Failed to follow the full vehicle path.", file=sys.stderr)
+                  exit(1)
+
+         targetList = jdata["mTargetList"] = []
          for (waypointPathName, targetSpeed, waitTime) in targetListWaypoints:
-            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
-                  if actorOrComponentObjectHeader.instanceName == waypointPathName:
-                     targetList.append((actorOrComponentObjectHeader.position, actorOrComponentObjectHeader.rotation, targetSpeed, waitTime))
+            for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+               if actorOrComponentObjectHeader.instanceName == waypointPathName:
+                  targetList.append((actorOrComponentObjectHeader.position, actorOrComponentObjectHeader.rotation, targetSpeed, waitTime))
 
          print(f"Saving {len(targetList)} waypoints to {outFilename}")
          with open(outFilename, "w") as fout:
@@ -1471,6 +1475,174 @@ if __name__ == '__main__':
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--import-vehicle-path" and os.path.isfile(sys.argv[3]):
+      newSavePathName = sys.argv[2]
+      savFilename = sys.argv[3]
+      inFilename = sys.argv[4]
+      outFilename = sys.argv[5]
+      changeTimeFlag = True
+      if len(sys.argv) == 7 and sys.argv[6] == "--same-time":
+         changeTimeFlag = False
+
+      with open(inFilename, "r") as fin:
+         jdata = json.load(fin)
+      if len(jdata["mTargetList"]) == 0:
+         print(f"ERROR: {inFilename} contains no mTargetList points.", file=sys.stderr)
+         exit(1)
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[-1]
+
+         newDrivingTargetList = f"Persistent_Level:PersistentLevel.FGDrivingTargetList_{uuid.uuid4().hex}"
+         newSavedWheeledVehiclePath = f"Persistent_Level:PersistentLevel.FGSavedWheeledVehiclePath_{uuid.uuid4().hex}"
+         newVehicleTargetPoints = []
+         for _ in range(len(jdata["mTargetList"])):
+            newVehicleTargetPoints.append(f"Persistent_Level:PersistentLevel.BP_VehicleTargetPoint_C_{uuid.uuid4().hex}")
+
+         for object in objects:
+            if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
+               savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
+               if savedPaths != None:
+                  print(f"Adding {len(newVehicleTargetPoints)} points as {newSavedWheeledVehiclePath} to VehicleSubsystem")
+                  objectReference = sav_parse.ObjectReference()
+                  objectReference.levelName = "Persistent_Level"
+                  objectReference.pathName = newSavedWheeledVehiclePath
+                  savedPaths.append(objectReference)
+                  modifiedFlag = True
+
+         actorHeader = sav_parse.ActorHeader()
+         actorHeader.typePath = "/Script/FactoryGame.FGDrivingTargetList"
+         actorHeader.rootObject = "Persistent_Level"
+         actorHeader.instanceName = newDrivingTargetList
+         actorHeader.needTransform = False
+         actorHeader.rotation = [0.0, 0.0, 0.0, 1.0]
+         actorHeader.position = [0.0, 0.0, 0.0]
+         actorHeader.scale = [1.0, 1.0, 1.0]
+         actorHeader.wasPlacedInLevel = False
+         actorAndComponentObjectHeaders.append(actorHeader)
+
+         object = sav_parse.Object()
+         object.instanceName = newDrivingTargetList
+         object.objectGameVersion = 46
+         object.flag = False
+         parentObjectReference = sav_parse.ObjectReference()
+         parentObjectReference.levelName = "Persistent_Level"
+         parentObjectReference.pathName = "Persistent_Level:PersistentLevel.VehicleSubsystem"
+         object.actorReferenceAssociations = [parentObjectReference, []]
+         firstObjectReference = sav_parse.ObjectReference()
+         firstObjectReference.levelName = "Persistent_Level"
+         firstObjectReference.pathName = newVehicleTargetPoints[0]
+         lastObjectReference = sav_parse.ObjectReference()
+         lastObjectReference.levelName = "Persistent_Level"
+         lastObjectReference.pathName = newVehicleTargetPoints[-1]
+         vehicleObjectReference = sav_parse.ObjectReference()
+         vehicleObjectReference.levelName = ""
+         vehicleObjectReference.pathName = jdata["mVehicleType"]
+         object.properties = [
+            ["mFirst", firstObjectReference],
+            ["mLast", lastObjectReference],
+            ["mVehicleType", vehicleObjectReference],
+            ["mPathFuelConsumption", jdata["mPathFuelConsumption"]]]
+         object.propertyTypes = [
+            ["mFirst", "ObjectProperty", 0],
+            ["mLast", "ObjectProperty", 0],
+            ["mVehicleType", "ObjectProperty", 0],
+            ["mPathFuelConsumption", "FloatProperty", 0]]
+         object.actorSpecificInfo = None
+         objects.append(object)
+
+         for idx in range(len(newVehicleTargetPoints)):
+            actorHeader = sav_parse.ActorHeader()
+            actorHeader.typePath = "/Game/FactoryGame/Buildable/Vehicle/BP_VehicleTargetPoint.BP_VehicleTargetPoint_C"
+            actorHeader.rootObject = "Persistent_Level"
+            actorHeader.instanceName = newVehicleTargetPoints[idx]
+            actorHeader.needTransform = False
+            actorHeader.rotation = jdata["mTargetList"][idx][1]
+            actorHeader.position = jdata["mTargetList"][idx][0]
+            actorHeader.scale = [1.0, 1.0, 1.0]
+            actorHeader.wasPlacedInLevel = False
+            actorAndComponentObjectHeaders.append(actorHeader)
+
+            object = sav_parse.Object()
+            object.instanceName = newVehicleTargetPoints[idx]
+            object.objectGameVersion = 46
+            object.flag = False
+            parentObjectReference = sav_parse.ObjectReference()
+            parentObjectReference.levelName = "Persistent_Level"
+            parentObjectReference.pathName = newDrivingTargetList
+            object.actorReferenceAssociations = [parentObjectReference, []]
+            object.properties = []
+            object.propertyTypes = []
+            if idx+1 < len(newVehicleTargetPoints):
+               nextObjectReference = sav_parse.ObjectReference()
+               nextObjectReference.levelName = "Persistent_Level"
+               nextObjectReference.pathName = newVehicleTargetPoints[idx+1]
+               object.properties.append(["mNext", nextObjectReference])
+               object.propertyTypes.append(["mNext", "ObjectProperty", 0])
+            if jdata["mTargetList"][idx][3] != None:
+               object.properties.append(["mWaitTime", jdata["mTargetList"][idx][3]])
+               object.propertyTypes.append(["mWaitTime", "FloatProperty", 0])
+            object.properties.append(["mTargetSpeed", jdata["mTargetList"][idx][2]])
+            object.propertyTypes.append(["mTargetSpeed", "IntProperty", 0])
+            object.actorSpecificInfo = None
+            objects.append(object)
+
+         actorHeader = sav_parse.ActorHeader()
+         actorHeader.typePath = "/Script/FactoryGame.FGSavedWheeledVehiclePath"
+         actorHeader.rootObject = "Persistent_Level"
+         actorHeader.instanceName = newSavedWheeledVehiclePath
+         actorHeader.needTransform = False
+         actorHeader.rotation = [0.0, 0.0, 0.0, 1.0]
+         actorHeader.position = [0.0, 0.0, 0.0]
+         actorHeader.scale = [1.0, 1.0, 1.0]
+         actorHeader.wasPlacedInLevel = False
+         actorAndComponentObjectHeaders.append(actorHeader)
+
+         object = sav_parse.Object()
+         object.instanceName = newSavedWheeledVehiclePath
+         object.objectGameVersion = 46
+         object.flag = False
+         parentObjectReference = sav_parse.ObjectReference()
+         parentObjectReference.levelName = ""
+         parentObjectReference.pathName = ""
+         object.actorReferenceAssociations = [parentObjectReference, []]
+         firstObjectReference = sav_parse.ObjectReference()
+         firstObjectReference.levelName = "Persistent_Level"
+         firstObjectReference.pathName = newVehicleTargetPoints[0]
+         lastObjectReference = sav_parse.ObjectReference()
+         lastObjectReference.levelName = "Persistent_Level"
+         lastObjectReference.pathName = newVehicleTargetPoints[-1]
+         listObjectReference = sav_parse.ObjectReference()
+         listObjectReference.levelName = "Persistent_Level"
+         listObjectReference.pathName = newDrivingTargetList
+         object.properties = [
+            ["mPathName", newSavePathName],
+            ["mTargetList", listObjectReference]]
+         object.propertyTypes = [
+            ["mPathName", "StrProperty", 0],
+            ["mTargetList", "ObjectProperty", 0]]
+         object.actorSpecificInfo = None
+         objects.append(object)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find VehicleSubsystem to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--show" and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[3]

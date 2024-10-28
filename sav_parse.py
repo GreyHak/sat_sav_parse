@@ -2993,7 +2993,7 @@ def parseProperties(offset, data):
 
       (offset, propertyType) = parseString(offset, data)
       (offset, propertySize) = parseUint32(offset, data)
-      (offset, propertyIndex) = parseUint32(offset, data)  # Doesn't appear to be an actual 'index'
+      (offset, propertyIndex) = parseUint32(offset, data)  # Doesn't appear to be an actual 'index'.  Can be non-zero for propertyType=StructProperty.
       retainedPropertyType = propertyType
 
       propertyStartOffset = 0
