@@ -471,9 +471,16 @@ def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT
       if creatingMapImagesFlag:
          Image.MAX_IMAGE_PIXELS = 1700000000
 
-         imageFont = ImageFont.truetype(FONT_FILENAME, MAP_FONT_SIZE)
-         # If this font load fails, and imageFont is None, the drawn text will
-         # still be present, just with a tiny font.
+         try:
+            imageFont = ImageFont.truetype(FONT_FILENAME, MAP_FONT_SIZE)
+            # Testing has shown that, if this font load fails, imageFont is None
+            # which cases the drawn text to be present, just with a tiny font.
+            # User feedback has reported that it threw OSError.
+         except:
+            imageFont = None
+
+         if imageFont == None:
+            print("CAUTION: An error occured loading the font file.  Please update the FONT_FILENAME variable to point at a font installed on your system.  If you need a .ttf file, can you can get from https://github.com/kiwi0fruit/open-fonts")
 
          origImage = Image.open(MAP_BASENAME_BLANK)
 
