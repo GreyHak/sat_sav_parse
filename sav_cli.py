@@ -258,6 +258,7 @@ def printUsage():
    print("   py sav_cli.py --info <save-filename>")
    print("   py sav_cli.py --to-json <save-filename> <output-json-filename>")
    print("   py sav_cli.py --from-json <input-json-filename> <new-save-filename>")
+   print("   py sav_cli.py --set-session-name <new-session-name> <original-save-filename> <new-save-filename>")
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
@@ -451,6 +452,26 @@ if __name__ == '__main__':
          print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating save to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 5 and sys.argv[1] == "--set-session-name" and os.path.isfile(sys.argv[3]):
+      newSessionName = sys.argv[2]
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      saveFileInfo.sessionName = newSessionName
+
+      try:
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) in (2, 3, 4) and sys.argv[1] == "--find-free-stuff" and (len(sys.argv) < 4 or os.path.isfile(sys.argv[3])):
 
