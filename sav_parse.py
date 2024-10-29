@@ -3344,11 +3344,14 @@ def parseProperties(offset, data):
             properties.append([propertyName, value])
          elif structPropertyType == "ClientIdentityInfo": # Format very similar to BP_PlayerState_C
             (offset, clientUuid) = parseString(offset, data)
-            offset = confirmBasicType(offset, data, parseUint32, 1)
-            (offset, clientType) = parseUint8(offset, data) # Seen 1 or 6 (Maybe 1=Epic 6=Steam)
-            (offset, clientSize) = parseUint32(offset, data)
-            (offset, clientData) = parseData(offset, data, clientSize)
-            properties.append([propertyName, [clientUuid, clientType, clientData]])
+            (offset, identityCount) = parseUint32(offset, data)
+            identities = []
+            for _ in range(identityCount):
+               (offset, clientType) = parseUint8(offset, data) # Seen 1 or 6 (Maybe 1=Epic 6=Steam)
+               (offset, clientSize) = parseUint32(offset, data)
+               (offset, clientData) = parseData(offset, data, clientSize)
+               identities.append([clientType, clientData])
+            properties.append([propertyName, [clientUuid, identities]])
          elif structPropertyType in ("Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
             (offset, rawData) = parseData(offset, data, propertySize)
             properties.append([propertyName, rawData])

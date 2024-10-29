@@ -363,12 +363,13 @@ def addProperties(properties, propertyTypes):
                         case "DateTime":
                            dataProp.extend(addInt64(propertyValue))
                         case "ClientIdentityInfo":
-                           (clientUuid, clientType, clientData) = propertyValue
+                           (clientUuid, identities) = propertyValue
                            dataProp.extend(addString(clientUuid))
-                           dataProp.extend(addUint32(1))
-                           dataProp.extend(addUint8(clientType))
-                           dataProp.extend(addUint32(len(clientData)))
-                           dataProp.extend(clientData)
+                           dataProp.extend(addUint32(len(identities)))
+                           for (clientType, clientData) in identities:
+                              dataProp.extend(addUint8(clientType))
+                              dataProp.extend(addUint32(len(clientData)))
+                              dataProp.extend(clientData)
                         case structPropertyType if structPropertyType in ("Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
                            dataProp.extend(propertyValue)
                         case structPropertyType if structPropertyType in (
