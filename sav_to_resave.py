@@ -533,7 +533,7 @@ def addObject(object, actorOrComponentObjectHeader):
             dataTrailing.extend(addUint32(0))
             dataTrailing.extend(addString(buildItemPathName))
             dataTrailing.extend(addUint32(len(lightweightBuildableInstances)))
-            for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), maybeIndex, recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
+            for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
                for xyzw in rotationQuaternion:
                   dataTrailing.extend(addDouble(xyzw))
                for xyz in position:
@@ -552,7 +552,8 @@ def addObject(object, actorOrComponentObjectHeader):
                for component in secondaryColor:
                   dataTrailing.extend(addFloat(component))
                dataTrailing.extend(addUint32(0))
-               dataTrailing.extend(addUint32(0))
+               dataTrailing.extend(addUint32(len(somethingData)))
+               dataTrailing.extend(somethingData)
                dataTrailing.extend(addUint32(maybeIndex))
                dataTrailing.extend(addUint8(0))
                dataTrailing.extend(addString(recipePathName))

@@ -798,7 +798,7 @@ if __name__ == '__main__':
             for object in objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.LightweightBuildableSubsystem":
                   for (buildItemPathName, lightweightBuildableInstances) in object.actorSpecificInfo:
-                     for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), maybeIndex, recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
+                     for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
                         if lcTupleToSrgbHex(primaryColor) == colorPrimary and lcTupleToSrgbHex(secondaryColor) == colorSecondary:
                            euler = quaternionToEuler(rotationQuaternion)
                            oldYaw = euler[2]

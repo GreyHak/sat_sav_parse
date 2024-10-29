@@ -2725,14 +2725,17 @@ class Object:
                      secondaryColor.append(value)
 
                   offset = confirmBasicType(offset, data, parseUint32, 0)
-                  offset = confirmBasicType(offset, data, parseUint32, 0)
+
+                  (offset, somethingSize) = parseUint32(offset, data)
+                  (offset, somethingData) = parseData(offset, data, somethingSize)
+
                   (offset, maybeIndex) = parseUint32(offset, data) # seen 0-4
                   offset = confirmBasicType(offset, data, parseUint8, 0)
 
                   (offset, recipePathName) = parseString(offset, data)
                   (offset, blueprintProxyLevelPath) = parseObjectReference(offset, data)
 
-                  lightweightBuildableInstances.append([rotationQuaternion, position, swatchPathName, patternDescNumber, [primaryColor, secondaryColor], maybeIndex, recipePathName, blueprintProxyLevelPath])
+                  lightweightBuildableInstances.append([rotationQuaternion, position, swatchPathName, patternDescNumber, [primaryColor, secondaryColor], somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath])
 
                self.actorSpecificInfo.append([buildItemPathName, lightweightBuildableInstances])
          elif actorOrComponentObjectHeader.typePath in (
