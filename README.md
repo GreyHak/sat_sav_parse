@@ -24,7 +24,10 @@ to generate a text file representation of the save file.
 ## sav_to_resave.py
 
 `sav_to_resave.py` will create a save file based on the data producted by
-`sav_parse.py` or a manipulated varient of that data.
+`sav_parse.py` or a manipulated varient of that data.  The interface is
+`sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)`
+where the first five parameters are the variables that `sav_parse.readSaveFileInfo`
+returns.
 
 ## sav_cli.py
 
