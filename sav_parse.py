@@ -2580,12 +2580,12 @@ def getPropertyValue(properties, needlePropertyName):
          return propertyValue
    return None
 
-class Object:
+class Object: # Both ActorObject and ComponentObject
 
    def parse(self, offset, data, actorOrComponentObjectHeader):
       self.instanceName = actorOrComponentObjectHeader.instanceName
       (offset, self.objectGameVersion) = parseUint32(offset, data) # 42=v0.8.3.3 46=v1.0.0.1 & v1.0.0.3
-      (offset, self.flag) = parseBool(offset, data, parseUint32, "Object.flag")  # No association with actor vs component difference.
+      (offset, self.shouldMigrateObjectRefsToPersistentFlag) = parseBool(offset, data, parseUint32, "Object.shouldMigrateObjectRefsToPersistentFlag")
       (offset, objectSize) = parseUint32(offset, data)
       offsetStartThis = offset
 
@@ -2879,7 +2879,7 @@ class Object:
                actorReferenceAssociationsStr += ", "
             actorReferenceAssociationsStr += str(levelPathName)
          actorReferenceAssociationsStr = f"({self.actorReferenceAssociations[0]}, [{actorReferenceAssociationsStr}])"
-      return f"<Object: instanceName={self.instanceName}, objectGameVersion={self.objectGameVersion}, flag={self.flag}, actorReferenceAssociations={actorReferenceAssociationsStr}, properties={toString(self.properties)}, actorSpecificInfo={toString(self.actorSpecificInfo)}>"
+      return f"<Object: instanceName={self.instanceName}, objectGameVersion={self.objectGameVersion}, smortpFlag={self.shouldMigrateObjectRefsToPersistentFlag}, actorReferenceAssociations={actorReferenceAssociationsStr}, properties={toString(self.properties)}, actorSpecificInfo={toString(self.actorSpecificInfo)}>"
 
 class ObjectReference:
 
@@ -3335,8 +3335,8 @@ def parseProperties(offset, data):
             (offset, flag) = parseBool(offset, data, parseUint8, "StructProperty.Box.flag")
             properties.append([propertyName, [minx, miny, minz, maxx, maxy, maxz, flag]])
          elif structPropertyType == "FluidBox":
-            (offset, value) = parseFloat(offset, data)
-            properties.append([propertyName, value])
+            (offset, content) = parseFloat(offset, data) # "current content of this fluid box"
+            properties.append([propertyName, content])
          elif structPropertyType == "RailroadTrackPosition":
             (offset, levelPathName) = parseObjectReference(offset, data)
             (offset, rtpOffset) = parseFloat(offset, data)

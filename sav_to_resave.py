@@ -635,7 +635,7 @@ def addObject(object, actorOrComponentObjectHeader):
 
    data = bytearray()
    data.extend(addUint32(object.objectGameVersion))
-   data.extend(addUint32(object.flag))
+   data.extend(addUint32(object.shouldMigrateObjectRefsToPersistentFlag))
    data.extend(addUint32(len(dataEntity)+len(dataTrailing)))
    data.extend(dataEntity)
    data.extend(dataTrailing)

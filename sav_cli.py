@@ -219,7 +219,7 @@ def toJSON(object):
          araData = {"parentObjectReference": toJSON(parentObjectReference), "actorComponentReferences": acrData}
       return {"instanceName": object.instanceName,
               "objectGameVersion": object.objectGameVersion,
-              "flag": object.flag,
+              "smortpFlag": object.shouldMigrateObjectRefsToPersistentFlag,
               "actorReferenceAssociations": araData,
               "properties": toJSON(object.properties),
               "propertyTypes": toJSON(object.propertyTypes),
@@ -429,7 +429,7 @@ if __name__ == '__main__':
             objectCopy = sav_parse.Object()
             objectCopy.instanceName = objectJson["instanceName"]
             objectCopy.objectGameVersion = objectJson["objectGameVersion"]
-            objectCopy.flag = objectJson["flag"]
+            objectCopy.shouldMigrateObjectRefsToPersistentFlag = objectJson["smortpFlag"]
             objectCopy.actorReferenceAssociations = None
             if objectJson["actorReferenceAssociations"] != None:
                objectCopy.actorReferenceAssociations = [fromJSON(objectJson["actorReferenceAssociations"]["parentObjectReference"]), fromJSON(objectJson["actorReferenceAssociations"]["actorComponentReferences"])]
@@ -1123,7 +1123,7 @@ if __name__ == '__main__':
             newObject = sav_parse.Object()
             newObject.instanceName = replacementHotbarItemNewInstanceName
             newObject.objectGameVersion = 46
-            newObject.flag = 0
+            newObject.shouldMigrateObjectRefsToPersistentFlag = False
             newObject.actorReferenceAssociations = None
 
             if replacementHotbarItemNewClassName == "FGRecipeShortcut":
@@ -1235,7 +1235,7 @@ if __name__ == '__main__':
                   newActor.typePath = sav_parse.SOMERSLOOP
                   newActor.rootObject = rootObject
                   newActor.instanceName = instanceName
-                  newActor.needTransform = 0
+                  newActor.needTransform = False
                   newActor.rotation = rotation
                   newActor.position = position
                   newActor.scale = [1.600000023841858, 1.600000023841858, 1.600000023841858]
@@ -1245,7 +1245,7 @@ if __name__ == '__main__':
                   newObject = sav_parse.Object()
                   newObject.instanceName = instanceName
                   newObject.objectGameVersion = 46
-                  newObject.flag = 0
+                  newObject.shouldMigrateObjectRefsToPersistentFlag = False
                   nullParentObjectReference = sav_parse.ObjectReference()
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
@@ -1313,7 +1313,7 @@ if __name__ == '__main__':
                   newActor.typePath = sav_parse.MERCER_SPHERE
                   newActor.rootObject = rootObject
                   newActor.instanceName = instanceName
-                  newActor.needTransform = 0
+                  newActor.needTransform = False
                   newActor.rotation = rotation
                   newActor.position = position
                   newActor.scale = [2.700000047683716, 2.6999998092651367, 2.6999998092651367]
@@ -1323,7 +1323,7 @@ if __name__ == '__main__':
                   newObject = sav_parse.Object()
                   newObject.instanceName = instanceName
                   newObject.objectGameVersion = 46
-                  newObject.flag = 0
+                  newObject.shouldMigrateObjectRefsToPersistentFlag = False
                   nullParentObjectReference = sav_parse.ObjectReference()
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
@@ -1346,7 +1346,7 @@ if __name__ == '__main__':
                   newActor.typePath = sav_parse.MERCER_SHRINE
                   newActor.rootObject = rootObject
                   newActor.instanceName = instanceName
-                  newActor.needTransform = 0
+                  newActor.needTransform = False
                   newActor.rotation = rotation
                   newActor.position = position
                   newActor.scale = [scale, scale, scale]
@@ -1356,7 +1356,7 @@ if __name__ == '__main__':
                   newObject = sav_parse.Object()
                   newObject.instanceName = instanceName
                   newObject.objectGameVersion = 46
-                  newObject.flag = 0
+                  newObject.shouldMigrateObjectRefsToPersistentFlag = False
                   nullParentObjectReference = sav_parse.ObjectReference()
                   nullParentObjectReference.levelName = ""
                   nullParentObjectReference.pathName = ""
@@ -1548,7 +1548,7 @@ if __name__ == '__main__':
          object = sav_parse.Object()
          object.instanceName = newDrivingTargetList
          object.objectGameVersion = 46
-         object.flag = False
+         object.shouldMigrateObjectRefsToPersistentFlag = False
          parentObjectReference = sav_parse.ObjectReference()
          parentObjectReference.levelName = "Persistent_Level"
          parentObjectReference.pathName = "Persistent_Level:PersistentLevel.VehicleSubsystem"
@@ -1590,7 +1590,7 @@ if __name__ == '__main__':
             object = sav_parse.Object()
             object.instanceName = newVehicleTargetPoints[idx]
             object.objectGameVersion = 46
-            object.flag = False
+            object.shouldMigrateObjectRefsToPersistentFlag = False
             parentObjectReference = sav_parse.ObjectReference()
             parentObjectReference.levelName = "Persistent_Level"
             parentObjectReference.pathName = newDrivingTargetList
@@ -1625,7 +1625,7 @@ if __name__ == '__main__':
          object = sav_parse.Object()
          object.instanceName = newSavedWheeledVehiclePath
          object.objectGameVersion = 46
-         object.flag = False
+         object.shouldMigrateObjectRefsToPersistentFlag = False
          parentObjectReference = sav_parse.ObjectReference()
          parentObjectReference.levelName = ""
          parentObjectReference.pathName = ""
