@@ -1184,7 +1184,7 @@ if __name__ == '__main__':
                         if propertyValue >= newNumInventorySlots:
                            print(f"WARNING: Decreasing inventory from {propertyValue} to {newNumInventorySlots}")
                         print(f"Changing number of inventory slots from {propertyValue} to {newNumInventorySlots}")
-                        object.properties[idx] = ["mNumTotalInventorySlots", newNumInventorySlots]
+                        object.properties[idx] = [haystackPropertyName, newNumInventorySlots]
                         modifiedFlag = True
 
       except Exception as error:
@@ -1411,18 +1411,65 @@ if __name__ == '__main__':
       try:
          (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
 
-         savedPathList = []
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
-               if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
-                  savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
-                  if savedPaths != None:
-                     for savedPath in savedPaths:
-                        savedPathList.append(savedPath.pathName)
-               if object.instanceName in savedPathList:
-                  pathName = sav_parse.getPropertyValue(object.properties, "mPathName")
-                  if pathName != None:
-                     print(pathName)
+         (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[-1]
+
+         for object1 in objects:
+            if object1.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
+               savedPaths = sav_parse.getPropertyValue(object1.properties, "mSavedPaths")
+               if savedPaths != None:
+                  for savedPath in savedPaths:
+
+                     foundPathNameFlag = False
+                     for object2 in objects:
+                        if object2.instanceName == savedPath.pathName:
+                           foundPathNameFlag = True
+                           pathName = sav_parse.getPropertyValue(object2.properties, "mPathName")
+                           if pathName == None:
+                              print("CAUTION: Missing mPathName property for save path {savedPath.pathName}")
+                           else:
+                              targetList = sav_parse.getPropertyValue(object2.properties, "mTargetList")
+                              if targetList == None:
+                                 print(f"CAUTION: Missing mTargetList property for save path '{pathName}' ({savedPath.pathName})")
+                              else:
+
+                                 foundTargetListFlag = False
+                                 for object3 in objects:
+                                    if object3.instanceName == targetList.pathName:
+                                       foundTargetListFlag = True
+                                       first = sav_parse.getPropertyValue(object3.properties, "mFirst")
+                                       if first == None:
+                                          print(f"CAUTION: Missing mFirst property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
+                                       else:
+                                          last = sav_parse.getPropertyValue(object3.properties, "mLast")
+                                          if last == None:
+                                             print(f"CAUTION: Missing mLast property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
+                                          else:
+                                             vehicleType = sav_parse.getPropertyValue(object3.properties, "mVehicleType")
+                                             if vehicleType == None:
+                                                print(f"CAUTION: Missing mVehicleType property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
+                                             else:
+                                                pathFuelConsumption = sav_parse.getPropertyValue(object3.properties, "mPathFuelConsumption")
+                                                if pathFuelConsumption == None:
+                                                   print(f"CAUTION: Missing mPathFuelConsumption property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
+                                                else:
+                                                   targetListNextWaypoint = first.pathName
+                                                   targetListLastWaypoint = last.pathName
+
+                                                   waypointCount = 0
+                                                   for object4 in objects:
+                                                      if targetListNextWaypoint != None and object4.instanceName == targetListNextWaypoint:
+                                                         waypointCount += 1
+                                                         next = sav_parse.getPropertyValue(object4.properties, "mNext")
+                                                         if next != None:
+                                                            targetListNextWaypoint = next.pathName
+                                                         elif object4.instanceName != targetListLastWaypoint:
+                                                            print("ERROR: Failed to follow the full vehicle path '{pathName}'.", file=sys.stderr)
+                                                            exit(1)
+                                          print(f"{pathName}:  {waypointCount} waypoints for {sav_parse.pathNameToReadableName(vehicleType.pathName)} consuming {pathFuelConsumption} fuel.")
+                                 if not foundTargetListFlag:
+                                    print(f"CAUTION: Unable to find target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
+                     if not foundPathNameFlag:
+                        print(f"CAUTION: Unable to find save path {savedPath.pathName}")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -1452,22 +1499,42 @@ if __name__ == '__main__':
                if pathName != None and pathName == savedPathName:
                   jdata["mPathName"] = pathName
                   targetList = sav_parse.getPropertyValue(object.properties, "mTargetList")
-                  if targetList != None:
-                     targetListPathName = targetList.pathName
+                  if targetList == None:
+                     print(f"ERROR: Saved path {object.instanceName} is missing a mTargetList property")
+                     exit(1)
+                  targetListPathName = targetList.pathName
+         if targetListPathName == None:
+            print(f"ERROR: Failed to find a saved path with name '{savedPathName}'.")
+            exit(1)
 
          targetListNextWaypoint = None
          targetListLastWaypoint = None
          for object in objects:
             if object.instanceName == targetListPathName:
                first = sav_parse.getPropertyValue(object.properties, "mFirst")
+               if first == None:
+                  print(f"ERROR: Target list {object.instanceName} is missing a mFirst property.")
+                  exit(1)
                last = sav_parse.getPropertyValue(object.properties, "mLast")
+               if last == None:
+                  print(f"ERROR: Target list {object.instanceName} is missing a mLast property.")
+                  exit(1)
                vehicleType = sav_parse.getPropertyValue(object.properties, "mVehicleType")
+               if vehicleType == None:
+                  print(f"ERROR: Target list {object.instanceName} is missing a mVehicleType property.")
+                  exit(1)
                pathFuelConsumption = sav_parse.getPropertyValue(object.properties, "mPathFuelConsumption")
-               if first != None and last != None and vehicleType != None and pathFuelConsumption != None:
-                  targetListNextWaypoint = first.pathName
-                  targetListLastWaypoint = last.pathName
-                  jdata["mVehicleType"] = vehicleType.pathName
-                  jdata["mPathFuelConsumption"] = pathFuelConsumption
+               if pathFuelConsumption == None:
+                  print(f"ERROR: Target list {object.instanceName} is missing a mPathFuelConsumption property.")
+                  exit(1)
+               targetListNextWaypoint = first.pathName
+               targetListLastWaypoint = last.pathName
+               jdata["mVehicleType"] = vehicleType.pathName
+               jdata["mPathFuelConsumption"] = pathFuelConsumption
+
+         if targetListNextWaypoint == None:
+            print(f"ERROR: Failed to find target list {targetListPathName}")
+            exit(1)
 
          targetListWaypoints = []
          for object in objects:
