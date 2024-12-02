@@ -2801,7 +2801,8 @@ class Object: # Both ActorObject and ComponentObject
                "/AB_CableMod/Cables_Heavy/Build_AB-PLHeavy-Cu.Build_AB-PLHeavy-Cu_C",
                "/FlexSplines/Conveyor/Build_Belt2.Build_Belt2_C",
                "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C",
-               "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C"):
+               "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C",
+               "/CharacterReplacer/Logic/SCS_CR_PlayerHook.SCS_CR_PlayerHook_C"):
             (offset, self.actorSpecificInfo) = parseData(offset, data, trailingByteSize)
       else: # ComponentHeader
          if actorOrComponentObjectHeader.className in (
