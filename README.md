@@ -53,6 +53,10 @@ Usage:
   - `py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --export-somersloops <save-filename> <output-json-filename>`
+  - `py sav_cli.py --export-mercer-spheres <save-filename> <output-json-filename>`
+  - `py sav_cli.py --import-somersloops <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --import-mercer-spheres <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --remember-username <player-num> <username-alias>`
   - `py sav_cli.py --list-vehicle-paths <save-filename>`
   - `py sav_cli.py --export-vehicle-path <path-name> <save-filename> <output-json-filename>`

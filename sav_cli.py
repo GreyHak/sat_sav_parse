@@ -252,6 +252,197 @@ def fromJSON(object):
    print(object)
    return None
 
+def addSomersloop(levels, targetPathName):
+   # For those items present in (both) collectables1 and collectables2, remove those,
+   # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
+
+   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+      if collectables1 != None:
+         for collectable in collectables1:
+            if collectable.pathName == targetPathName:
+               collectables1.remove(collectable)
+               print(f"Clearing removal of {collectable.pathName}")
+               break
+      for collectable in collectables2:
+         if collectable.pathName == targetPathName:
+            collectables2.remove(collectable)
+
+            instanceName = collectable.pathName
+            (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[collectable.pathName]
+
+            newActor = sav_parse.ActorHeader()
+            newActor.typePath = sav_parse.SOMERSLOOP
+            newActor.rootObject = rootObject
+            newActor.instanceName = instanceName
+            newActor.needTransform = False
+            newActor.rotation = rotation
+            newActor.position = position
+            newActor.scale = [1.600000023841858, 1.600000023841858, 1.600000023841858]
+            newActor.wasPlacedInLevel = 1
+            actorAndComponentObjectHeaders.append(newActor)
+
+            newObject = sav_parse.Object()
+            newObject.instanceName = instanceName
+            newObject.objectGameVersion = 46
+            newObject.shouldMigrateObjectRefsToPersistentFlag = False
+            nullParentObjectReference = sav_parse.ObjectReference()
+            nullParentObjectReference.levelName = ""
+            nullParentObjectReference.pathName = ""
+            newObject.actorReferenceAssociations = [nullParentObjectReference, []]
+            newObject.properties    = []
+            newObject.propertyTypes = []
+            newObject.actorSpecificInfo = None
+            objects.append(newObject)
+
+            print(f"Restored Somersloop {instanceName} at {position}")
+            return True
+
+   return False
+
+def addMercerSphere(levels, targetPathName):
+   # For those items present in (both) collectables1 and collectables2, remove those,
+   # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
+
+   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+      if collectables1 != None:
+         for collectable in collectables1:
+            if collectable.pathName == targetPathName:
+               collectables1.remove(collectable)
+               print(f"Clearing removal of sphere {collectable.pathName}")
+               break
+
+      for collectable in collectables2:
+         if collectable.pathName == targetPathName:
+            collectables2.remove(collectable)
+
+            instanceName = collectable.pathName
+            (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[collectable.pathName]
+
+            newActor = sav_parse.ActorHeader()
+            newActor.typePath = sav_parse.MERCER_SPHERE
+            newActor.rootObject = rootObject
+            newActor.instanceName = instanceName
+            newActor.needTransform = False
+            newActor.rotation = rotation
+            newActor.position = position
+            newActor.scale = [2.700000047683716, 2.6999998092651367, 2.6999998092651367]
+            newActor.wasPlacedInLevel = 1
+            actorAndComponentObjectHeaders.append(newActor)
+
+            newObject = sav_parse.Object()
+            newObject.instanceName = instanceName
+            newObject.objectGameVersion = 46
+            newObject.shouldMigrateObjectRefsToPersistentFlag = False
+            nullParentObjectReference = sav_parse.ObjectReference()
+            nullParentObjectReference.levelName = ""
+            nullParentObjectReference.pathName = ""
+            newObject.actorReferenceAssociations = [nullParentObjectReference, []]
+            newObject.properties    = []
+            newObject.propertyTypes = []
+            newObject.actorSpecificInfo = None
+            objects.append(newObject)
+
+            print(f"Restored Mercer Sphere {instanceName} at {position}")
+            return True
+
+   return False
+
+def addMercerShrine(levels, targetPathName):
+   # For those items present in (both) collectables1 and collectables2, remove those,
+   # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
+
+   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+      if collectables1 != None:
+         for collectable in collectables1:
+            if collectable.pathName == targetPathName:
+               collectables1.remove(collectable)
+               print(f"Clearing removal of shrine {collectable.pathName}")
+               break
+
+      for collectable in collectables2:
+         if collectable.pathName == targetPathName:
+            collectables2.remove(collectable)
+
+            instanceName = collectable.pathName
+            (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[collectable.pathName]
+
+            newActor = sav_parse.ActorHeader()
+            newActor.typePath = sav_parse.MERCER_SHRINE
+            newActor.rootObject = rootObject
+            newActor.instanceName = instanceName
+            newActor.needTransform = False
+            newActor.rotation = rotation
+            newActor.position = position
+            newActor.scale = [scale, scale, scale]
+            newActor.wasPlacedInLevel = 1
+            actorAndComponentObjectHeaders.append(newActor)
+
+            newObject = sav_parse.Object()
+            newObject.instanceName = instanceName
+            newObject.objectGameVersion = 46
+            newObject.shouldMigrateObjectRefsToPersistentFlag = False
+            nullParentObjectReference = sav_parse.ObjectReference()
+            nullParentObjectReference.levelName = ""
+            nullParentObjectReference.pathName = ""
+            newObject.actorReferenceAssociations = [nullParentObjectReference, []]
+            newObject.properties    = []
+            newObject.propertyTypes = []
+            newObject.actorSpecificInfo = None
+            objects.append(newObject)
+
+            print(f"Restored Mercer Shrine {instanceName} at {position}")
+            return True
+
+   return False
+
+def removeInstance(levels, humanReadableName, rootObject, targetInstanceName, position=None):
+
+   removedObjectCollectionReference = sav_parse.ObjectReference()
+   removedObjectCollectionReference.levelName = rootObject
+   removedObjectCollectionReference.pathName = targetInstanceName
+
+   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+      for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+         if actorOrComponentObjectHeader.instanceName == targetInstanceName:
+            actorAndComponentObjectHeaders.remove(actorOrComponentObjectHeader)
+            for object in objects:
+               if object.instanceName == targetInstanceName:
+                  objects.remove(object)
+                  collectables1.append(removedObjectCollectionReference)
+                  collectables2.append(removedObjectCollectionReference)
+                  print(f"Removed {humanReadableName} {targetInstanceName} at {position}")
+                  return True
+
+   # If present, removed above.  If removed, return False.
+   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+      for collectable in collectables2:
+         if collectable.pathName == targetInstanceName:
+            return False
+   # If got gets here, the object isn't present in the save, so add it.
+   # This has only been observed when collectables1 is missing, so can't just append.
+   for levelIdx in range(len(levels)):
+      (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[levelIdx]
+      if levelName == rootObject:
+         print(f"Removed {humanReadableName} {targetInstanceName} at {position} (unvisited)")
+         if collectables1 != None:
+            collectables1.append(removedObjectCollectionReference)
+         collectables2.append(removedObjectCollectionReference)
+         return True
+   print(f"CAUTION: Failed to remove {humanReadableName} {targetInstanceName} at {position}")
+   return False
+
+def removeSomersloop(levels, targetInstanceName):
+   (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[targetInstanceName]
+   return removeInstance(levels, "Somersloops", rootObject, targetInstanceName, position)
+
+def removeMercerSphere(levels, targetInstanceName):
+   (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[targetInstanceName]
+   return removeInstance(levels, "Mercer Sphere", rootObject, targetInstanceName, position)
+
+def removeMercerShrine(levels, targetInstanceName):
+   (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[targetInstanceName]
+   return removeInstance(levels, "Mercer Shrine", rootObject, targetInstanceName, position)
+
 def printUsage():
    print()
    print("USAGE:")
@@ -272,6 +463,10 @@ def printUsage():
    print("   py sav_cli.py --change-num-inventory-slots <num-inventory-slots> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --restore-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --export-somersloops <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --export-mercer-spheres <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --import-somersloops <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --import-mercer-spheres <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --remember-username <player-num> <username-alias>")
    print("   py sav_cli.py --list-vehicle-paths <save-filename>")
    print("   py sav_cli.py --export-vehicle-path <path-name> <save-filename> <output-json-filename>")
@@ -1214,49 +1409,9 @@ if __name__ == '__main__':
       modifiedFlag = False
       try:
          (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-
-         # For those items present in (both) collectables1 and collectables2, remove those,
-         # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
-
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            if collectables1 != None:
-               for collectable in collectables1:
-                  if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
-                     collectables1.remove(collectable)
-                     print(f"Clearing removal of {collectable.pathName}")
-            for collectable in collectables2:
-               if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
-                  collectables2.remove(collectable)
-
-                  instanceName = collectable.pathName
-                  (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[collectable.pathName]
-
-                  newActor = sav_parse.ActorHeader()
-                  newActor.typePath = sav_parse.SOMERSLOOP
-                  newActor.rootObject = rootObject
-                  newActor.instanceName = instanceName
-                  newActor.needTransform = False
-                  newActor.rotation = rotation
-                  newActor.position = position
-                  newActor.scale = [1.600000023841858, 1.600000023841858, 1.600000023841858]
-                  newActor.wasPlacedInLevel = 1
-                  actorAndComponentObjectHeaders.append(newActor)
-
-                  newObject = sav_parse.Object()
-                  newObject.instanceName = instanceName
-                  newObject.objectGameVersion = 46
-                  newObject.shouldMigrateObjectRefsToPersistentFlag = False
-                  nullParentObjectReference = sav_parse.ObjectReference()
-                  nullParentObjectReference.levelName = ""
-                  nullParentObjectReference.pathName = ""
-                  newObject.actorReferenceAssociations = [nullParentObjectReference, []]
-                  newObject.properties    = []
-                  newObject.propertyTypes = []
-                  newObject.actorSpecificInfo = None
-                  objects.append(newObject)
-
-                  modifiedFlag = True
-                  print(f"Restored Somersloop {instanceName} at {position}")
+         for targetPathName in sav_data_somersloop.SOMERSLOOPS:
+            if addSomersloop(levels, targetPathName):
+               modifiedFlag = True
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -1285,96 +1440,163 @@ if __name__ == '__main__':
       modifiedFlag = False
       try:
          (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-
-         # For those items present in (both) collectables1 and collectables2, remove those,
-         # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
-
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            if collectables1 != None:
-               removeCollectables = []
-               for collectable in collectables1:
-                  if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
-                     removeCollectables.append(collectable)
-                     print(f"Clearing removal of sphere {collectable.pathName}")
-                  elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
-                     removeCollectables.append(collectable)
-                     print(f"Clearing removal of shrine {collectable.pathName}")
-               [collectables1.remove(x) for x in removeCollectables]
-
-            removeCollectables = []
-            for collectable in collectables2:
-               if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
-                  removeCollectables.append(collectable)
-
-                  instanceName = collectable.pathName
-                  (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[collectable.pathName]
-
-                  newActor = sav_parse.ActorHeader()
-                  newActor.typePath = sav_parse.MERCER_SPHERE
-                  newActor.rootObject = rootObject
-                  newActor.instanceName = instanceName
-                  newActor.needTransform = False
-                  newActor.rotation = rotation
-                  newActor.position = position
-                  newActor.scale = [2.700000047683716, 2.6999998092651367, 2.6999998092651367]
-                  newActor.wasPlacedInLevel = 1
-                  actorAndComponentObjectHeaders.append(newActor)
-
-                  newObject = sav_parse.Object()
-                  newObject.instanceName = instanceName
-                  newObject.objectGameVersion = 46
-                  newObject.shouldMigrateObjectRefsToPersistentFlag = False
-                  nullParentObjectReference = sav_parse.ObjectReference()
-                  nullParentObjectReference.levelName = ""
-                  nullParentObjectReference.pathName = ""
-                  newObject.actorReferenceAssociations = [nullParentObjectReference, []]
-                  newObject.properties    = []
-                  newObject.propertyTypes = []
-                  newObject.actorSpecificInfo = None
-                  objects.append(newObject)
-
-                  modifiedFlag = True
-                  print(f"Restored Mercer Sphere {instanceName} at {position}")
-
-               elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
-                  removeCollectables.append(collectable)
-
-                  instanceName = collectable.pathName
-                  (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[collectable.pathName]
-
-                  newActor = sav_parse.ActorHeader()
-                  newActor.typePath = sav_parse.MERCER_SHRINE
-                  newActor.rootObject = rootObject
-                  newActor.instanceName = instanceName
-                  newActor.needTransform = False
-                  newActor.rotation = rotation
-                  newActor.position = position
-                  newActor.scale = [scale, scale, scale]
-                  newActor.wasPlacedInLevel = 1
-                  actorAndComponentObjectHeaders.append(newActor)
-
-                  newObject = sav_parse.Object()
-                  newObject.instanceName = instanceName
-                  newObject.objectGameVersion = 46
-                  newObject.shouldMigrateObjectRefsToPersistentFlag = False
-                  nullParentObjectReference = sav_parse.ObjectReference()
-                  nullParentObjectReference.levelName = ""
-                  nullParentObjectReference.pathName = ""
-                  newObject.actorReferenceAssociations = [nullParentObjectReference, []]
-                  newObject.properties    = []
-                  newObject.propertyTypes = []
-                  newObject.actorSpecificInfo = None
-                  objects.append(newObject)
-
-                  modifiedFlag = True
-                  print(f"Restored Mercer Shrine {instanceName} at {position}")
-            [collectables2.remove(x) for x in removeCollectables]
+         for targetPathName in sav_data_mercerSphere.MERCER_SPHERES:
+            if addMercerSphere(levels, targetPathName):
+               modifiedFlag = True
+         for targetPathName in sav_data_mercerSphere.MERCER_SHRINES:
+            if addMercerShrine(levels, targetPathName):
+               modifiedFlag = True
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       if not modifiedFlag:
          print("ERROR: All Mercer Spheres already present.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--export-somersloops" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+
+         # Assume True because that's accurate if the Object exists or the it's not in the save at all.
+         jdata = {"Somersloops": {}}
+         for pathName in sav_data_somersloop.SOMERSLOOPS:
+            jdata["Somersloops"][pathName] = True
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            # Checking collectables2 because the object can be in collectables2 when collectables1 is None
+            for collectable in collectables2:
+               if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
+                  jdata["Somersloops"][collectable.pathName] = False
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      print(f"Writing {outFilename}")
+      with open(outFilename, "w") as fout:
+         json.dump(jdata, fout, indent=2)
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--export-mercer-spheres" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+
+         # Assume True because that's accurate if the Object exists or the it's not in the save at all.
+         jdata = {"MercerSpheres": {}, "MercerShrines": {}}
+         for pathName in sav_data_mercerSphere.MERCER_SPHERES:
+            jdata["MercerSpheres"][pathName] = True
+         for pathName in sav_data_mercerSphere.MERCER_SHRINES:
+            jdata["MercerShrines"][pathName] = True
+
+         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+            # Checking collectables2 because the object can be in collectables2 when collectables1 is None
+            for collectable in collectables2:
+               if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
+                  jdata["MercerSpheres"][collectable.pathName] = False
+               elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
+                  jdata["MercerShrines"][collectable.pathName] = False
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      print(f"Writing {outFilename}")
+      with open(outFilename, "w") as fout:
+         json.dump(jdata, fout, indent=2)
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--import-somersloops" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[2]
+      inFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      with open(inFilename, "r") as fin:
+         jdata = json.load(fin)
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+
+         if "Somersloops" in jdata:
+            for pathName in jdata["Somersloops"]:
+               if jdata["Somersloops"][pathName]:
+                  if addSomersloop(levels, pathName):
+                     modifiedFlag = True
+               else:
+                  if removeSomersloop(levels, pathName):
+                     modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: All Somersloops already match json.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--import-mercer-spheres" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[2]
+      inFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      with open(inFilename, "r") as fin:
+         jdata = json.load(fin)
+
+      modifiedFlag = False
+      try:
+         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+
+         if "MercerSpheres" in jdata:
+            for pathName in jdata["MercerSpheres"]:
+               if jdata["MercerSpheres"][pathName]:
+                  if addMercerSphere(levels, pathName):
+                     modifiedFlag = True
+               else:
+                  if removeMercerSphere(levels, pathName):
+                     modifiedFlag = True
+
+         if "MercerShrines" in jdata:
+            for pathName in jdata["MercerShrines"]:
+               if jdata["MercerShrines"][pathName]:
+                  if addMercerShrine(levels, pathName):
+                     modifiedFlag = True
+               else:
+                  if removeMercerShrine(levels, pathName):
+                     modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: All Mercer Spheres already match json.", file=sys.stderr)
          exit(1)
 
       try:
@@ -1564,7 +1786,7 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
-   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--import-vehicle-path" and os.path.isfile(sys.argv[3]):
+   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--import-vehicle-path" and os.path.isfile(sys.argv[3]) and os.path.isfile(sys.argv[4]):
       newSavePathName = sys.argv[2]
       savFilename = sys.argv[3]
       inFilename = sys.argv[4]
