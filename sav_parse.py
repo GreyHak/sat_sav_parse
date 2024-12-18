@@ -3364,6 +3364,7 @@ def parseProperties(offset, data):
                "BoomBoxPlayerState",
                "DroneDockingStateInfo",
                "DroneTripInformation",
+               "FGPlayerPortalData",
                "FGPortalCachedFactoryTickData",
                "FactoryCustomizationColorSlot",
                "FactoryCustomizationData",

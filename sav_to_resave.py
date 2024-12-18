@@ -377,6 +377,7 @@ def addProperties(properties, propertyTypes):
                               "BoomBoxPlayerState",
                               "DroneDockingStateInfo",
                               "DroneTripInformation",
+                              "FGPlayerPortalData",
                               "FGPortalCachedFactoryTickData",
                               "FactoryCustomizationColorSlot",
                               "FactoryCustomizationData",
