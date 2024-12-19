@@ -199,6 +199,9 @@ def addProperties(properties, propertyTypes):
                         case "FloatProperty":
                            for value in propertyValue:
                               dataProp.extend(addFloat(value))
+                        case "DoubleProperty": # Only observed in modded save
+                           for value in propertyValue:
+                              dataProp.extend(addDouble(value))
                         case arrayType if arrayType in ("StrProperty", "EnumProperty"):
                            for value in propertyValue:
                               dataProp.extend(addString(value))
@@ -237,7 +240,11 @@ def addProperties(properties, propertyTypes):
                                     dataStruct.extend(addUint8(0))
                                     dataStruct.extend(dataSpawn)
                                     dataStruct.extend(addProperties(prop, propTypes))
-                              case structElementType if structElementType in ("ConnectionData", "BuildingConnection", "STRUCT_ProgElevator_Floor"):
+                              case structElementType if structElementType in (
+                                    "ConnectionData",             # Only observed in modded save
+                                    "BuildingConnection",         # Only observed in modded save
+                                    "STRUCT_ProgElevator_Floor",  # Only observed in modded save
+                                    "Struct_InputConfiguration"): # Only observed in modded save
                                  dataStruct.extend(propertyValue[0])
                               case structElementType if structElementType in (
                                     "BlueprintCategoryRecord",
@@ -440,6 +447,8 @@ def addProperties(properties, propertyTypes):
                               dataProp.extend(addInt64(mapValue))
                            case "ByteProperty":
                               dataProp.extend(addUint8(mapValue))
+                           case "DoubleProperty":
+                              dataProp.extend(addDouble(mapValue)) # Only observed in modded save
                            case "ObjectProperty":
                               dataProp.extend(addObjectReference(mapValue))
                            case _:

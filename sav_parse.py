@@ -3171,7 +3171,7 @@ def parseProperties(offset, data):
             for jdx in range(arrayCount):
                (offset, value) = parseFloat(offset, data)
                values.append(value)
-         elif arrayType == "DoubleProperty":
+         elif arrayType == "DoubleProperty": # Only observed in modded save
             for jdx in range(arrayCount):
                (offset, value) = parseDouble(offset, data)
                values.append(value)
@@ -3227,7 +3227,11 @@ def parseProperties(offset, data):
                      raise ParseError(f"Unexpected spawn data size. diff={offset - spawnDataStartOffset - spawnDataSize} type={propertyType}")
                   (offset, prop, propTypes) = parseProperties(offset, data)
                   values.append([name, levelPathName, prop, propTypes])
-            elif structElementType in ("ConnectionData", "BuildingConnection", "STRUCT_ProgElevator_Floor", "Struct_InputConfiguration"): # Only observed in modded save
+            elif structElementType in (
+                  "ConnectionData",             # Only observed in modded save
+                  "BuildingConnection",         # Only observed in modded save
+                  "STRUCT_ProgElevator_Floor",  # Only observed in modded save
+                  "Struct_InputConfiguration"): # Only observed in modded save
                (offset, allValues) = parseData(offset, data, structSize)
                values.append(allValues)
                while len(values) < arrayCount:
@@ -3436,7 +3440,7 @@ def parseProperties(offset, data):
                (offset, mapValue) = parseInt64(offset, data)
             elif valueType == "ByteProperty":
                (offset, mapValue) = parseUint8(offset, data)
-            elif valueType == "DoubleProperty":
+            elif valueType == "DoubleProperty": # Only observed in modded save
                (offset, mapValue) = parseDouble(offset, data)
             elif valueType == "ObjectProperty": # Only observed in modded save
                (offset, mapValue) = parseObjectReference(offset, data)
