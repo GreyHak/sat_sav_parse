@@ -212,6 +212,12 @@ def addProperties(properties, propertyTypes):
                         case arrayType if arrayType in ("InterfaceProperty", "ObjectProperty"):
                            for value in propertyValue:
                               dataProp.extend(addObjectReference(value))
+                        case "TextProperty": # Only observed in modded save
+                           for value in propertyValue:
+                              dataProp.extend(addUint32(18))
+                              dataProp.extend(addUint8(255))
+                              dataProp.extend(addUint32(1))
+                              dataProp.extend(addString(value))
                         case "StructProperty":
                            dataStruct = bytearray()
                            structElementType = propertyType[2]

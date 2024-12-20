@@ -3188,6 +3188,13 @@ def parseProperties(offset, data):
             for jdx in range(arrayCount):
                (offset, levelPathName) = parseObjectReference(offset, data)
                values.append(levelPathName)
+         elif arrayType == "TextProperty": # Only observed in modded save
+            for jdx in range(arrayCount):
+               offset = confirmBasicType(offset, data, parseUint32, 18) # flags
+               offset = confirmBasicType(offset, data, parseUint8, 255) # historyType
+               offset = confirmBasicType(offset, data, parseUint32, 1)  # isTextCultureInvariant
+               (offset, s) = parseString(offset, data)
+               values.append(s)
          elif arrayType == "StructProperty":
             (offset, name) = parseString(offset, data)
             if name != propertyName:
