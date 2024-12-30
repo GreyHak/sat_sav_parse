@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
 # Copyright (c) 2024 GreyHak (github.com/GreyHak).
@@ -15,17 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import sys
+import datetime
 import json
 import math
+import os
+import sys
 import uuid
-import datetime
+
 import sav_parse
 import sav_to_resave
-import sav_data_somersloop
-import sav_data_mercerSphere
-import sav_data_free
+
+from data import sav_data_free
+from data import sav_data_mercerSphere
+from data import sav_data_somersloop
 
 try:
    import sav_to_html

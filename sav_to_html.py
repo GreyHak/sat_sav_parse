@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
 # Copyright (c) 2024 GreyHak (github.com/GreyHak).
@@ -15,14 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import glob
-import sys
-import sav_parse
-import sav_data_slug
-import sav_data_somersloop
-import sav_data_mercerSphere
 import json
+import os
+import sys
+
+import sav_parse
+
+from data import sav_data_mercerSphere
+from data import sav_data_slug
+from data import sav_data_somersloop
 
 try:
    from PIL import Image, ImageDraw, ImageFont

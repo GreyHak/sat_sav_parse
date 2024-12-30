@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
 # Copyright (c) 2024 GreyHak (github.com/GreyHak).
@@ -38,12 +38,12 @@
 #exit(0)
 
 import datetime
+import enum
+import glob
 import os
 import struct
 import sys
 import zlib
-import glob
-import enum
 
 PROGRESS_BAR_ENABLE_DECOMPRESS = True
 PROGRESS_BAR_ENABLE_PARSE = True
