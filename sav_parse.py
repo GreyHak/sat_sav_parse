@@ -2360,61 +2360,61 @@ satisfactoryCalculatorInteractiveMapExtras = []
 class ParseError(Exception):
     pass
 
-def parseInt8(offset, data):
+def parseInt8(offset: int, data):
    nextOffset = offset + 1
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int8 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<c", data[offset:nextOffset])[0])
 
-def parseUint8(offset, data):
+def parseUint8(offset: int, data):
    nextOffset = offset + 1
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for uint8 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<B", data[offset:nextOffset])[0])
 
-def parseInt32(offset, data):
+def parseInt32(offset: int, data):
    nextOffset = offset + 4
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int32 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<i", data[offset:nextOffset])[0])
 
-def parseUint32(offset, data):
+def parseUint32(offset: int, data):
    nextOffset = offset + 4
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for uint32 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<I", data[offset:nextOffset])[0])
 
-def parseInt64(offset, data):
+def parseInt64(offset: int, data):
    nextOffset = offset + 8
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int64 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<q", data[offset:nextOffset])[0])
 
-def parseUint64(offset, data):
+def parseUint64(offset: int, data):
    nextOffset = offset + 8
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int64 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<Q", data[offset:nextOffset])[0])
 
-def parseFloat(offset, data):
+def parseFloat(offset: int, data) -> float:
    nextOffset = offset + 4
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for float in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<f", data[offset:nextOffset])[0])
 
-def parseDouble(offset, data):
+def parseDouble(offset: int, data):
    nextOffset = offset + 8
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for double in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<d", data[offset:nextOffset])[0])
 
-def parseBool(offset, data, parser, contextForException):
+def parseBool(offset: int, data, parser, contextForException) -> bool:
    (offset, flag) = parser(offset, data)
    if flag != 0 and flag != 1:
       raise ParseError(f"Oops: Inaccurate assumption of {contextForException} value.  Actual={flag}")
    return (offset, flag != 0)
 
-def parseString(offset, data):
+def parseString(offset: int, data) -> str:
    (offset, strlen) = parseInt32(offset, data)
    if strlen == 0:
       return (offset, "")
@@ -2428,14 +2428,16 @@ def parseString(offset, data):
          strlen = -strlen * 2
    except UnicodeDecodeError as error:
       raise ParseError(f"String decode failure at offset {offset} of length {strlen}: {error}")
+
    return (offset + strlen, string)
 
-def parseData(offset, data, length):
+def parseData(offset: int, data, length: int):
    if offset + length > len(data):
       raise ParseError(f"Offset {offset} too large for data of length {length} in {len(data)}-byte data.")
+
    return (offset + length, data[offset:offset+length])
 
-def TESTING_ONLY_dumpSection(offset, data, sectionStart, sectionSize, name = ""):
+def TESTING_ONLY_dumpSection(offset: int, data, sectionStart, sectionSize: int, name: str = ""):
    if offset > sectionStart + sectionSize:
       print(f"ERROR: TESTING_ONLY_dumpSection called already passed end offset")
       return offset
@@ -2451,7 +2453,7 @@ def TESTING_ONLY_dumpSection(offset, data, sectionStart, sectionSize, name = "")
       idx += 1
    return offset
 
-def TESTING_ONLY_dumpData(offset, data, length, name = ""):
+def TESTING_ONLY_dumpData(offset: int, data, length: int, name: str = ""):
    return TESTING_ONLY_dumpSection(offset, data, offset, length, name)
 
 def confirmBasicType(originalOffset, data, parser, expectedValue, message = None):
@@ -2517,7 +2519,7 @@ class SaveFileInfo:
 
 class ActorHeader:
 
-   def parse(self, offset, data):
+   def parse(self, offset: int, data) -> int:
       (offset, self.typePath) = parseString(offset, data)
       (offset, self.rootObject) = parseString(offset, data)
       (offset, self.instanceName) = parseString(offset, data)
@@ -2547,7 +2549,7 @@ class ActorHeader:
 
 class ComponentHeader:
 
-   def parse(self, offset, data):
+   def parse(self, offset: int, data) -> int:
       (offset, self.className) = parseString(offset, data)
       (offset, self.rootObject) = parseString(offset, data)
       (offset, self.instanceName) = parseString(offset, data)
@@ -2557,7 +2559,7 @@ class ComponentHeader:
    def __str__(self):
       return f"<ComponentHeader: className={self.className}, rootObject={self.rootObject}, instanceName={self.instanceName}, parentActorName={self.parentActorName}>"
 
-def toString(value):
+def toString(value: any) -> str:
    if isinstance(value, str):
       return f"'{value}'"
    elif isinstance(value, (tuple, list)):
@@ -2580,7 +2582,7 @@ def toString(value):
    else: # if isinstance(value, (int, float, bool, complex)):
       return str(value)
 
-def getPropertyValue(properties, needlePropertyName):
+def getPropertyValue(properties, needlePropertyName: str) -> any:
    for (haystackPropertyName, propertyValue) in properties:
       if haystackPropertyName == needlePropertyName:
          return propertyValue
@@ -2588,7 +2590,7 @@ def getPropertyValue(properties, needlePropertyName):
 
 class Object: # Both ActorObject and ComponentObject
 
-   def parse(self, offset, data, actorOrComponentObjectHeader):
+   def parse(self, offset: int, data, actorOrComponentObjectHeader):
       self.instanceName = actorOrComponentObjectHeader.instanceName
       (offset, self.objectGameVersion) = parseUint32(offset, data) # 42=v0.8.3.3 46=v1.0.0.1 & v1.0.0.3
       (offset, self.shouldMigrateObjectRefsToPersistentFlag) = parseBool(offset, data, parseUint32, "Object.shouldMigrateObjectRefsToPersistentFlag")
@@ -2879,7 +2881,7 @@ class Object: # Both ActorObject and ComponentObject
 
       return offset
 
-   def __str__(self):
+   def __str__(self) -> str:
       actorReferenceAssociationsStr = "n/a"
       if self.actorReferenceAssociations != None:
          actorReferenceAssociationsStr = ""
@@ -2892,23 +2894,23 @@ class Object: # Both ActorObject and ComponentObject
 
 class ObjectReference:
 
-   def parse(self, offset, data):
+   def parse(self, offset: int, data) -> int:
       (offset, self.levelName) = parseString(offset, data)
       (offset, self.pathName) = parseString(offset, data)
       return offset
 
-   def __str__(self):
+   def __str__(self) -> str:
       if self.levelName == "" and self.pathName == "":
          return "<ObjectReference/>"
       else:
          return f"<ObjectReference: levelName={self.levelName}, pathName={self.pathName}>"
 
-def parseObjectReference(offset, data):
+def parseObjectReference(offset: int, data):
    objectReference = ObjectReference()
    offset = objectReference.parse(offset, data)
    return (offset, objectReference)
 
-def getLevelSize(offset, data, persistentLevelFlag = False):
+def getLevelSize(offset: int, data, persistentLevelFlag: bool = False):
    if persistentLevelFlag:
       levelName = None
    else:
@@ -2931,7 +2933,7 @@ def getLevelSize(offset, data, persistentLevelFlag = False):
 
    return (offset, actorAndComponentCount * 2)
 
-def parseLevel(offset, data, persistentLevelFlag = False, progressBar = None):
+def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar = None):
    if persistentLevelFlag:
       levelName = None
    else:
@@ -2995,7 +2997,7 @@ def parseLevel(offset, data, persistentLevelFlag = False, progressBar = None):
 
    return (offset, (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2))
 
-def parseProperties(offset, data):
+def parseProperties(offset: int, data):
    properties = []
    propertyTypes = []
    while True:
@@ -3494,7 +3496,7 @@ def parseProperties(offset, data):
 
    return (offset, properties, propertyTypes)
 
-def readCompressedSaveFile(filename):
+def readCompressedSaveFile(filename: str):
    with open(filename, "rb") as fin:
       return fin.read()
 
@@ -3507,15 +3509,16 @@ class ProgressBar():
    fillColor = "\033[1;37;47m"
    emptyColor = "\033[0;30;40m"
    resetColor = "\033[0m"
-   def __init__(self, total, prefix="", width=70):
+
+   def __init__(self, total, prefix: str = "", width: int = 70):
       self.total = total
       self.prefix = prefix
       self.width = width
       self.show()
-   def add(self, more=1):
+   def add(self, more = 1):
       self.current += more
       self.show()
-   def set(self, current=1):
+   def set(self, current = 1):
       self.current = current
       self.show()
    def show(self):
@@ -3529,7 +3532,7 @@ class ProgressBar():
       if sys.stdout.isatty():
          print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
 
-def decompressSaveFile(offset, data):
+def decompressSaveFile(offset: int, data):
    decompressedData = b""
    if PROGRESS_BAR_ENABLE_DECOMPRESS:
       progressBar = ProgressBar(len(data), "Decompression: ")
@@ -3564,7 +3567,7 @@ def decompressSaveFile(offset, data):
       progressBar.complete()
    return decompressedData
 
-def pathNameToReadableName(name):
+def pathNameToReadableName(name: str) -> str:
    if len(name) == 0:
       return name
    originalName = name
@@ -3586,7 +3589,7 @@ def pathNameToReadableName(name):
       name = name[1:]
    return f"{name} ({originalName})"
 
-def readFullSaveFile(filename, decompressedOutputFilename = None):
+def readFullSaveFile(filename: str, decompressedOutputFilename: str = None):
    global satisfactoryCalculatorInteractiveMapExtras
    satisfactoryCalculatorInteractiveMapExtras = []
 
@@ -3689,7 +3692,7 @@ def readFullSaveFile(filename, decompressedOutputFilename = None):
 
    return (saveFileInfo, (headhex1, headhex2), grids, levels, extraObjectReferenceList)
 
-def readSaveFileInfo(filename):
+def readSaveFileInfo(filename: str) -> SaveFileInfo:
    with open(filename, "rb") as fin:
       data = fin.read() # 400 should be good enough for non-modded.  Needs to be 6k+ for modMetadata
    saveFileInfo = SaveFileInfo()

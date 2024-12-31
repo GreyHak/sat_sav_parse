@@ -60,7 +60,7 @@ def addSlugs(slugDraw, slugs, fill):
       posY = adjPos(coord[1], True)
       slugDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=fill)
 
-def chown(filename):
+def chown(filename: str):
    try:
       if os.path.isfile(filename):
          fid = os.open(filename, os.O_RDONLY)
@@ -73,7 +73,7 @@ CURRENT_DEPOT_STACK_LIMIT = 5
 ITEM_STACK_SIZE_FILENAME = "sav_stack_sizes.json"
 itemStackSizes = {}
 VALID_STACK_SIZES = (500, 200, 100, 50) # In reducing order
-def getStackSize(itemName, itemCount):
+def getStackSize(itemName: str, itemCount: int) -> int:
    global itemStackSizes
    if len(itemStackSizes) == 0 and os.path.isfile(ITEM_STACK_SIZE_FILENAME):
       with open(ITEM_STACK_SIZE_FILENAME, "r") as fin:
@@ -105,7 +105,7 @@ def getStackSize(itemName, itemCount):
       json.dump(itemStackSizes, fout, indent=2)
    return derivedStackSize
 
-def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT_HTML_BASENAME):
+def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBasename: str = DEFAULT_HTML_BASENAME):
    htmlFilename = f"{outputDir}/{htmlBasename}"
    try:
       (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)

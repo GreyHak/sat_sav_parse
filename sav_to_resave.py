@@ -746,7 +746,7 @@ def addLevel(level):
 
    return data
 
-def saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename):
+def saveFile(saveFileInfo: sav_parse.SaveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename: str):
 
    data = bytearray()
    data.extend(addUint32(6))
