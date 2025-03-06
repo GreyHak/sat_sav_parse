@@ -56,6 +56,12 @@ class Purity(enum.Enum):
    NORMAL = 2
    PURE = 3
 
+class HistoryType(enum.Enum):
+   NONE = 255
+   BASE = 0
+   ARGUMENT_FORMAT = 3
+   STRING_TABLE_ENTRY = 11
+
 RESOURCE_PURITY = {
    "Persistent_Level:PersistentLevel.BP_FrackingSatellite10": ("Desc_NitrogenGas_C", Purity.PURE),
    "Persistent_Level:PersistentLevel.BP_FrackingSatellite100": ("Desc_Water_C", Purity.IMPURE),
@@ -2820,7 +2826,9 @@ class Object: # Both ActorObject and ComponentObject
                "/Script/FactoryGame.FGPowerInfoComponent",
                "/Script/FactoryGame.FGRailroadTrackConnectionComponent",
                "/Script/FactoryGame.FGShoppingListComponent",
-               "/Script/FactoryGame.FGTrainPlatformConnection"):
+               "/Script/FactoryGame.FGTrainPlatformConnection",
+               "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
+               ):
             offset = confirmBasicType(offset, data, parseUint32, 0)
 
       if offset < offsetStartThis + objectSize: # Items here for save files saved by satisfactory-calculator.com/en/interactive-map
@@ -3082,11 +3090,16 @@ def parseProperties(offset, data):
          propertyStartOffset = offset
          (offset, flags) = parseUint32(offset, data)
          (offset, historyType) = parseUint8(offset, data)
-         if historyType == 255:
+         if historyType == HistoryType.NONE.value:
             (offset, isTextCultureInvariant) = parseUint32(offset, data)
             (offset, s) = parseString(offset, data)
             properties.append([propertyName, [flags, historyType, isTextCultureInvariant, s]])
-         elif historyType == 3: # Only observed in modded save (for propertyName="mMapText")
+         elif historyType == HistoryType.BASE.value: # Only observed in modded save
+            (offset, namespace) = parseString(offset, data)
+            (offset, key) = parseString(offset, data)
+            (offset, value) = parseString(offset, data)
+            properties.append([propertyName, [flags, historyType, namespace, key, value]])
+         elif historyType == HistoryType.ARGUMENT_FORMAT.value: # Only observed in modded save (for propertyName="mMapText")
             offset = confirmBasicType(offset, data, parseUint32, 8)
             offset = confirmBasicType(offset, data, parseUint8, 0)
             offset = confirmBasicType(offset, data, parseUint32, 1)
@@ -3104,6 +3117,10 @@ def parseProperties(offset, data):
                (offset, argValue) = parseString(offset, data)
                args.append([argName, argValue])
             properties.append([propertyName, [flags, historyType, uuid, format, args]])
+         elif historyType == HistoryType.STRING_TABLE_ENTRY.value: # Only observed in modded save
+            (offset, tableId) = parseString(offset, data)
+            (offset, textKey) = parseString(offset, data)
+            properties.append([propertyName, [flags, historyType, tableId, textKey]])
          else:
             raise ParseError(f"Unexpected TextProperty historyType {historyType}")
          if propertySize != offset - propertyStartOffset:
@@ -3279,7 +3296,9 @@ def parseProperties(offset, data):
                   "SubCategoryMaterialDefault",
                   "TimeTableStop",
                   "WireInstance",
+                  "DTConfigStruct",                # Only observed in modded save
                   "ManagedSignConnectionSettings", # Only observed in modded save
+                  "ResourceNodeData",              # Only observed in modded save
                   "SignComponentData",             # Only observed in modded save
                   "SignComponentVariableData",     # Only observed in modded save
                   "SignComponentVariableMetaData", # Only observed in modded save
@@ -3300,10 +3319,12 @@ def parseProperties(offset, data):
       elif propertyType == "StructProperty":
          (offset, structPropertyType) = parseString(offset, data)
          retainedPropertyType = [propertyType, structPropertyType]
-         offset = confirmBasicType(offset, data, parseUint32, 0)
-         offset = confirmBasicType(offset, data, parseUint32, 0)
-         offset = confirmBasicType(offset, data, parseUint32, 0)
-         offset = confirmBasicType(offset, data, parseUint32, 0)
+         (offset, structUuid1) = parseUint32(offset, data)
+         (offset, structUuid2) = parseUint32(offset, data)
+         (offset, structUuid3) = parseUint32(offset, data)
+         (offset, structUuid4) = parseUint32(offset, data)
+         if structUuid1 != 0 or structUuid2 != 0 or structUuid3 != 0 or structUuid4 != 0: # Only observed in modded save
+            retainedPropertyType.append([structUuid1, structUuid2, structUuid3, structUuid4])
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          if structPropertyType == "InventoryItem":
@@ -3371,7 +3392,7 @@ def parseProperties(offset, data):
                (offset, clientData) = parseData(offset, data, clientSize)
                identities.append([clientType, clientData])
             properties.append([propertyName, [clientUuid, identities]])
-         elif structPropertyType in ("Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
+         elif structPropertyType in ("Guid", "Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
             (offset, rawData) = parseData(offset, data, propertySize)
             properties.append([propertyName, rawData])
          elif structPropertyType in (
@@ -3399,7 +3420,9 @@ def parseProperties(offset, data):
                "Transform",
                "Vector_NetQuantize",
                "BuildingConnections", # Only observed in modded save
+               "DTActiveConfig",      # Only observed in modded save
                "ManagedSignData",     # Only observed in modded save
+               "Struct_PC_PartInfo",  # Only observed in modded save
                ):
             (offset, prop, propTypes) = parseProperties(offset, data)
             properties.append([propertyName, [prop, propTypes]])

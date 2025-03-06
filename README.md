@@ -150,8 +150,9 @@ Thanks to
 [robison4th](https://github.com/robison4th),
 [JP Eagles and Katz](https://www.youtube.com/channel/UCgIwAJga0I6i68bWfwPdj1w),
 [Buggy](https://github.com/Buggy123),
-[Tomtores](https://github.com/Tomtores), and
-[Mattigins](https://steamcommunity.com/profiles/76561198081088435)
+[Tomtores](https://github.com/Tomtores),
+[Mattigins](https://steamcommunity.com/profiles/76561198081088435), and
+[TheRealBeef](https://github.com/TheRealBeef)
 for sharing their save files to allow for expanded support.
 
 ## License

@@ -124,13 +124,20 @@ def addProperties(properties, propertyTypes):
          case "TextProperty":
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
-            if len(propertyValue) == 4 and propertyValue[1] == 255:
+            if len(propertyValue) == 4 and propertyValue[1] == sav_parse.HistoryType.NONE.value:
                (flags, historyType, isTextCultureInvariant, s) = propertyValue
                dataProp.extend(addUint32(flags))
                dataProp.extend(addUint8(historyType))
                dataProp.extend(addUint32(isTextCultureInvariant))
                dataProp.extend(addString(s))
-            elif len(propertyValue) == 5 and propertyValue[1] == 3:
+            elif len(propertyValue) == 5 and propertyValue[1] == sav_parse.HistoryType.BASE.value:
+               (flags, historyType, namespace, key, value) = propertyValue
+               dataProp.extend(addUint32(flags))
+               dataProp.extend(addUint8(historyType))
+               dataProp.extend(addString(namespace))
+               dataProp.extend(addString(key))
+               dataProp.extend(addString(value))
+            elif len(propertyValue) == 5 and propertyValue[1] == sav_parse.HistoryType.ARGUMENT_FORMAT.value:
                (flags, historyType, uuid, format, args) = propertyValue
                dataProp.extend(addUint32(flags))
                dataProp.extend(addUint8(historyType))
@@ -148,6 +155,12 @@ def addProperties(properties, propertyTypes):
                   dataProp.extend(addUint8(255))
                   dataProp.extend(addUint32(1))
                   dataProp.extend(addString(argValue))
+            elif len(propertyValue) == 4 and propertyValue[1] == sav_parse.HistoryType.STRING_TABLE_ENTRY.value:
+               (flags, historyType, tableId, textKey) = propertyValue
+               dataProp.extend(addUint32(flags))
+               dataProp.extend(addUint8(historyType))
+               dataProp.extend(addString(tableId))
+               dataProp.extend(addString(textKey))
          case "SetProperty":
             (setType, values) = propertyValue
             dataProp.extend(addString(setType))
@@ -288,7 +301,9 @@ def addProperties(properties, propertyTypes):
                                     "SubCategoryMaterialDefault",
                                     "TimeTableStop",
                                     "WireInstance",
+                                    "DTConfigStruct",                # Only observed in modded save
                                     "ManagedSignConnectionSettings", # Only observed in modded save
+                                    "ResourceNodeData",              # Only observed in modded save
                                     "SignComponentData",             # Only observed in modded save
                                     "SignComponentVariableData",     # Only observed in modded save
                                     "SignComponentVariableMetaData", # Only observed in modded save
@@ -315,10 +330,14 @@ def addProperties(properties, propertyTypes):
                   case "StructProperty":
                      structPropertyType = propertyType[1]
                      dataProp.extend(addString(structPropertyType))
-                     dataProp.extend(addUint32(0))
-                     dataProp.extend(addUint32(0))
-                     dataProp.extend(addUint32(0))
-                     dataProp.extend(addUint32(0))
+                     if len(propertyType) == 2:
+                        structUuid1 = structUuid2 = structUuid3 = structUuid4 = 0
+                     else:
+                        [structUuid1, structUuid2, structUuid3, structUuid4] = propertyType[2]
+                     dataProp.extend(addUint32(structUuid1))
+                     dataProp.extend(addUint32(structUuid2))
+                     dataProp.extend(addUint32(structUuid3))
+                     dataProp.extend(addUint32(structUuid4))
                      dataProp.extend(addUint8(0))
                      propertyStartSize = len(dataProp)
                      match structPropertyType:
@@ -383,7 +402,7 @@ def addProperties(properties, propertyTypes):
                               dataProp.extend(addUint8(clientType))
                               dataProp.extend(addUint32(len(clientData)))
                               dataProp.extend(clientData)
-                        case structPropertyType if structPropertyType in ("Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
+                        case structPropertyType if structPropertyType in ("Guid", "Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
                            dataProp.extend(propertyValue)
                         case structPropertyType if structPropertyType in (
                               "BlueprintRecord",
@@ -410,7 +429,9 @@ def addProperties(properties, propertyTypes):
                               "Transform",
                               "Vector_NetQuantize",
                               "BuildingConnections", # Only observed in modded save
+                              "DTActiveConfig",      # Only observed in modded save
                               "ManagedSignData",     # Only observed in modded save
+                              "Struct_PC_PartInfo",  # Only observed in modded save
                               ):
                            (prop, propTypes) = propertyValue
                            dataProp.extend(addProperties(prop, propTypes))
@@ -635,7 +656,9 @@ def addObject(object, actorOrComponentObjectHeader):
             "/Script/FactoryGame.FGPowerInfoComponent",
             "/Script/FactoryGame.FGRailroadTrackConnectionComponent",
             "/Script/FactoryGame.FGShoppingListComponent",
-            "/Script/FactoryGame.FGTrainPlatformConnection"):
+            "/Script/FactoryGame.FGTrainPlatformConnection",
+            "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
+            ):
          dataTrailing.extend(addUint32(0))
 
    dataEntity = bytearray()
