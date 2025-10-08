@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
 # Copyright (c) 2024 GreyHak (github.com/GreyHak).
@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import glob
 import os
+import shutil
 import sys
 import time
-import glob
-import shutil
-import sav_to_html
+
 import sav_parse
+import sav_to_html
 
 if __name__ == '__main__':
 

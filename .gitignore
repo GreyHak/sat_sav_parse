@@ -1,2 +1,6 @@
+# Ignore any local sav/json files
+/*.json
+/*.sav
+
 # Ignore pyc cache files
-/__pycache__
+__pycache__

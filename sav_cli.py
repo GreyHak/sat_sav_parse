@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
 # Copyright (c) 2024 GreyHak (github.com/GreyHak).
@@ -15,17 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import sys
+import datetime
 import json
 import math
+import os
+import sys
 import uuid
-import datetime
+
 import sav_parse
 import sav_to_resave
-import sav_data_somersloop
-import sav_data_mercerSphere
-import sav_data_free
+
+from data import sav_data_free
+from data import sav_data_mercerSphere
+from data import sav_data_somersloop
 
 try:
    import sav_to_html
@@ -37,10 +39,10 @@ except ModuleNotFoundError:
 VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
 
-def getBlankCategory(categoryName, iconId = -1):
+def getBlankCategory(categoryName: str, iconId: int = -1):
    return [[['CategoryName', categoryName], ['IconID', iconId], ['MenuPriority', 0.0], ['IsUndefined', False], ['SubCategoryRecords', [[[['SubCategoryName', 'Undefined'], ['MenuPriority', 0.0], ['IsUndefined', 1], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]]]], [['CategoryName', 'StrProperty', 0], ['IconID', 'IntProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'BoolProperty', 0], ['SubCategoryRecords', ['ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'], 0]]]
 
-def getBlankSubcategory(subcategoryName):
+def getBlankSubcategory(subcategoryName: str):
    return [[['SubCategoryName', subcategoryName], ['MenuPriority', 0.0], ['IsUndefined', 0], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]
 
 playerUsernames = {}
@@ -107,7 +109,7 @@ def getPlayerName(levels, playerCharacter):
                return cachedPlayerName
    return None
 
-def characterPlayerMatch(characterPlayer, playerId):
+def characterPlayerMatch(characterPlayer, playerId: int):
    return characterPlayer == f"Persistent_Level:PersistentLevel.Char_Player_C_{playerId}"
 
 def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
@@ -252,7 +254,7 @@ def fromJSON(object):
    print(object)
    return None
 
-def addSomersloop(levels, targetPathName):
+def addSomersloop(levels, targetPathName: str) -> bool:
    # For those items present in (both) collectables1 and collectables2, remove those,
    # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
@@ -299,7 +301,7 @@ def addSomersloop(levels, targetPathName):
 
    return False
 
-def addMercerSphere(levels, targetPathName):
+def addMercerSphere(levels, targetPathName: str) -> bool:
    # For those items present in (both) collectables1 and collectables2, remove those,
    # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
@@ -347,7 +349,7 @@ def addMercerSphere(levels, targetPathName):
 
    return False
 
-def addMercerShrine(levels, targetPathName):
+def addMercerShrine(levels, targetPathName: str) -> bool:
    # For those items present in (both) collectables1 and collectables2, remove those,
    # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
@@ -395,7 +397,7 @@ def addMercerShrine(levels, targetPathName):
 
    return False
 
-def removeInstance(levels, humanReadableName, rootObject, targetInstanceName, position=None):
+def removeInstance(levels, humanReadableName: str, rootObject, targetInstanceName: str, position = None) -> bool:
 
    removedObjectCollectionReference = sav_parse.ObjectReference()
    removedObjectCollectionReference.levelName = rootObject
@@ -431,15 +433,15 @@ def removeInstance(levels, humanReadableName, rootObject, targetInstanceName, po
    print(f"CAUTION: Failed to remove {humanReadableName} {targetInstanceName} at {position}")
    return False
 
-def removeSomersloop(levels, targetInstanceName):
+def removeSomersloop(levels, targetInstanceName: str) -> bool:
    (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[targetInstanceName]
    return removeInstance(levels, "Somersloops", rootObject, targetInstanceName, position)
 
-def removeMercerSphere(levels, targetInstanceName):
+def removeMercerSphere(levels, targetInstanceName: str) -> bool:
    (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[targetInstanceName]
    return removeInstance(levels, "Mercer Sphere", rootObject, targetInstanceName, position)
 
-def removeMercerShrine(levels, targetInstanceName):
+def removeMercerShrine(levels, targetInstanceName: str) -> bool:
    (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[targetInstanceName]
    return removeInstance(levels, "Mercer Shrine", rootObject, targetInstanceName, position)
 

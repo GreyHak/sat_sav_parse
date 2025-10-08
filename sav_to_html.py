@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
 # Copyright (c) 2024 GreyHak (github.com/GreyHak).
@@ -15,14 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import glob
-import sys
-import sav_parse
-import sav_data_slug
-import sav_data_somersloop
-import sav_data_mercerSphere
 import json
+import os
+import sys
+
+import sav_parse
+
+from data import sav_data_mercerSphere
+from data import sav_data_slug
+from data import sav_data_somersloop
 
 try:
    from PIL import Image, ImageDraw, ImageFont
@@ -58,7 +60,7 @@ def addSlugs(slugDraw, slugs, fill):
       posY = adjPos(coord[1], True)
       slugDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=fill)
 
-def chown(filename):
+def chown(filename: str):
    try:
       if os.path.isfile(filename):
          fid = os.open(filename, os.O_RDONLY)
@@ -71,7 +73,7 @@ CURRENT_DEPOT_STACK_LIMIT = 5
 ITEM_STACK_SIZE_FILENAME = "sav_stack_sizes.json"
 itemStackSizes = {}
 VALID_STACK_SIZES = (500, 200, 100, 50) # In reducing order
-def getStackSize(itemName, itemCount):
+def getStackSize(itemName: str, itemCount: int) -> int:
    global itemStackSizes
    if len(itemStackSizes) == 0 and os.path.isfile(ITEM_STACK_SIZE_FILENAME):
       with open(ITEM_STACK_SIZE_FILENAME, "r") as fin:
@@ -103,7 +105,7 @@ def getStackSize(itemName, itemCount):
       json.dump(itemStackSizes, fout, indent=2)
    return derivedStackSize
 
-def generateHTML(savFilename, outputDir=DEFAULT_OUTPUT_DIR, htmlBasename=DEFAULT_HTML_BASENAME):
+def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBasename: str = DEFAULT_HTML_BASENAME):
    htmlFilename = f"{outputDir}/{htmlBasename}"
    try:
       (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
