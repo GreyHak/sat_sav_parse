@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -762,6 +762,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
 
    # Buildables
    "BP_ProjectAssembly_C": "Space Elevator Terminal",  # This is a guess
+   "BP_SoundTrigger_C": "Sound Trigger",
    "Build_AlienPowerBuilding_C": "Alien Power Augmenter",
    "Build_AssemblerMk1_C": "Assembler",
    "Build_Beam_C": "Metal Beam",
@@ -803,6 +804,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_ConveyorLiftMk4_C": "Conveyor Lift Mk.4",
    "Build_ConveyorLiftMk5_C": "Conveyor Lift Mk.5",
    "Build_ConveyorLiftMk6_C": "Conveyor Lift Mk.6",
+   "Build_ConveyorMonitor_C": "Conveyor Throughput Monitor",
    "Build_ConveyorPoleStackable_C": "Stackable Conveyor Pole",
    "Build_ConveyorPoleWall_C": "Conveyor Wall Mount",
    "Build_ConveyorPole_C": "Conveyor Pole",
@@ -857,6 +859,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_HadronCollider_C": "Particle Accelerator",
    "Build_HubTerminal_C": "HUB Terminal",
    "Build_HyperPoleStackable_C": "Stackable Hypertube Support",
+   "Build_HypertubeTJunction_C": "Hypertube Branch",
    "Build_HyperTubeWallHole_C": "Hypertube Wall Hole",
    "Build_HyperTubeWallSupport_C": "Hypertube Wall Support",
    "Build_IndustrialTank_C": "Industrial Fluid Buffer",
@@ -2437,7 +2440,7 @@ def parseData(offset: int, data, length: int):
 
    return (offset + length, data[offset:offset+length])
 
-def TESTING_ONLY_dumpSection(offset: int, data, sectionStart, sectionSize: int, name: str = ""):
+def TESTING_ONLY_dumpSection(offset: int, data, sectionStart, sectionSize: int, name: str = "") -> int:
    if offset > sectionStart + sectionSize:
       print(f"ERROR: TESTING_ONLY_dumpSection called already passed end offset")
       return offset
@@ -2453,13 +2456,33 @@ def TESTING_ONLY_dumpSection(offset: int, data, sectionStart, sectionSize: int, 
       idx += 1
    return offset
 
-def TESTING_ONLY_dumpData(offset: int, data, length: int, name: str = ""):
+def TESTING_ONLY_dumpData(offset: int, data, length: int, name: str = "") -> int:
    return TESTING_ONLY_dumpSection(offset, data, offset, length, name)
 
-def confirmBasicType(originalOffset, data, parser, expectedValue, message = None):
+def TESTING_ONLY_dumpInt8(offset: int, data: list, name: str = "") -> int:
+   (newOffset, int8) = parseInt8(offset, data)
+   print(f"DUMP({offset}) int8 {name} {int8}")
+   return newOffset
+
+def TESTING_ONLY_dumpUint32(offset: int, data: list, name: str = "") -> int:
+   (newOffset, uint32) = parseUint32(offset, data)
+   print(f"DUMP({offset}) uint32 {name} {uint32}")
+   return newOffset
+
+def TESTING_ONLY_dumpFloat(offset: int, data: list, name: str = "") -> int:
+   (newOffset, val) = parseFloat(offset, data)
+   print(f"DUMP({offset}) float {name} {val}")
+   return newOffset
+
+def TESTING_ONLY_dumpString(offset: int, data: list, name: str = "") -> int:
+   (newOffset, string) = parseString(offset, data)
+   print(f"DUMP({offset}) string {name} {string}")
+   return newOffset
+
+def confirmBasicType(originalOffset, data, parser, expectedValue, message = None) -> int:
    (newOffset, value) = parser(originalOffset, data)
    if value != expectedValue:
-      if message == None:
+      if message is None:
          raise ParseError(f"Value {value} at offset {originalOffset} does not match the expected value {expectedValue}.")
       else:
          raise ParseError(f"Value {value} at offset {originalOffset} does not match the expected value {expectedValue}: {message}")
@@ -2471,18 +2494,23 @@ class SaveFileInfo:
 
    def parse(self, data):
       (offset, self.saveHeaderType) = parseUint32(0, data)
-      if self.saveHeaderType != 13: # For v0.8.3.3 thru v1.0.0.4
+      if self.saveHeaderType != 14: # 13=(v0.8.3.3 thru v1.0.0.4)  14=(v1.1.0.0 thru v1.1.1.6)
          raise ParseError(f"Unsupported save header version number {self.saveHeaderType}.")
       (offset, self.saveVersion) = parseUint32(offset, data)
-      if self.saveVersion != 46:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1 - v1.0.0.4
+      if self.saveVersion != 52:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1-v1.0.0.4  51=v1.1.0.0-v1.1.0.3  52=v1.1.0.4-v1.1.1.6
          raise ParseError(f"Unsupported save version number {self.saveVersion}.")
       (offset, self.buildVersion) = parseUint32(offset, data)
+      (offset, self.saveName) = parseString(offset, data)
       (offset, self.mapName) = parseString(offset, data)
       (offset, self.mapOptions) = parseString(offset, data)
       (offset, self.sessionName) = parseString(offset, data)
       (offset, self.playDurationInSeconds) = parseUint32(offset, data)
       (offset, self.saveDateTimeInTicks) = parseUint64(offset, data)
-      self.saveDatetime = datetime.datetime.fromtimestamp(self.saveDateTimeInTicks / TICKS_IN_SECOND - EPOCH_1_TO_1970)
+      try:
+         self.saveDatetime = datetime.datetime.fromtimestamp(self.saveDateTimeInTicks / TICKS_IN_SECOND - EPOCH_1_TO_1970)
+      except:
+         print(f"ERROR: Failed to perform fromtimestamp with saveDateTimeInTicks={self.saveDateTimeInTicks}")
+         raise
       (offset, self.sessionVisibility) = parseInt8(offset, data)
       (offset, self.editorObjectVersion) = parseUint32(offset, data)
       (offset, self.modMetadata) = parseString(offset, data)
@@ -2517,12 +2545,33 @@ class SaveFileInfo:
       string += f"cheatFlag={self.cheatFlag}>"
       return string
 
+class ParsedSave:
+   def __init__(self, saveFileInfo, headhex, grids, levels, aLevelName, dropPodObjectReferenceList, extraObjectReferenceList):
+      self.saveFileInfo = saveFileInfo
+      self.headhex = headhex
+      self.grids = grids
+      self.levels = levels
+      self.aLevelName = aLevelName
+      self.dropPodObjectReferenceList = dropPodObjectReferenceList
+      self.extraObjectReferenceList = extraObjectReferenceList
+
+class Level:
+   def __init__(self, levelName, actorAndComponentObjectHeaders, levelPersistentFlag, collectables1, objects, levelSaveVersion, collectables2):
+      self.levelName = levelName
+      self.actorAndComponentObjectHeaders = actorAndComponentObjectHeaders
+      self.levelPersistentFlag = levelPersistentFlag
+      self.collectables1 = collectables1
+      self.objects = objects
+      self.levelSaveVersion = levelSaveVersion
+      self.collectables2 = collectables2
+
 class ActorHeader:
 
    def parse(self, offset: int, data) -> int:
       (offset, self.typePath) = parseString(offset, data)
       (offset, self.rootObject) = parseString(offset, data)
       (offset, self.instanceName) = parseString(offset, data)
+      (offset, self.flags) = parseUint32(offset, data)
       (offset, self.needTransform) = parseBool(offset, data, parseUint32, "needTransform")
 
       (offset, xRotation) = parseFloat(offset, data)
@@ -2545,7 +2594,7 @@ class ActorHeader:
       return offset
 
    def __str__(self):
-      return f"<ActorHeader: typePath={self.typePath}, rootObject={self.rootObject}, instanceName={self.instanceName}, needTransform={self.needTransform}, rotation={self.rotation}, position={self.position}, scale={self.scale}, wasPlacedInLevel={self.wasPlacedInLevel}>"
+      return f"<ActorHeader: typePath={self.typePath}, rootObject={self.rootObject}, instanceName={self.instanceName}, flags={self.flags}, needTransform={self.needTransform}, rotation={self.rotation}, position={self.position}, scale={self.scale}, wasPlacedInLevel={self.wasPlacedInLevel}>"
 
 class ComponentHeader:
 
@@ -2553,11 +2602,12 @@ class ComponentHeader:
       (offset, self.className) = parseString(offset, data)
       (offset, self.rootObject) = parseString(offset, data)
       (offset, self.instanceName) = parseString(offset, data)
+      (offset, self.flags) = parseUint32(offset, data)
       (offset, self.parentActorName) = parseString(offset, data)
       return offset
 
    def __str__(self):
-      return f"<ComponentHeader: className={self.className}, rootObject={self.rootObject}, instanceName={self.instanceName}, parentActorName={self.parentActorName}>"
+      return f"<ComponentHeader: className={self.className}, rootObject={self.rootObject}, instanceName={self.instanceName}, flags={self.flags}, parentActorName={self.parentActorName}>"
 
 def toString(value: any) -> str:
    if isinstance(value, str):
@@ -2690,8 +2740,9 @@ class Object: # Both ActorObject and ComponentObject
                (offset, vehicleData) = parseData(offset, data, 105)
                self.actorSpecificInfo.append([name, vehicleData])
          elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGLightweightBuildableSubsystem": # Becomes <Object: instanceName=Persistent_Level:PersistentLevel.LightweightBuildableSubsystem ...>
+            (offset, lightweightVersion) = parseUint32(offset, data)
             (offset, count1) = parseUint32(offset, data)
-            self.actorSpecificInfo = []
+            self.actorSpecificInfo = [lightweightVersion]
             for jdx in range(count1):
                offset = confirmBasicType(offset, data, parseUint32, 0)
 
@@ -2737,13 +2788,27 @@ class Object: # Both ActorObject and ComponentObject
                   (offset, somethingSize) = parseUint32(offset, data)
                   (offset, somethingData) = parseData(offset, data, somethingSize)
 
-                  (offset, maybeIndex) = parseUint32(offset, data) # seen 0-4
+                  (offset, maybeIndex) = parseUint32(offset, data) # seen 0-4 or rotation
                   offset = confirmBasicType(offset, data, parseUint8, 0)
 
                   (offset, recipePathName) = parseString(offset, data)
                   (offset, blueprintProxyLevelPath) = parseObjectReference(offset, data)
 
-                  lightweightBuildableInstances.append([rotationQuaternion, position, swatchPathName, patternDescNumber, [primaryColor, secondaryColor], somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath])
+                  (offset, dataFlag) = parseUint32(offset, data)
+                  beamLength = None
+                  if dataFlag:
+                     offset = confirmBasicType(offset, data, parseUint32, 0)
+                     offset = confirmBasicType(offset, data, parseString, "/Script/FactoryGame.BuildableBeamLightweightData")
+                     offset = confirmBasicType(offset, data, parseUint32, 55)
+                     offset = confirmBasicType(offset, data, parseString, "BeamLength")
+                     offset = confirmBasicType(offset, data, parseString, "FloatProperty")
+                     offset = confirmBasicType(offset, data, parseUint32, 4)
+                     offset = confirmBasicType(offset, data, parseUint8, 0)
+                     offset = confirmBasicType(offset, data, parseUint32, 0)
+                     (offset, beamLength) = parseFloat(offset, data)
+                     offset = confirmBasicType(offset, data, parseString, "None")
+
+                  lightweightBuildableInstances.append([rotationQuaternion, position, swatchPathName, patternDescNumber, [primaryColor, secondaryColor], somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath, beamLength])
 
                self.actorSpecificInfo.append([buildItemPathName, lightweightBuildableInstances])
          elif actorOrComponentObjectHeader.typePath in (
@@ -2883,7 +2948,7 @@ class Object: # Both ActorObject and ComponentObject
 
    def __str__(self) -> str:
       actorReferenceAssociationsStr = "n/a"
-      if self.actorReferenceAssociations != None:
+      if self.actorReferenceAssociations is not None:
          actorReferenceAssociationsStr = ""
          for levelPathName in self.actorReferenceAssociations[1]:
             if len(actorReferenceAssociationsStr) > 0:
@@ -2925,6 +2990,8 @@ def getLevelSize(offset: int, data, persistentLevelFlag: bool = False):
    (offset, allObjectsSize) = parseUint64(offset, data)
    offset += allObjectsSize
 
+   offset += 4 # levelSaveVersion
+
    # Collectables #2
    if not persistentLevelFlag:
       (offset, collectedCount2) = parseUint32(offset, data)
@@ -2956,8 +3023,14 @@ def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar
          raise ParseError(f"Invalid headerType {headerType}")
       offset = objectHeader.parse(offset, data)
       actorAndComponentObjectHeaders.append(objectHeader)
-      if progressBar != None:
+      if progressBar is not None:
          progressBar.add()
+
+   levelPersistentFlag = None
+   if persistentLevelFlag:
+      (offset, levelPersistentFlag) = parseBool(offset, data, parseUint32, "Level Persistent Flag")
+      if levelPersistentFlag:
+         offset = confirmBasicType(offset, data, parseString, "Persistent_Level", "Level Persistent String")
 
    # Collectables #1
    collectables1 = None
@@ -2982,10 +3055,12 @@ def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar
       object = Object()
       offset = object.parse(offset, data, actorAndComponentObjectHeaders[idx])
       objects.append(object)
-      if progressBar != None:
+      if progressBar is not None:
          progressBar.add()
    if offset - objectStartOffset != allObjectsSize:
       raise ParseError(f"Object size mismatch: expect={allObjectsSize} != actual={offset - objectStartOffset}")
+
+   offset, levelSaveVersion = parseUint32(offset, data)
 
    # Collectables #2
    collectables2 = []
@@ -2995,9 +3070,9 @@ def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar
          (offset, objectReference) = parseObjectReference(offset, data)
          collectables2.append(objectReference)
 
-   return (offset, (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2))
+   return (offset, Level(levelName, actorAndComponentObjectHeaders, levelPersistentFlag, collectables1, objects, levelSaveVersion, collectables2))
 
-def parseProperties(offset: int, data):
+def parseProperties(offset: int, data: list) -> list:
    properties = []
    propertyTypes = []
    while True:
@@ -3262,6 +3337,10 @@ def parseProperties(offset: int, data):
                values.append(allValues)
                while len(values) < arrayCount:
                   values.append(None)
+            elif structElementType == "LocalUserNetIdBundle":
+               for _ in range(arrayCount):
+                  (offset, prop, propTypes) = parseProperties(offset, data)
+                  values.append([prop, propTypes])
             elif structElementType in (
                   "BlueprintCategoryRecord",
                   "BlueprintSubCategoryRecord",
@@ -3415,6 +3494,7 @@ def parseProperties(offset: int, data):
                "PlayerRules",
                "ResearchData",
                "ShoppingListSettings",
+               "SwitchData", # OPO_current_111025-175328.sav
                "TimerHandle",
                "TopLevelAssetPath", # 20240915\SatisFaction_20240915-002433.sav
                "TrainDockingRuleSet",
@@ -3487,7 +3567,7 @@ def parseProperties(offset: int, data):
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
 
       else:
-         raise ParseError(f"Unsupported propertyType '{propertyType}' for property '{propertyName}'")
+         raise ParseError(f"Unsupported propertyType '{propertyType}' for property '{propertyName}' at offset {offset}")
 
       propertyTypes.append([propertyName, retainedPropertyType, propertyIndex])
 
@@ -3532,7 +3612,7 @@ class ProgressBar():
       if sys.stdout.isatty():
          print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
 
-def decompressSaveFile(offset: int, data):
+def decompressSaveFile(offset: int, data: list):
    decompressedData = b""
    if PROGRESS_BAR_ENABLE_DECOMPRESS:
       progressBar = ProgressBar(len(data), "Decompression: ")
@@ -3602,7 +3682,7 @@ def readFullSaveFile(filename: str, decompressedOutputFilename: str = None):
    (offset, uncompressedSize) = parseUint64(0, data) # uncompressedSize <= len(data)
    uncompressedSize += 8 # Length doesn't include the length itself even if the length is called compressed data length and the length is itself compressed.
 
-   if decompressedOutputFilename != None:
+   if decompressedOutputFilename is not None:
       with open(decompressedOutputFilename, "wb") as fout:
          fout.write(data)
 
@@ -3657,17 +3737,25 @@ def readFullSaveFile(filename: str, decompressedOutputFilename: str = None):
    (offset, level) = parseLevel(offset, data, True, progressBar) # Potentially sets the global satisfactoryCalculatorInteractiveMapExtras
    levels.append(level)
 
-   offset = confirmBasicType(offset, data, parseUint32, 0)
-
    if offset == len(data):
       satisfactoryCalculatorInteractiveMapExtras.append("Missing final array count") # This can cause the input save file to lose content
       data += b"\x00\x00\x00\x00"
 
-   (offset, extraObjectReferenceCount) = parseUint32(offset, data)
+   (offset, aLevelName) = parseString(offset, data)
+
+   dropPodObjectReferenceList = []
    extraObjectReferenceList = []
-   for idx in range(extraObjectReferenceCount):
-      (offset, objectReference) = parseObjectReference(offset, data)
-      extraObjectReferenceList.append(objectReference)
+   if aLevelName == "Persistent_Level":
+      (offset, dropPodCount) = parseUint32(offset, data)
+      for idx in range(dropPodCount):
+         (offset, dropPodReference) = parseObjectReference(offset, data)
+         dropPodObjectReferenceList.append(dropPodReference)
+
+      # Unresolved/destroyed actors
+      (offset, extraObjectReferenceCount) = parseUint32(offset, data)
+      for idx in range(extraObjectReferenceCount):
+         (offset, objectReference) = parseObjectReference(offset, data)
+         extraObjectReferenceList.append(objectReference)
 
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
@@ -3680,17 +3768,17 @@ def readFullSaveFile(filename: str, decompressedOutputFilename: str = None):
    if PRINT_DEBUG:
       countOfNoneCollectables1 = 0
       emptyCollectables1 = 0
-      for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-         if collectables1 == None:
+      for level in levels:
+         if level.collectables1 is None:
             countOfNoneCollectables1 += 1
-         elif len(collectables1) == 0:
+         elif len(level.collectables1) == 0:
             emptyCollectables1 += 1
       if countOfNoneCollectables1 > 0:
          print(f"Skipped {countOfNoneCollectables1} level collectables1 with {emptyCollectables1} empty collectables1")
-      if extraObjectReferenceCount > 0:
-         print(f"extraObjectReferenceCount={extraObjectReferenceCount}")
+      if level.extraObjectReferenceCount > 0:
+         print(f"extraObjectReferenceCount={level.extraObjectReferenceCount}")
 
-   return (saveFileInfo, (headhex1, headhex2), grids, levels, extraObjectReferenceList)
+   return ParsedSave(saveFileInfo, (headhex1, headhex2), grids, levels, aLevelName, dropPodObjectReferenceList, extraObjectReferenceList)
 
 def readSaveFileInfo(filename: str) -> SaveFileInfo:
    with open(filename, "rb") as fin:
@@ -3724,7 +3812,7 @@ if __name__ == '__main__':
    somersloopOutputFilename = outBase + "-somersloop.txt"
    mercerSphereOutputFilename = outBase + "-mercerSphere.txt"
    decompressedOutputFilename = outBase + "-decompressed.txt"
-   droppedItemsOutputFilename = outBase + "-dropped.txt"
+   droppedItemsOutputFilename = outBase + "-free.txt"
 
    if not os.path.isfile(savFilename):
       print(f"ERROR: Save file does not exist: '{savFilename}'", file=sys.stderr)
@@ -3745,57 +3833,59 @@ if __name__ == '__main__':
          exit(1)
       dumpOut.write("\n=== Full File ===\n")
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = readFullSaveFile(savFilename, decompressedOutputFilename)
+         parsedSave = readFullSaveFile(savFilename, decompressedOutputFilename)
          dumpOut.write("Successfully parsed save file\n\n")
 
-         dumpOut.write(str(saveFileInfo))
+         dumpOut.write(str(parsedSave.saveFileInfo))
          dumpOut.write("\nGrids:\n")
-         for grid in grids:
+         for grid in parsedSave.grids:
             dumpOut.write(f"  {grid}\n")
 
          if PROGRESS_BAR_ENABLE_DUMP:
             progressBarTotal = 0
-            for level in levels:
-               (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
-               progressBarTotal += len(actorAndComponentObjectHeaders)
-               progressBarTotal += len(objects)
-               if collectables1 != None:
-                  progressBarTotal += len(collectables1)
-               progressBarTotal += len(collectables2)
+            for level in parsedSave.levels:
+               progressBarTotal += len(level.actorAndComponentObjectHeaders)
+               progressBarTotal += len(level.objects)
+               if level.collectables1 is not None:
+                  progressBarTotal += len(level.collectables1)
+               progressBarTotal += len(level.collectables2)
             progressBar = ProgressBar(progressBarTotal, "      Dumping: ")
          dumpOut.write("\nLevels:\n")
-         for level in levels:
-            (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
-            dumpOut.write(f"  Level: {levelName}\n")
-            for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+         for level in parsedSave.levels:
+            dumpOut.write(f"  Level: {level.levelName}\n")
+            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                dumpOut.write(f"    {actorOrComponentObjectHeader}\n")
                if PROGRESS_BAR_ENABLE_DUMP:
                   progressBar.add()
-            for object in objects:
+            for object in level.objects:
                dumpOut.write(f"    {object}\n")
                if PROGRESS_BAR_ENABLE_DUMP:
                   progressBar.add()
-            if collectables1 != None:
-               for collectable in collectables1:
+            if level.collectables1 is not None:
+               for collectable in level.collectables1:
                   dumpOut.write(f"    Collectable1: {collectable}\n")
                   if PROGRESS_BAR_ENABLE_DUMP:
                      progressBar.add()
-            for collectable in collectables2:
+            for collectable in level.collectables2:
                dumpOut.write(f"    Collectable2: {collectable}\n")
                if PROGRESS_BAR_ENABLE_DUMP:
                   progressBar.add()
          if PROGRESS_BAR_ENABLE_DUMP:
             progressBar.complete()
 
+         dumpOut.write("\nDrop pod object references:\n")
+         for msLevelPathName in parsedSave.dropPodObjectReferenceList:
+            dumpOut.write(f"  {msLevelPathName}\n")
+
          dumpOut.write("\nAdditional object references:\n")
-         for msLevelPathName in extraObjectReferenceList:
+         for msLevelPathName in parsedSave.extraObjectReferenceList:
             dumpOut.write(f"  {msLevelPathName}\n")
 
          with open(somersloopOutputFilename, "w") as somersloopOut:
             somersloopOut.write("# Exported from Satisfactory \n")
             somersloopOut.write("SOMERSLOOPS = {\n")
-            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+            for level in parsedSave.levels:
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == SOMERSLOOP:
                         # scale=(1.600000023841858, 1.600000023841858, 1.600000023841858)
@@ -3805,16 +3895,16 @@ if __name__ == '__main__':
          with open(mercerSphereOutputFilename, "w") as mercerSphereOut:
             mercerSphereOut.write("# Exported from Satisfactory \n")
             mercerSphereOut.write("MERCER_SPHERES = {\n")
-            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+            for level in parsedSave.levels:
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == MERCER_SPHERE:
                         # scale=(2.700000047683716, 2.6999998092651367, 2.6999998092651367)
                         mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}),\n')
             mercerSphereOut.write("} # MERCER_SPHERES\n")
             mercerSphereOut.write("MERCER_SHRINES = {\n")
-            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+            for level in parsedSave.levels:
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == MERCER_SHRINE:
                         # scale=(1.0, 1.0, 1.0) or (0.8999999761581421, 0.8999999761581421, 0.8999999761581421)
@@ -3826,38 +3916,38 @@ if __name__ == '__main__':
             numSlug = [0, 0, 0]
             for slugIdx in range(3):
                slugOut.write(f"POWER_SLUGS_{('BLUE', 'YELLOW', 'PURPLE')[slugIdx]} = " + "{\n")
-               for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-                  for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+               for level in parsedSave.levels:
+                  for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                      if isinstance(actorOrComponentObjectHeader, ActorHeader) and actorOrComponentObjectHeader.typePath == POWER_SLUG[slugIdx]:
                         slugOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": {actorOrComponentObjectHeader.position},\n')
                         numSlug[slugIdx] += 1
                slugOut.write("}\n")
             slugOut.write(f"# Num slugs: {numSlug}")
 
-            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               if collectables1 != None:
-                  for collectable in collectables1:
+            for level in parsedSave.levels:
+               if level.collectables1 is not None:
+                  for collectable in level.collectables1:
                      if collectable.pathName.startswith("Persistent_Level:PersistentLevel.BP_Crystal"):
                         slugOut.write(f"COLLECTED: {collectable.pathName}\n")
 
          with open(droppedItemsOutputFilename, "w") as dropOut:
             items = {}
-            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+            for level in parsedSave.levels:
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                   if isinstance(actorOrComponentObjectHeader, ActorHeader) and actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGItemPickup_Spawnable":
                      items[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
             specificItems = {}
-            for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-               for object in objects:
+            for level in parsedSave.levels:
+               for object in level.objects:
                   if object.instanceName in items:
                      pickupItems = getPropertyValue(object.properties, "mPickupItems")
-                     if pickupItems != None:
+                     if pickupItems is not None:
                         pickupItems = pickupItems[0]
                         item = getPropertyValue(pickupItems, "Item")
-                        if item != None:
+                        if item is not None:
                            item = item[0]
                            numItems = getPropertyValue(pickupItems, "NumItems")
-                           if numItems != None:
+                           if numItems is not None:
                               if item not in specificItems:
                                  specificItems[item] = []
                               specificItems[item].append([object.instanceName, numItems, items[object.instanceName]])

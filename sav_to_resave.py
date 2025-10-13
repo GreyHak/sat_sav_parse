@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -265,6 +265,10 @@ def addProperties(properties, propertyTypes):
                                     "STRUCT_ProgElevator_Floor",  # Only observed in modded save
                                     "Struct_InputConfiguration"): # Only observed in modded save
                                  dataStruct.extend(propertyValue[0])
+                              case "LocalUserNetIdBundle":
+                                 for value in propertyValue:
+                                    (prop, propTypes) = value
+                                    dataStruct.extend(addProperties(prop, propTypes))
                               case structElementType if structElementType in (
                                     "BlueprintCategoryRecord",
                                     "BlueprintSubCategoryRecord",
@@ -422,6 +426,7 @@ def addProperties(properties, propertyTypes):
                               "PlayerRules",
                               "ResearchData",
                               "ShoppingListSettings",
+                              "SwitchData", # OPO_current_111025-175328.sav
                               "TimerHandle",
                               "TopLevelAssetPath", # 20240915\SatisFaction_20240915-002433.sav
                               "TrainDockingRuleSet",
@@ -499,7 +504,7 @@ def addProperties(properties, propertyTypes):
    return data
 
 def addObject(object, actorOrComponentObjectHeader):
-   isActorFlag = object.actorReferenceAssociations != None
+   isActorFlag = object.actorReferenceAssociations is not None
 
    dataTrailing = bytearray()
 
@@ -565,36 +570,53 @@ def addObject(object, actorOrComponentObjectHeader):
             dataTrailing.extend(addString(vehicle[0]))
             dataTrailing.extend(vehicle[1])
       elif actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGLightweightBuildableSubsystem":
-         dataTrailing.extend(addUint32(len(object.actorSpecificInfo)))
-         for (buildItemPathName, lightweightBuildableInstances) in object.actorSpecificInfo:
-            dataTrailing.extend(addUint32(0))
-            dataTrailing.extend(addString(buildItemPathName))
-            dataTrailing.extend(addUint32(len(lightweightBuildableInstances)))
-            for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
-               for xyzw in rotationQuaternion:
-                  dataTrailing.extend(addDouble(xyzw))
-               for xyz in position:
-                  dataTrailing.extend(addDouble(xyz))
-               for scale in range(3):
-                  dataTrailing.extend(addDouble(1.0))
+         lightweightVersion = object.actorSpecificInfo[0]
+         dataTrailing.extend(addUint32(lightweightVersion))
+         dataTrailing.extend(addUint32(len(object.actorSpecificInfo) - 1))
+         for lightweightBuildable in object.actorSpecificInfo:
+            if isinstance(lightweightBuildable, list):
+               (buildItemPathName, lightweightBuildableInstances) = lightweightBuildable
                dataTrailing.extend(addUint32(0))
-               dataTrailing.extend(addString(swatchPathName))
-               for idx in range(3):
+               dataTrailing.extend(addString(buildItemPathName))
+               dataTrailing.extend(addUint32(len(lightweightBuildableInstances)))
+               for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath, beamLength) in lightweightBuildableInstances:
+                  for xyzw in rotationQuaternion:
+                     dataTrailing.extend(addDouble(xyzw))
+                  for xyz in position:
+                     dataTrailing.extend(addDouble(xyz))
+                  for scale in range(3):
+                     dataTrailing.extend(addDouble(1.0))
                   dataTrailing.extend(addUint32(0))
-               dataTrailing.extend(addString(patternDescNumber))
-               dataTrailing.extend(addUint32(0))
-               dataTrailing.extend(addUint32(0))
-               for component in primaryColor:
-                  dataTrailing.extend(addFloat(component))
-               for component in secondaryColor:
-                  dataTrailing.extend(addFloat(component))
-               dataTrailing.extend(addUint32(0))
-               dataTrailing.extend(addUint32(len(somethingData)))
-               dataTrailing.extend(somethingData)
-               dataTrailing.extend(addUint32(maybeIndex))
-               dataTrailing.extend(addUint8(0))
-               dataTrailing.extend(addString(recipePathName))
-               dataTrailing.extend(addObjectReference(blueprintProxyLevelPath))
+                  dataTrailing.extend(addString(swatchPathName))
+                  for idx in range(3):
+                     dataTrailing.extend(addUint32(0))
+                  dataTrailing.extend(addString(patternDescNumber))
+                  dataTrailing.extend(addUint32(0))
+                  dataTrailing.extend(addUint32(0))
+                  for component in primaryColor:
+                     dataTrailing.extend(addFloat(component))
+                  for component in secondaryColor:
+                     dataTrailing.extend(addFloat(component))
+                  dataTrailing.extend(addUint32(0))
+                  dataTrailing.extend(addUint32(len(somethingData)))
+                  dataTrailing.extend(somethingData)
+                  dataTrailing.extend(addUint32(maybeIndex))
+                  dataTrailing.extend(addUint8(0))
+                  dataTrailing.extend(addString(recipePathName))
+                  dataTrailing.extend(addObjectReference(blueprintProxyLevelPath))
+                  dataFlag = beamLength is not None
+                  dataTrailing.extend(addUint32(dataFlag))
+                  if dataFlag:
+                     dataTrailing.extend(addUint32(0))
+                     dataTrailing.extend(addString("/Script/FactoryGame.BuildableBeamLightweightData"))
+                     dataTrailing.extend(addUint32(55))
+                     dataTrailing.extend(addString("BeamLength"))
+                     dataTrailing.extend(addString("FloatProperty"))
+                     dataTrailing.extend(addUint32(4))
+                     dataTrailing.extend(addUint8(0))
+                     dataTrailing.extend(addUint32(0))
+                     dataTrailing.extend(addFloat(beamLength))
+                     dataTrailing.extend(addString("None"))
       elif actorOrComponentObjectHeader.typePath in (
              "/Script/FactoryGame.FGConveyorChainActor",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull",
@@ -682,19 +704,19 @@ def addObject(object, actorOrComponentObjectHeader):
    return data
 
 def addLevel(level):
-   (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = level
-   #print(f"Level {levelName} with {len(actorAndComponentObjectHeaders)} actor/component headers and {len(objects)} objects.")
+   #print(f"Level {level.levelName} with {len(level.actorAndComponentObjectHeaders)} actor/component headers and {len(level.objects)} objects.")
 
    dataOH = bytearray()
-   #print(f"len(actorAndComponentObjectHeaders)=")
-   dataOH.extend(addUint32(len(actorAndComponentObjectHeaders)))
-   for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+   #print(f"len(level.actorAndComponentObjectHeaders)=")
+   dataOH.extend(addUint32(len(level.actorAndComponentObjectHeaders)))
+   for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
       if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
          #print(f"ActorHeader {actorOrComponentObjectHeader.typePath}")
          dataOH.extend(addUint32(1))
          dataOH.extend(addString(actorOrComponentObjectHeader.typePath))
          dataOH.extend(addString(actorOrComponentObjectHeader.rootObject))
          dataOH.extend(addString(actorOrComponentObjectHeader.instanceName))
+         dataOH.extend(addUint32(actorOrComponentObjectHeader.flags))
          dataOH.extend(addUint32(actorOrComponentObjectHeader.needTransform))
 
          dataOH.extend(addFloat(actorOrComponentObjectHeader.rotation[0]))
@@ -718,46 +740,54 @@ def addLevel(level):
          dataOH.extend(addString(actorOrComponentObjectHeader.className))
          dataOH.extend(addString(actorOrComponentObjectHeader.rootObject))
          dataOH.extend(addString(actorOrComponentObjectHeader.instanceName))
+         dataOH.extend(addUint32(actorOrComponentObjectHeader.flags))
          dataOH.extend(addString(actorOrComponentObjectHeader.parentActorName))
 
-   if collectables1 != None:
-      dataOH.extend(addUint32(len(collectables1)))
-      for levelPathName in collectables1:
+   if level.levelPersistentFlag is not None:
+      dataOH.extend(addUint32(level.levelPersistentFlag))
+      if level.levelPersistentFlag:
+         dataOH.extend(addString("Persistent_Level"))
+
+   if level.collectables1 is not None:
+      dataOH.extend(addUint32(len(level.collectables1)))
+      for levelPathName in level.collectables1:
          dataOH.extend(addObjectReference(levelPathName))
 
    dataObj = bytearray()
-   dataObj.extend(addUint32(len(objects)))
-   for idx in range(len(objects)):
-      dataObj.extend(addObject(objects[idx], actorAndComponentObjectHeaders[idx]))
+   dataObj.extend(addUint32(len(level.objects)))
+   for idx in range(len(level.objects)):
+      dataObj.extend(addObject(level.objects[idx], level.actorAndComponentObjectHeaders[idx]))
 
    data = bytearray()
-   if levelName != None: # levelName will be None for the last "persistent" level
-      data.extend(addString(levelName))
+   if level.levelName is not None: # levelName will be None for the last "persistent" level
+      data.extend(addString(level.levelName))
 
    data.extend(addUint64(len(dataOH)))
    data.extend(dataOH)
    data.extend(addUint64(len(dataObj)))
    data.extend(dataObj)
 
-   if levelName != None:
-      data.extend(addUint32(len(collectables2)))
-      for levelPathName in collectables2:
+   data.extend(addUint32(level.levelSaveVersion))
+
+   if level.levelName is not None:
+      data.extend(addUint32(len(level.collectables2)))
+      for levelPathName in level.collectables2:
          data.extend(addObjectReference(levelPathName))
 
    return data
 
-def saveFile(saveFileInfo: sav_parse.SaveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename: str):
+def saveFile(parsedSave: sav_parse.ParsedSave, outFilename: str):
 
    data = bytearray()
    data.extend(addUint32(6))
    data.extend(addString("None"))
    data.extend(addUint32(0))
-   data.extend(addUint32(headhex[0]))
+   data.extend(addUint32(parsedSave.headhex[0]))
    data.extend(addUint32(1))
    data.extend(addString("None"))
-   data.extend(addUint32(headhex[1]))
+   data.extend(addUint32(parsedSave.headhex[1]))
 
-   for grid in grids:
+   for grid in parsedSave.grids:
       (gridName, i, ghex, gridLevels) = grid
       #print(f"Grid {gridName}")
       data.extend(addString(gridName))
@@ -769,16 +799,22 @@ def saveFile(saveFileInfo: sav_parse.SaveFileInfo, headhex, grids, levels, extra
          data.extend(addString(levelName))
          data.extend(addUint32(lhex))
 
-   data.extend(addUint32(len(levels)-1))
-   progressBar = sav_parse.ProgressBar(len(levels), "   Reencoding: ")
-   for level in levels:
+   data.extend(addUint32(len(parsedSave.levels)-1))
+   progressBar = sav_parse.ProgressBar(len(parsedSave.levels), "   Reencoding: ")
+   for level in parsedSave.levels:
       data.extend(addLevel(level))
       progressBar.add()
-   data.extend(addUint32(0))
 
-   data.extend(addUint32(len(extraObjectReferenceList)))
-   for objectReference in extraObjectReferenceList:
-      data.extend(addObjectReference(objectReference))
+   data.extend(addString(parsedSave.aLevelName))
+
+   if parsedSave.aLevelName == "Persistent_Level":
+      data.extend(addUint32(len(parsedSave.dropPodObjectReferenceList)))
+      for objectReference in parsedSave.dropPodObjectReferenceList:
+         data.extend(addObjectReference(objectReference))
+
+      data.extend(addUint32(len(parsedSave.extraObjectReferenceList)))
+      for objectReference in parsedSave.extraObjectReferenceList:
+         data.extend(addObjectReference(objectReference))
 
    rdata = bytearray()
    rdata.extend(addUint64(len(data))) # Length doesn't include the length itself even if the length is called compressed data length and the length is itself compressed.
@@ -791,25 +827,26 @@ def saveFile(saveFileInfo: sav_parse.SaveFileInfo, headhex, grids, levels, extra
    MAXIMUM_CHUNK_SIZE = 128 * 1024
 
    sdata = bytearray()
-   sdata.extend(addUint32(saveFileInfo.saveHeaderType))
-   sdata.extend(addUint32(saveFileInfo.saveVersion))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.saveHeaderType))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.saveVersion))
 
-   sdata.extend(addUint32(saveFileInfo.buildVersion))
-   sdata.extend(addString(saveFileInfo.mapName))
-   sdata.extend(addString(saveFileInfo.mapOptions))
-   sdata.extend(addString(saveFileInfo.sessionName))
-   sdata.extend(addUint32(saveFileInfo.playDurationInSeconds))
-   sdata.extend(addUint64(saveFileInfo.saveDateTimeInTicks))
-   sdata.extend(addInt8(saveFileInfo.sessionVisibility))
-   sdata.extend(addUint32(saveFileInfo.editorObjectVersion))
-   sdata.extend(addString(saveFileInfo.modMetadata))
-   sdata.extend(addUint32(saveFileInfo.isModdedSave))
-   sdata.extend(addString(saveFileInfo.persistentSaveIdentifier))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.buildVersion))
+   sdata.extend(addString(parsedSave.saveFileInfo.saveName))
+   sdata.extend(addString(parsedSave.saveFileInfo.mapName))
+   sdata.extend(addString(parsedSave.saveFileInfo.mapOptions))
+   sdata.extend(addString(parsedSave.saveFileInfo.sessionName))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.playDurationInSeconds))
+   sdata.extend(addUint64(parsedSave.saveFileInfo.saveDateTimeInTicks))
+   sdata.extend(addInt8(parsedSave.saveFileInfo.sessionVisibility))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.editorObjectVersion))
+   sdata.extend(addString(parsedSave.saveFileInfo.modMetadata))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.isModdedSave))
+   sdata.extend(addString(parsedSave.saveFileInfo.persistentSaveIdentifier))
    sdata.extend(addUint32(1))
    sdata.extend(addUint32(1))
-   sdata.extend(addUint64(saveFileInfo.random[0]))
-   sdata.extend(addUint64(saveFileInfo.random[1]))
-   sdata.extend(addUint32(saveFileInfo.cheatFlag))
+   sdata.extend(addUint64(parsedSave.saveFileInfo.random[0]))
+   sdata.extend(addUint64(parsedSave.saveFileInfo.random[1]))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.cheatFlag))
 
    dataOffset = 0
    progressBar = sav_parse.ProgressBar(len(rdata), "  Compressing: ")
@@ -850,9 +887,9 @@ if __name__ == '__main__':
    outFilename = sys.argv[2]
 
    print("Parsing save file")
-   (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(inFilename)
+   parsedSave = sav_parse.readFullSaveFile(inFilename)
 
    print("Recreating save file")
-   saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+   saveFile(parsedSave, outFilename)
 
    exit(0)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@ MAP_BASENAME_SLUGS          = "save_slug.png"
 MAP_BASENAME_HARD_DRIVES    = "save_hd.png"
 MAP_BASENAME_SOMERSLOOP     = "save_somersloop.png"
 MAP_BASENAME_MERCER_SPHERE  = "save_mercer_sphere.png"
+MAP_BASENAME_SOME_MERC_SPH  = "save_somersloop_and_mercer_sphere.png"
+MAP_BASENAME_COLLECTABLES   = "save_all_collectables.png"
 MAP_BASENAME_POWER          = "save_power.png"
 MAP_BASENAME_RESOURCE_NODES = "save_nodes.png"
 
@@ -53,12 +55,12 @@ def adjPos(pos, yFlag):
    newPos = (pos / 22.887 + (18282.5,20480)[yFlag]) / MAP_DESCALE
    return newPos
 
-def addSlugs(slugDraw, slugs, fill):
+def addSlugs(slugDraw, slugs, fill=None, outline=None):
    for slug in slugs:
       coord = slugs[slug]
       posX = adjPos(coord[0], False)
       posY = adjPos(coord[1], True)
-      slugDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=fill)
+      slugDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=fill, outline=outline)
 
 def chown(filename: str):
    try:
@@ -93,11 +95,11 @@ def getStackSize(itemName: str, itemCount: int) -> int:
    else:
       itemStackSizes[itemName] = None
 
-   if derivedStackSize == None and knownStackSize == None:
+   if derivedStackSize is None and knownStackSize is None:
       return None
 
-   if knownStackSize != None:
-      if derivedStackSize == None or knownStackSize > derivedStackSize:
+   if knownStackSize is not None:
+      if derivedStackSize is None or knownStackSize > derivedStackSize:
          return knownStackSize
 
    itemStackSizes[itemName] = derivedStackSize
@@ -108,8 +110,8 @@ def getStackSize(itemName: str, itemCount: int) -> int:
 def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBasename: str = DEFAULT_HTML_BASENAME):
    htmlFilename = f"{outputDir}/{htmlBasename}"
    try:
-      (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-      #htmlFilename = f"save_{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.html"
+      parsedSave = sav_parse.readFullSaveFile(savFilename)
+      #htmlFilename = f"save_{parsedSave.saveFileInfo.sessionName}_{parsedSave.saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.html"
 
       uncollectedPowerSlugsBlue = sav_data_slug.POWER_SLUGS_BLUE.copy()
       uncollectedPowerSlugsYellow = sav_data_slug.POWER_SLUGS_YELLOW.copy()
@@ -143,8 +145,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       dimensionalDepotContents = []
       powerLines = {}
       wireLines = []
-      for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-         for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+      for level in parsedSave.levels:
+         for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
             if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
                typePath = actorOrComponentObjectHeader.typePath
                if "/Buildable/" in typePath or "/Build_" in typePath: # "/Buildable/" ensures vehicles are included.  "/Build_" ensures FICSMAS buildables are included.
@@ -166,38 +168,38 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
                elif typePath == sav_parse.POWER_LINE:
                   powerLines[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
-         for object in objects:
+         for object in level.objects:
             if object.instanceName == "Persistent_Level:PersistentLevel.StatisticsSubsystem":
                creaturesKilledCount = sav_parse.getPropertyValue(object.properties, "mCreaturesKilledCount")
-               if creaturesKilledCount != None:
+               if creaturesKilledCount is not None:
                   for creature in creaturesKilledCount:
                      (levelPathName, killCount) = creature
                      creaturesKilled.append((levelPathName.pathName, killCount))
                      numCreaturesKilled += killCount
             elif object.instanceName == "Persistent_Level:PersistentLevel.GamePhaseManager":
                currentGamePhase = sav_parse.getPropertyValue(object.properties, "mCurrentGamePhase")
-               if currentGamePhase != None:
+               if currentGamePhase is not None:
                   if currentGamePhase.pathName == sav_parse.FINAL_PROJECT_ASSEMBLY_PHASE_7: # mTargetGamePhase will be phase 1
                      gamePhase = "<b>Project Assembly Completed.</b>"
                   else:
                      gamePhase = f"<b>{sav_parse.pathNameToReadableName(currentGamePhase.pathName)}</b>"
                      targetGamePhase = sav_parse.getPropertyValue(object.properties, "mTargetGamePhase")
-                     if targetGamePhase != None:
+                     if targetGamePhase is not None:
                         targetGamePhase = targetGamePhase.pathName
                         if targetGamePhase == sav_parse.FINAL_PROJECT_ASSEMBLY_PHASE_6:
                            gamePhase = "<b>Project Assembly Complete[ing]</b>"
                         else:
                            gamePhase += f" toward <b>{sav_parse.pathNameToReadableName(targetGamePhase)}</b>"
                            targetGamePhasePaidOffCosts = sav_parse.getPropertyValue(object.properties, "mTargetGamePhasePaidOffCosts")
-                           if targetGamePhasePaidOffCosts != None:
+                           if targetGamePhasePaidOffCosts is not None:
                               gamePhase = f'{gamePhase}. Already supplied:\n<ul style="margin-top:0px">\n'
                               cost = targetGamePhasePaidOffCosts
                               alreadySupplied = {}
                               for costItem in cost:
                                  itemCostClass = sav_parse.getPropertyValue(costItem[0], "ItemClass")
-                                 if itemCostClass != None:
+                                 if itemCostClass is not None:
                                     amountSupplied = sav_parse.getPropertyValue(costItem[0], "Amount")
-                                    if amountSupplied != None:
+                                    if amountSupplied is not None:
                                        itemName = itemCostClass.pathName
                                        itemName = sav_parse.pathNameToReadableName(itemName)
                                        alreadySupplied[itemName] = amountSupplied
@@ -214,26 +216,26 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                               gamePhase = f"{gamePhase}</ul>\n"
             elif object.instanceName == "Persistent_Level:PersistentLevel.ResourceSinkSubsystem":
                totalPoints = sav_parse.getPropertyValue(object.properties, "mTotalPoints")
-               if totalPoints != None:
+               if totalPoints is not None:
                   if len(totalPoints) == 2:
                      (totalPointsFromItems, totalPointsFromDna) = totalPoints
                      pointProgressLines += f"<li>Total Points: {totalPointsFromItems} from items, {totalPointsFromDna} from DNA</li>\n"
                currentPointLevels = sav_parse.getPropertyValue(object.properties, "mCurrentPointLevels")
-               if currentPointLevels != None:
+               if currentPointLevels is not None:
                   if len(currentPointLevels) == 2:
                      (pointsEarnedFromItems, pointsEarnedFromDna) = currentPointLevels
                      pointProgressLines += f"<li>Total Coupons Earned: {pointsEarnedFromItems + pointsEarnedFromDna}</li>\n"
                numResourceSinkCoupons = sav_parse.getPropertyValue(object.properties, "mNumResourceSinkCoupons")
-               if numResourceSinkCoupons != None:
+               if numResourceSinkCoupons is not None:
                   pointProgressLines += f"<li>Number of coupons available in sink: {numResourceSinkCoupons}</li>\n"
             elif object.instanceName == "Persistent_Level:PersistentLevel.schematicManager":
                activeSchematic = sav_parse.getPropertyValue(object.properties, "mActiveSchematic")
-               if activeSchematic != None:
+               if activeSchematic is not None:
                   activeSchematic = activeSchematic.pathName
                   activeSchematicShortName = sav_parse.pathNameToReadableName(activeSchematic)
                   activeSchematicDescription = f"<b>{activeSchematicShortName}</b>."
                purchasedSchematics = sav_parse.getPropertyValue(object.properties, "mPurchasedSchematics")
-               if purchasedSchematics != None:
+               if purchasedSchematics is not None:
                   for purchasedSchematic in purchasedSchematics:
                      if purchasedSchematic.pathName in sav_parse.UNLOCK_PATHS__HARD_DRIVES:
                         unlockCount_hardDrives += 1
@@ -249,22 +251,22 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                         unlockCount_special += 1
             elif object.instanceName == "Persistent_Level:PersistentLevel.CentralStorageSubsystem":
                storedItems = sav_parse.getPropertyValue(object.properties, "mStoredItems")
-               if storedItems != None:
+               if storedItems is not None:
                   for storedItem in storedItems:
                      itemClass = sav_parse.getPropertyValue(storedItem[0], "ItemClass")
-                     if itemClass != None:
+                     if itemClass is not None:
                         amount = sav_parse.getPropertyValue(storedItem[0], "Amount")
-                        if amount != None:
+                        if amount is not None:
                            itemName = sav_parse.pathNameToReadableName(itemClass.pathName)
                            dimensionalDepotContents.append((amount, itemName))
             elif object.instanceName in powerLines:
                wireInstances = sav_parse.getPropertyValue(object.properties, "mWireInstances")
-               if wireInstances != None:
+               if wireInstances is not None:
                   for (name, position) in wireInstances[0][0]:
                      if name == "Locations":
                         wireLines.append((powerLines[object.instanceName], position))
-         if collectables1 != None:
-            for collectable in collectables1:  # Quantity should match collectables2
+         if level.collectables1 is not None:
+            for collectable in level.collectables1:  # Quantity should match collectables2
                if collectable.pathName in uncollectedPowerSlugsBlue:
                   numCollectedSlugsMk1 += 1
                   del uncollectedPowerSlugsBlue[collectable.pathName]
@@ -287,20 +289,20 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
       numMinedResources = 0
       minedResources = []
-      for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-         for object in objects:
+      for level in parsedSave.levels:
+         for object in level.objects:
             if object.instanceName in minerInstances:
-               if sav_parse.getPropertyValue(object.properties, "mExtractableResource") != None:
+               if sav_parse.getPropertyValue(object.properties, "mExtractableResource") is not None:
                   numMinedResources += 1
                   extractableResource = sav_parse.getPropertyValue(object.properties, "mExtractableResource")
-                  if extractableResource != None:
+                  if extractableResource is not None:
                      minedResources.append(extractableResource.pathName)
             elif object.instanceName in crashSiteInstances:
                hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
-               if hasBeenOpened != None and hasBeenOpened:
+               if hasBeenOpened is not None and hasBeenOpened:
                   crashSitesUnopenedKeys.remove(object.instanceName)
                   hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
-                  if hasBeenLooted == None:
+                  if hasBeenLooted is None:
                      crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any any open, but unlooted droppods from Update 8 will be empty in v1.0.
                      hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
                   if hasBeenLooted:
@@ -310,11 +312,11 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                      crashSitesOpenWithDrive.append(crashSiteInstances[object.instanceName])
             elif object.instanceName == "Persistent_Level:PersistentLevel.schematicManager":
                paidOffSchematics = sav_parse.getPropertyValue(object.properties, "mPaidOffSchematic")
-               if paidOffSchematics != None:
+               if paidOffSchematics is not None:
                   for paidOffSchematic in paidOffSchematics:
                      paidOffSchematic_schematic = sav_parse.getPropertyValue(paidOffSchematic[0], "schematic")
                      itemCostForActiveSchematic = sav_parse.getPropertyValue(paidOffSchematic[0], "ItemCost")
-                     if paidOffSchematic_schematic != None and itemCostForActiveSchematic != None and paidOffSchematic_schematic.pathName == activeSchematic:
+                     if paidOffSchematic_schematic is not None and itemCostForActiveSchematic is not None and paidOffSchematic_schematic.pathName == activeSchematic:
                         activeSchematicDescription = f'{activeSchematicDescription} Already supplied:\n<ul style="margin-top:0px">\t\n'
                         if activeSchematicShortName not in sav_parse.MILESTONE_COSTS:
                            activeSchematicDescription = f"{activeSchematicDescription}<li>ERROR: {activeSchematicShortName} not in MILESTONE_COSTS</li>\n"
@@ -322,9 +324,9 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                            alreadySupplied = {}
                            for itemCost in itemCostForActiveSchematic:
                               itemClass = sav_parse.getPropertyValue(itemCost[0], "ItemClass")
-                              if itemClass != None:
+                              if itemClass is not None:
                                  amountSupplied = sav_parse.getPropertyValue(itemCost[0], "Amount")
-                                 if amountSupplied != None:
+                                 if amountSupplied is not None:
                                     itemName = itemClass.pathName
                                     itemName = sav_parse.pathNameToReadableName(itemName)
                                     alreadySupplied[itemName] = amountSupplied
@@ -336,16 +338,16 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                                  amountSupplied = 0
                               activeSchematicDescription = f"{activeSchematicDescription}<li>{amountSupplied}/{totalCost} x {itemName} ({round(amountSupplied/totalCost*100,1)}% complete)</li>\n"
                         activeSchematicDescription = f"{activeSchematicDescription}</ul>\n"
-               elif activeSchematicDescription != None:
+               elif activeSchematicDescription is not None:
                   activeSchematicDescription = f"{activeSchematicDescription}<p>\n"
 
-      for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-         for object in objects:
+      for level in parsedSave.levels:
+         for object in level.objects:
             if object.instanceName in crashSiteInventoryPathName:
                inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
-               if inventoryStacks != None:
+               if inventoryStacks is not None:
                   item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
-                  if item != None:
+                  if item is not None:
                      if len(item) == 2 and isinstance(item[0], str):
                         if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
                            numOpenAndEmptyCrashSites -= 1
@@ -357,26 +359,26 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
       lines  = "<!DOCTYPE html>\n"  # This allows the font setting to apply to the table
       lines += "<html>\n"
-      lines += f"<head><title>Save file details: {saveFileInfo.sessionName}</title></head>\n"
+      lines += f"<head><title>Save file details: {parsedSave.saveFileInfo.sessionName}</title></head>\n"
       lines += "<body>\n"
       lines += "<style>ul { list-style-type: circle; margin-top: 0 }</style>\n"
       lines += "<font size=5>\n"
       lines += "<table align=center><th><td>\n"
 
-      lines += f"Session Name: {saveFileInfo.sessionName}<br>\n"
-      lines += f"Save Date: {saveFileInfo.saveDatetime.strftime('%m/%d/%Y %I:%M:%S %p')}<br>\n"
+      lines += f"Session Name: {parsedSave.saveFileInfo.sessionName}<br>\n"
+      lines += f"Save Date: {parsedSave.saveFileInfo.saveDatetime.strftime('%m/%d/%Y %I:%M:%S %p')}<br>\n"
 
       SECONDS_IN_MINUTE = 60
       SECONDS_IN_HOUR = 60 * SECONDS_IN_MINUTE
-      playTimeHours = int(saveFileInfo.playDurationInSeconds / SECONDS_IN_HOUR)
-      playTimeMinutes = (saveFileInfo.playDurationInSeconds - playTimeHours * SECONDS_IN_HOUR) / SECONDS_IN_MINUTE
+      playTimeHours = int(parsedSave.saveFileInfo.playDurationInSeconds / SECONDS_IN_HOUR)
+      playTimeMinutes = (parsedSave.saveFileInfo.playDurationInSeconds - playTimeHours * SECONDS_IN_HOUR) / SECONDS_IN_MINUTE
       lines += f'Play Time: {playTimeHours} hours, {round(playTimeMinutes,1)} minutes<p style="margin-bottom:0px">\n'
       if len(sav_parse.satisfactoryCalculatorInteractiveMapExtras):
          lines += f'File suspected of having been saved by satisfactory-calculator.com/en/interactive-map for {len(sav_parse.satisfactoryCalculatorInteractiveMapExtras)} reasons.<p style="margin-bottom:0px">\n'
 
       lines += f'Game Phase: {gamePhase}<p style="margin-bottom:0px">\n'
 
-      if activeSchematicDescription != None:
+      if activeSchematicDescription is not None:
          lines += f'Active Milestone: {activeSchematicDescription}'
 
       lines += f'Mining {numMinedResources} of {len(minedResourceActors)} resources'
@@ -403,7 +405,12 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       lines += f"{len(uncollectedMercerSpheres)} Mercer Spheres remaining ({round(len(uncollectedMercerSpheres)/len(sav_data_mercerSphere.MERCER_SPHERES)*100,1)}% of {len(sav_data_mercerSphere.MERCER_SPHERES)})."
       if creatingMapImagesFlag:
          lines += f' <a href="{MAP_BASENAME_MERCER_SPHERE}">map</a>'
+
+      if creatingMapImagesFlag:
+         lines += f' (<a href="{MAP_BASENAME_SOME_MERC_SPH}">both</a>)'
       lines += "<p>\n"
+
+
 
       numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
       lines += f"Of {len(crashSiteInstances)} crash sites, {numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} been looted, {numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, {numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available.\r\n"
@@ -434,7 +441,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          dimensionalDepotContents.sort(key=lambda x: x[1])
          for (itemCount, itemName) in dimensionalDepotContents:
             stackSize = getStackSize(itemName, itemCount)
-            if stackSize == None:
+            if stackSize is None:
                lines += f"<li>{itemCount} x {itemName}</li>\n"
             else:
                lines += f"<li>{itemCount} x {itemName} ({round(itemCount/(stackSize*CURRENT_DEPOT_STACK_LIMIT)*100,1)}%)</li>\n"
@@ -481,18 +488,27 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          except:
             imageFont = None
 
-         if imageFont == None:
+         if imageFont is None:
             print("CAUTION: An error occured loading the font file.  Please update the FONT_FILENAME variable to point at a font installed on your system.  If you need a .ttf file, can you can get from https://github.com/kiwi0fruit/open-fonts")
 
          origImage = Image.open(MAP_BASENAME_BLANK)
+
+         smImage = origImage.copy()
+         smDraw = ImageDraw.Draw(smImage)
+
+         smsImage = origImage.copy()
+         smsDraw = ImageDraw.Draw(smsImage)
 
          slugImage = origImage.copy()
          slugDraw = ImageDraw.Draw(slugImage)
          addSlugs(slugDraw, uncollectedPowerSlugsBlue, (0,0,255))
          addSlugs(slugDraw, uncollectedPowerSlugsYellow, (255,255,0))
          addSlugs(slugDraw, uncollectedPowerSlugsPurple, (192,0,192))
-         slugDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Slugs from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         slugDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+         addSlugs(smsDraw, uncollectedPowerSlugsBlue, outline=(0,0,255))
+         addSlugs(smsDraw, uncollectedPowerSlugsYellow, outline=(255,255,0))
+         addSlugs(smsDraw, uncollectedPowerSlugsPurple, outline=(192,0,192))
+         slugDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Slugs from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
+         slugDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
          imageFilename = f"{outputDir}/{MAP_BASENAME_SLUGS}"
          slugImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -509,13 +525,15 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,0,255))
+            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,0,255))
          for coord in crashSitesOpenWithDrive:
-            if coord != None:
+            if coord is not None:
                posX = adjPos(coord[0], False)
                posY = adjPos(coord[1], True)
                hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,255,0))
-         hdDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Hard drives from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         hdDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+               smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,255,0))
+         hdDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Hard drives from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
+         hdDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
          imageFilename = f"{outputDir}/{MAP_BASENAME_HARD_DRIVES}"
          hdImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -527,8 +545,10 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
             ssDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
-         ssDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Somersloops from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         ssDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+            smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
+            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
+         ssDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Somersloops from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
+         ssDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
          imageFilename = f"{outputDir}/{MAP_BASENAME_SOMERSLOOP}"
          ssImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -540,10 +560,23 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
             msDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
-         msDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Mercer Spheres from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         msDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+            smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
+            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
+         msDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Mercer Spheres from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
+         msDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
          imageFilename = f"{outputDir}/{MAP_BASENAME_MERCER_SPHERE}"
          msImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
+
+         smDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Somersloops & Mercer Spheres from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
+         smDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+         imageFilename = f"{outputDir}/{MAP_BASENAME_SOME_MERC_SPH}"
+         smImage.crop(CROP_SETTINGS).save(imageFilename)
+         chown(imageFilename)
+
+         smsDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime(f"Somersloops & Mercer Spheres &\nSlugs & Crash Sites from save %m/%d/%Y %I:%M:%S %p\n{parsedSave.saveFileInfo.sessionName}"), font=imageFont, fill=(0,0,0))
+         imageFilename = f"{outputDir}/{MAP_BASENAME_COLLECTABLES}"
+         smsImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
 
          plImage = origImage.copy()
@@ -554,8 +587,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             possY = adjPos(src[1], True)
             posdY = adjPos(dst[1], True)
             plDraw.line(((possX, possY), (posdX, posdY)), fill=(22,47,101), width=2)
-         plDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Power Lines from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         plDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+         plDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Power Lines from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
+         plDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
          imageFilename = f"{outputDir}/{MAP_BASENAME_POWER}"
          plImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -601,8 +634,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             }
             if type in typeColors:
                rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=typeColors[type])
-         rnDraw.text(MAP_TEXT_1, saveFileInfo.saveDatetime.strftime("Resource Nodes from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         rnDraw.text(MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+         rnDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Resource Nodes from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
+         rnDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
          imageFilename = f"{outputDir}/{MAP_BASENAME_RESOURCE_NODES}"
          rnImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)

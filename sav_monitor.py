@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ if __name__ == '__main__':
          print(f"ERROR: Archive folder does not exist: '{archivePath}'")
          exit(1)
 
-   if archivePath == None:
+   if archivePath is None:
       print(f"Monitoring {savePath}")
    else:
       print(f"Monitoring {savePath} and archiving to {archivePath}")
@@ -75,7 +75,7 @@ if __name__ == '__main__':
          print(f"Generating HTML in {htmlOutputDir}")
          sav_to_html.generateHTML(savFilename, htmlOutputDir)
 
-         if archivePath != None:
+         if archivePath is not None:
             saveFileInfo = sav_parse.readSaveFileInfo(savFilename)
             archiveFilePath = os.path.join(archivePath, f"{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.sav")
             if not os.path.exists(archiveFilePath):

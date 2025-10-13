@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,8 +51,8 @@ def getPlayerPaths(levels):
    playerPaths = [] # = (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath)
 
    playerStateInstances = []
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+   for level in levels:
+      for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
          # "/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C" leads to ShoppingListComponent, FGPlayerHotbar_*
          # This gives the "mOwnedPawn" property which gives the Char_Player_C.  These are different numbers.
          # "/Game/FactoryGame/Character/Player/Char_Player.Char_Player_C" leads to BodySlot, HeadSlot, HealthComponent, LegsSlot, BackSlot, ArmSlot, inventory
@@ -60,35 +60,35 @@ def getPlayerPaths(levels):
             playerStateInstances.append(actorOrComponentObjectHeader.instanceName)
 
    playerCharacterInstances = {} # Looked up by playerCharacter for the playerState value
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      for object in objects:
+   for level in levels:
+      for object in level.objects:
          if object.instanceName in playerStateInstances:
             # mPlayerHotbars, mCurrentHotbarIndex, mBuildableSubCategoryDefaultMatDesc, mMaterialSubCategoryDefaultMatDesc, mNewRecipes, mPlayerRules, mOwnedPawn,
             # mHasReceivedInitialItems, mVisitedAreas, mCustomColorData, mRememberedFirstTimeEquipmentClasses, mCollapsedMapCategories, mNumObservedInventorySlots,
             # mShoppingListComponent, mOpenedWidgetsPersistent, mPlayerSpecificSchematics
             ownedPawn = sav_parse.getPropertyValue(object.properties, "mOwnedPawn")
-            if ownedPawn != None:
+            if ownedPawn is not None:
                playerHotbars = sav_parse.getPropertyValue(object.properties, "mPlayerHotbars")
-               if playerHotbars != None:
+               if playerHotbars is not None:
                   playerCharacterInstances[ownedPawn.pathName] = (object.instanceName)
 
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      for object in objects:
+   for level in levels:
+      for object in level.objects:
          if object.instanceName in playerCharacterInstances:
             inventory = sav_parse.getPropertyValue(object.properties, "mInventory")
-            if inventory != None:
+            if inventory is not None:
                armsEquipmentSlot = sav_parse.getPropertyValue(object.properties, "mArmsEquipmentSlot")
-               if armsEquipmentSlot != None:
+               if armsEquipmentSlot is not None:
                   backEquipmentSlot = sav_parse.getPropertyValue(object.properties, "mBackEquipmentSlot")
-                  if backEquipmentSlot != None:
+                  if backEquipmentSlot is not None:
                      legsEquipmentSlot = sav_parse.getPropertyValue(object.properties, "mLegsEquipmentSlot")
-                     if legsEquipmentSlot != None:
+                     if legsEquipmentSlot is not None:
                         headEquipmentSlot = sav_parse.getPropertyValue(object.properties, "mHeadEquipmentSlot")
-                        if headEquipmentSlot != None:
+                        if headEquipmentSlot is not None:
                            bodyEquipmentSlot = sav_parse.getPropertyValue(object.properties, "mBodyEquipmentSlot")
-                           if bodyEquipmentSlot != None:
+                           if bodyEquipmentSlot is not None:
                               healthComponent = sav_parse.getPropertyValue(object.properties, "mHealthComponent")
-                              if healthComponent != None:
+                              if healthComponent is not None:
                                  (playerStateInstanceName) = playerCharacterInstances[object.instanceName]
                                  playerPaths.append((playerStateInstanceName, object.instanceName, inventory.pathName, armsEquipmentSlot.pathName, backEquipmentSlot.pathName, legsEquipmentSlot.pathName, headEquipmentSlot.pathName, bodyEquipmentSlot.pathName, healthComponent.pathName))
 
@@ -101,11 +101,11 @@ def getPlayerName(levels, playerCharacter):
    if playerId in playerUsernames:
       return playerUsernames[playerId]
 
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      for object in objects:
+   for level in levels:
+      for object in level.objects:
          if object.instanceName == playerCharacter:
             cachedPlayerName = sav_parse.getPropertyValue(object.properties, "mCachedPlayerName")
-            if cachedPlayerName != None:
+            if cachedPlayerName is not None:
                return cachedPlayerName
    return None
 
@@ -120,7 +120,7 @@ def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
             # Must preserve the same propertyIdx because the property type is at this index
             category[0][propertyIdx] = [category[0][propertyIdx][0], float(categoryIdx)]
       subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-      if subCategoryRecords != None:
+      if subCategoryRecords is not None:
          for subcategoryIdx in range(len(subCategoryRecords)):
             subcategory = subCategoryRecords[subcategoryIdx]
             for propertyIdx in range(len(subcategory[0])):
@@ -190,7 +190,7 @@ def eulerToQuaternion(euler):
    return (qx, qy, qz, qw)
 
 def toJSON(object):
-   if object == None or isinstance(object, (str, int, float, bool, complex)):
+   if object is None or isinstance(object, (str, int, float, bool, complex)):
       return object
 
    if isinstance(object, bytes):
@@ -213,7 +213,7 @@ def toJSON(object):
 
    if isinstance(object, sav_parse.Object):
       araData = None
-      if object.actorReferenceAssociations != None:
+      if object.actorReferenceAssociations is not None:
          (parentObjectReference, actorComponentReferences) = object.actorReferenceAssociations
          acrData = []
          for actorComponentReference in actorComponentReferences:
@@ -233,7 +233,7 @@ def toJSON(object):
    return jdata
 
 def fromJSON(object):
-   if object == None or isinstance(object, (str, int, float, bool, complex)):
+   if object is None or isinstance(object, (str, int, float, bool, complex)):
       return object
 
    if isinstance(object, dict) and len(object) == 1 and "jsonhexstr" in object:
@@ -258,16 +258,16 @@ def addSomersloop(levels, targetPathName: str) -> bool:
    # For those items present in (both) collectables1 and collectables2, remove those,
    # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      if collectables1 != None:
-         for collectable in collectables1:
+   for level in levels:
+      if level.collectables1 is not None:
+         for collectable in level.collectables1:
             if collectable.pathName == targetPathName:
-               collectables1.remove(collectable)
+               level.collectables1.remove(collectable)
                print(f"Clearing removal of {collectable.pathName}")
                break
-      for collectable in collectables2:
+      for collectable in level.collectables2:
          if collectable.pathName == targetPathName:
-            collectables2.remove(collectable)
+            level.collectables2.remove(collectable)
 
             instanceName = collectable.pathName
             (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[collectable.pathName]
@@ -276,12 +276,13 @@ def addSomersloop(levels, targetPathName: str) -> bool:
             newActor.typePath = sav_parse.SOMERSLOOP
             newActor.rootObject = rootObject
             newActor.instanceName = instanceName
+            newActor.flags = 0
             newActor.needTransform = False
             newActor.rotation = rotation
             newActor.position = position
             newActor.scale = [1.600000023841858, 1.600000023841858, 1.600000023841858]
             newActor.wasPlacedInLevel = 1
-            actorAndComponentObjectHeaders.append(newActor)
+            level.actorAndComponentObjectHeaders.append(newActor)
 
             newObject = sav_parse.Object()
             newObject.instanceName = instanceName
@@ -294,7 +295,7 @@ def addSomersloop(levels, targetPathName: str) -> bool:
             newObject.properties    = []
             newObject.propertyTypes = []
             newObject.actorSpecificInfo = None
-            objects.append(newObject)
+            level.objects.append(newObject)
 
             print(f"Restored Somersloop {instanceName} at {position}")
             return True
@@ -305,17 +306,17 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
    # For those items present in (both) collectables1 and collectables2, remove those,
    # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      if collectables1 != None:
-         for collectable in collectables1:
+   for level in levels:
+      if level.collectables1 is not None:
+         for collectable in level.collectables1:
             if collectable.pathName == targetPathName:
-               collectables1.remove(collectable)
+               level.collectables1.remove(collectable)
                print(f"Clearing removal of sphere {collectable.pathName}")
                break
 
-      for collectable in collectables2:
+      for collectable in level.collectables2:
          if collectable.pathName == targetPathName:
-            collectables2.remove(collectable)
+            level.collectables2.remove(collectable)
 
             instanceName = collectable.pathName
             (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[collectable.pathName]
@@ -324,12 +325,13 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
             newActor.typePath = sav_parse.MERCER_SPHERE
             newActor.rootObject = rootObject
             newActor.instanceName = instanceName
+            newActor.flags = 0
             newActor.needTransform = False
             newActor.rotation = rotation
             newActor.position = position
             newActor.scale = [2.700000047683716, 2.6999998092651367, 2.6999998092651367]
             newActor.wasPlacedInLevel = 1
-            actorAndComponentObjectHeaders.append(newActor)
+            level.actorAndComponentObjectHeaders.append(newActor)
 
             newObject = sav_parse.Object()
             newObject.instanceName = instanceName
@@ -342,7 +344,7 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
             newObject.properties    = []
             newObject.propertyTypes = []
             newObject.actorSpecificInfo = None
-            objects.append(newObject)
+            level.objects.append(newObject)
 
             print(f"Restored Mercer Sphere {instanceName} at {position}")
             return True
@@ -353,17 +355,25 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
    # For those items present in (both) collectables1 and collectables2, remove those,
    # and replace the original ActorHeader and Object.  Nothing unique is saved in the Object.
 
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      if collectables1 != None:
-         for collectable in collectables1:
+   for level in levels:
+      if level.collectables1 is not None:
+         for collectable in level.collectables1:
             if collectable.pathName == targetPathName:
-               collectables1.remove(collectable)
+               level.collectables1.remove(collectable)
                print(f"Clearing removal of shrine {collectable.pathName}")
                break
 
-      for collectable in collectables2:
+      for collectable in level.collectables2:
          if collectable.pathName == targetPathName:
-            collectables2.remove(collectable)
+            level.collectables2.remove(collectable)
+
+            # This loop is here because the same entry might be present multiple
+            #   times.  Is this an error?  It was observed when a save from
+            #   v1.0 without the duplication was opened/resaved in v1.1.1.6.
+            for duplicate in level.collectables2:
+               if duplicate.pathName == targetPathName:
+                  print(f"Removing duplicate removed entry for {targetPathName}")
+                  level.collectables2.remove(duplicate)
 
             instanceName = collectable.pathName
             (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[collectable.pathName]
@@ -372,12 +382,13 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
             newActor.typePath = sav_parse.MERCER_SHRINE
             newActor.rootObject = rootObject
             newActor.instanceName = instanceName
+            newActor.flags = 0
             newActor.needTransform = False
             newActor.rotation = rotation
             newActor.position = position
             newActor.scale = [scale, scale, scale]
             newActor.wasPlacedInLevel = 1
-            actorAndComponentObjectHeaders.append(newActor)
+            level.actorAndComponentObjectHeaders.append(newActor)
 
             newObject = sav_parse.Object()
             newObject.instanceName = instanceName
@@ -390,62 +401,68 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
             newObject.properties    = []
             newObject.propertyTypes = []
             newObject.actorSpecificInfo = None
-            objects.append(newObject)
+            level.objects.append(newObject)
 
             print(f"Restored Mercer Shrine {instanceName} at {position}")
             return True
 
    return False
 
-def removeInstance(levels, humanReadableName: str, rootObject, targetInstanceName: str, position = None) -> bool:
+def removeInstance(levels: list, humanReadableName: str, rootObject, targetInstanceName: str, position = None) -> bool:
 
    removedObjectCollectionReference = sav_parse.ObjectReference()
    removedObjectCollectionReference.levelName = rootObject
    removedObjectCollectionReference.pathName = targetInstanceName
 
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+   for level in levels:
+      for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
          if actorOrComponentObjectHeader.instanceName == targetInstanceName:
-            actorAndComponentObjectHeaders.remove(actorOrComponentObjectHeader)
-            for object in objects:
+            level.actorAndComponentObjectHeaders.remove(actorOrComponentObjectHeader)
+            for object in level.objects:
                if object.instanceName == targetInstanceName:
-                  objects.remove(object)
-                  collectables1.append(removedObjectCollectionReference)
-                  collectables2.append(removedObjectCollectionReference)
+                  level.objects.remove(object)
+                  if level.collectables1 is None:
+                     level.collectables1 = []
+                  level.collectables1.append(removedObjectCollectionReference)
+                  level.collectables2.append(removedObjectCollectionReference)
                   print(f"Removed {humanReadableName} {targetInstanceName} at {position}")
                   return True
 
    # If present, removed above.  If removed, return False.
-   for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-      for collectable in collectables2:
+   for level in levels:
+      for collectable in level.collectables2:
          if collectable.pathName == targetInstanceName:
             return False
-   # If got gets here, the object isn't present in the save, so add it.
+
+   # If execution gets here, the object isn't present in the save, so add it.
    # This has only been observed when collectables1 is missing, so can't just append.
-   for levelIdx in range(len(levels)):
-      (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[levelIdx]
-      if levelName == rootObject:
+   for level in levels:
+      if level.levelName == rootObject:
          print(f"Removed {humanReadableName} {targetInstanceName} at {position} (unvisited)")
-         if collectables1 != None:
-            collectables1.append(removedObjectCollectionReference)
-         collectables2.append(removedObjectCollectionReference)
+         if level.collectables1 is not None:
+            level.collectables1.append(removedObjectCollectionReference)
+         level.collectables2.append(removedObjectCollectionReference)
          return True
+
    print(f"CAUTION: Failed to remove {humanReadableName} {targetInstanceName} at {position}")
    return False
 
 def removeSomersloop(levels, targetInstanceName: str) -> bool:
    (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[targetInstanceName]
+   print(f"Removing Somersloop {targetInstanceName} at {position}")
    return removeInstance(levels, "Somersloops", rootObject, targetInstanceName, position)
 
 def removeMercerSphere(levels, targetInstanceName: str) -> bool:
    (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[targetInstanceName]
+   print(f"Removing Mercer Sphere {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Sphere", rootObject, targetInstanceName, position)
 
 def removeMercerShrine(levels, targetInstanceName: str) -> bool:
    (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[targetInstanceName]
+   print(f"Removing Mercer Shrine {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Shrine", rootObject, targetInstanceName, position)
 
-def printUsage():
+def printUsage() -> None:
    print()
    print("USAGE:")
    print("   py sav_cli.py --info <save-filename>")
@@ -515,7 +532,8 @@ if __name__ == '__main__':
       print(f"Save Header Type: {saveFileInfo.saveHeaderType}")
       print(f"Save Version: {saveFileInfo.saveVersion}")
       print(f"Build Version: {saveFileInfo.buildVersion}")
-      print(f"MapName: {saveFileInfo.mapName}")
+      print(f"Save Name: {saveFileInfo.saveName}")
+      print(f"Map Name: {saveFileInfo.mapName}")
       print(f"Map Options: {saveFileInfo.mapOptions}")
       print(f"Session Name: {saveFileInfo.sessionName}")
       print(f"Play Duration: {saveFileInfo.playDurationInSeconds} seconds")
@@ -534,20 +552,24 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
          jdata = {}
-         jdata["saveFileInfo"] = toJSON(saveFileInfo)
-         jdata["headhex"] = toJSON(headhex)
-         jdata["grids"] = toJSON(grids)
+         jdata["saveFileInfo"] = toJSON(parsedSave.saveFileInfo)
+         jdata["headhex"] = toJSON(parsedSave.headhex)
+         jdata["grids"] = toJSON(parsedSave.grids)
          ldata = jdata["levels"] = {}
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            ldata[levelName] = {
-               "objectHeaders": toJSON(actorAndComponentObjectHeaders),
-               "collectables1": toJSON(collectables1),
-               "objects": toJSON(objects),
-               "collectables2": toJSON(collectables2)}
-         jdata["extraObjectReferenceList"] = toJSON(extraObjectReferenceList)
+         for level in parsedSave.levels:
+            ldata[level.levelName] = {
+               "objectHeaders": toJSON(level.actorAndComponentObjectHeaders),
+               "levelPersistentFlag": toJSON(level.levelPersistentFlag),
+               "collectables1": toJSON(level.collectables1),
+               "objects": toJSON(level.objects),
+               "levelSaveVersion": toJSON(level.levelSaveVersion),
+               "collectables2": toJSON(level.collectables2)}
+         jdata["aLevelName"] = toJSON(parsedSave.aLevelName)
+         jdata["dropPodObjectReferenceList"] = toJSON(parsedSave.dropPodObjectReferenceList)
+         jdata["extraObjectReferenceList"] = toJSON(parsedSave.extraObjectReferenceList)
 
          print(f"Writing {outFilename}")
          with open(outFilename, "w") as fout:
@@ -569,6 +591,7 @@ if __name__ == '__main__':
       saveFileInfo.saveHeaderType = jdata["saveFileInfo"]["saveHeaderType"]
       saveFileInfo.saveVersion = jdata["saveFileInfo"]["saveVersion"]
       saveFileInfo.buildVersion = jdata["saveFileInfo"]["buildVersion"]
+      saveFileInfo.saveName = jdata["saveFileInfo"]["saveName"]
       saveFileInfo.mapName = jdata["saveFileInfo"]["mapName"]
       saveFileInfo.mapOptions = jdata["saveFileInfo"]["mapOptions"]
       saveFileInfo.sessionName = jdata["saveFileInfo"]["sessionName"]
@@ -584,6 +607,12 @@ if __name__ == '__main__':
       saveFileInfo.cheatFlag = jdata["saveFileInfo"]["cheatFlag"]
       headhex = jdata["headhex"]
       grids = jdata["grids"]
+      aLevelName = jdata["aLevelName"]
+
+      dropPodObjectReferenceList = []
+      for objectReference in jdata["dropPodObjectReferenceList"]:
+         dropPodObjectReferenceList.append(fromJSON(objectReference))
+
       extraObjectReferenceList = []
       for objectReference in jdata["extraObjectReferenceList"]:
          extraObjectReferenceList.append(fromJSON(objectReference))
@@ -597,11 +626,12 @@ if __name__ == '__main__':
 
          actorAndComponentObjectHeaders = []
          for objectHeaderJson in levelData["objectHeaders"]:
-            if len(objectHeaderJson) == 8:
+            if len(objectHeaderJson) == 9:
                objectHeaderCopy = sav_parse.ActorHeader()
                objectHeaderCopy.typePath = objectHeaderJson["typePath"]
                objectHeaderCopy.rootObject = objectHeaderJson["rootObject"]
                objectHeaderCopy.instanceName = objectHeaderJson["instanceName"]
+               objectHeaderCopy.flags = objectHeaderJson["flags"]
                objectHeaderCopy.needTransform = objectHeaderJson["needTransform"]
                objectHeaderCopy.rotation = objectHeaderJson["rotation"]
                objectHeaderCopy.position = objectHeaderJson["position"]
@@ -612,11 +642,14 @@ if __name__ == '__main__':
                objectHeaderCopy.className = objectHeaderJson["className"]
                objectHeaderCopy.rootObject = objectHeaderJson["rootObject"]
                objectHeaderCopy.instanceName = objectHeaderJson["instanceName"]
+               objectHeaderCopy.flags = objectHeaderJson["flags"]
                objectHeaderCopy.parentActorName = objectHeaderJson["parentActorName"]
             actorAndComponentObjectHeaders.append(objectHeaderCopy)
 
+         levelPersistentFlag = levelData["levelPersistentFlag"]
+
          collectables1 = None
-         if levelData["collectables1"] != None:
+         if levelData["collectables1"] is not None:
             collectables1 = []
             for objectReference in levelData["collectables1"]:
                collectables1.append(fromJSON(objectReference))
@@ -628,24 +661,28 @@ if __name__ == '__main__':
             objectCopy.objectGameVersion = objectJson["objectGameVersion"]
             objectCopy.shouldMigrateObjectRefsToPersistentFlag = objectJson["smortpFlag"]
             objectCopy.actorReferenceAssociations = None
-            if objectJson["actorReferenceAssociations"] != None:
-               objectCopy.actorReferenceAssociations = [fromJSON(objectJson["actorReferenceAssociations"]["parentObjectReference"]), fromJSON(objectJson["actorReferenceAssociations"]["actorComponentReferences"])]
+            if objectJson["actorReferenceAssociations"] is not None:
+               objectCopy.actorReferenceAssociations = [
+                  fromJSON(objectJson["actorReferenceAssociations"]["parentObjectReference"]),
+                  fromJSON(objectJson["actorReferenceAssociations"]["actorComponentReferences"])]
             objectCopy.properties = fromJSON(objectJson["properties"])
             objectCopy.propertyTypes = fromJSON(objectJson["propertyTypes"])
             objectCopy.actorSpecificInfo = fromJSON(objectJson["actorSpecificInfo"])
             objects.append(objectCopy)
 
+         levelSaveVersion = levelData["levelSaveVersion"]
+
          collectables2 = []
          for objectReference in levelData["collectables2"]:
             collectables2.append(fromJSON(objectReference))
 
-         levels.append([levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2])
+         levels.append(sav_parse.Level(levelName, actorAndComponentObjectHeaders, levelPersistentFlag, collectables1, objects, levelSaveVersion, collectables2))
 
       print("Writing Save")
       try:
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         sav_to_resave.saveFile(sav_parse.ParsedSave(saveFileInfo, headhex, grids, levels, aLevelName, dropPodObjectReferenceList, extraObjectReferenceList), outFilename)
          print("Validating Save")
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+         parsedSave = sav_parse.readFullSaveFile(outFilename)
          print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating save to '{outFilename}': {error}")
@@ -656,16 +693,16 @@ if __name__ == '__main__':
       outFilename = sys.argv[4]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
-      saveFileInfo.sessionName = newSessionName
+      parsedSave.saveFileInfo.sessionName = newSessionName
 
       try:
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -696,10 +733,10 @@ if __name__ == '__main__':
             if len(sys.argv) == 4:
                savFilename = sys.argv[3]
                try:
-                  (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-                  for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-                     if collectables1 != None:
-                        for collectable in collectables1:
+                  parsedSave = sav_parse.readFullSaveFile(savFilename)
+                  for level in parsedSave.levels:
+                     if level.collectables1 is not None:
+                        for collectable in level.collectables1:
                            if collectable.pathName in droppedInstances:
                               del droppedInstances[collectable.pathName]
                except Exception as error:
@@ -736,11 +773,11 @@ if __name__ == '__main__':
    elif len(sys.argv) == 3 and sys.argv[1] == "--list-players" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         playerPaths = getPlayerPaths(levels)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            playerName = getPlayerName(levels, characterPlayer)
-            if playerName == None:
+            playerName = getPlayerName(parsedSave.levels, characterPlayer)
+            if playerName is None:
                print(characterPlayer)
             else:
                print(f"{characterPlayer} ({playerName})")
@@ -751,20 +788,20 @@ if __name__ == '__main__':
       playerId = sys.argv[2]
       savFilename = sys.argv[3]
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         playerPaths = getPlayerPaths(levels)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
             if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
-         if playerInventory == None:
+         if playerInventory is None:
             print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == playerInventory:
                   inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
                   if inventoryStacks:
@@ -795,22 +832,22 @@ if __name__ == '__main__':
       outFilename = sys.argv[4]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         playerPaths = getPlayerPaths(levels)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
             if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
-         if playerInventory == None:
+         if playerInventory is None:
             print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
          inventoryContents = []
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == playerInventory:
                   inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
                   if inventoryStacks:
@@ -844,7 +881,7 @@ if __name__ == '__main__':
          inventoryContents = json.load(fin)
 
       for inventoryContent in inventoryContents:
-         if inventoryContent != None:
+         if inventoryContent is not None:
             itemPathName = inventoryContent[0]
             if itemPathName not in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
                print(f"ERROR: {itemPathName} not a valid item path name.")
@@ -852,27 +889,27 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         playerPaths = getPlayerPaths(levels)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
             if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
-         if playerInventory == None:
+         if playerInventory is None:
             print(f"Unable to match player '{playerId}'")
             exit(1)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == playerInventory:
                   inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
                   if inventoryStacks:
                      for idx in range(len(inventoryStacks)):
                         if idx < len(inventoryContents):
                            print(f"Replacing {sav_parse.toString(inventoryStacks[idx][0])}")
-                           if inventoryContents[idx] == None:
+                           if inventoryContents[idx] is None:
                               inventoryStacks[idx][0][0] = ["Item", ["", 1]]
                               inventoryStacks[idx][0][1] = ["NumItems", 0]
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to be Empty")
@@ -900,10 +937,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -936,20 +973,20 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         playerPaths = getPlayerPaths(levels)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
             if characterPlayerMatch(characterPlayer, playerId):
                playerInventory = inventoryPath
 
-         if playerInventory == None:
+         if playerInventory is None:
             print(f"Unable to match player '{playerId}'")
             exit(1)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == playerInventory:
                   inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
                   if inventoryStacks:
@@ -970,10 +1007,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -989,19 +1026,19 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName.startswith("Persistent_Level:PersistentLevel.BP_GameState_C_"):
                   playerGlobalColorPresets = sav_parse.getPropertyValue(object.properties, "mPlayerGlobalColorPresets")
-                  if playerGlobalColorPresets != None:
+                  if playerGlobalColorPresets is not None:
                      for color in playerGlobalColorPresets:
                         presetName = sav_parse.getPropertyValue(color[0], "PresetName")
-                        if presetName != None:
+                        if presetName is not None:
                            presetName = presetName[3]
                            colorValue = sav_parse.getPropertyValue(color[0], "Color")
-                           if colorValue != None:
+                           if colorValue is not None:
                               if colorPrimary == presetName:
                                  colorPrimary = lcTupleToSrgbHex(colorValue)
                                  print(f"Using primary color {colorPrimary}")
@@ -1012,24 +1049,26 @@ if __name__ == '__main__':
          colorPrimary = colorPrimary.lower()
          colorSecondary = colorSecondary.lower()
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.LightweightBuildableSubsystem":
-                  for (buildItemPathName, lightweightBuildableInstances) in object.actorSpecificInfo:
-                     for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath) in lightweightBuildableInstances:
-                        if lcTupleToSrgbHex(primaryColor) == colorPrimary and lcTupleToSrgbHex(secondaryColor) == colorSecondary:
-                           euler = quaternionToEuler(rotationQuaternion)
-                           oldYaw = euler[2]
-                           euler[2] += math.pi/180
-                           if euler[2] > math.pi:
-                              math.pi -= 2 * math.pi
-                           elif euler[2] < -math.pi:
-                              math.pi += 2 * math.pi
-                           print(f"Rotated foundation {buildItemPathName} from {radiansToDegrees(oldYaw)} to {radiansToDegrees(euler[2])}.")
-                           newRotationQuaternion = eulerToQuaternion(euler)
-                           for idx in range(4):
-                              rotationQuaternion[idx] = newRotationQuaternion[idx]
-                           modifiedFlag = True
+                  for lightweightBuildable in object.actorSpecificInfo:
+                     if isinstance(lightweightBuildable, list):
+                        (buildItemPathName, lightweightBuildableInstances) = lightweightBuildable
+                        for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath, beamLength) in lightweightBuildableInstances:
+                           if lcTupleToSrgbHex(primaryColor) == colorPrimary and lcTupleToSrgbHex(secondaryColor) == colorSecondary:
+                              euler = quaternionToEuler(rotationQuaternion)
+                              oldYaw = euler[2]
+                              euler[2] += math.pi/180
+                              if euler[2] > math.pi:
+                                 math.pi -= 2 * math.pi
+                              elif euler[2] < -math.pi:
+                                 math.pi += 2 * math.pi
+                              print(f"Rotated foundation {buildItemPathName} from {radiansToDegrees(oldYaw)} to {radiansToDegrees(euler[2])}.")
+                              newRotationQuaternion = eulerToQuaternion(euler)
+                              for idx in range(4):
+                                 rotationQuaternion[idx] = newRotationQuaternion[idx]
+                              modifiedFlag = True
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -1040,10 +1079,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1057,13 +1096,13 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.MapManager":
                   fogOfWarRawData = sav_parse.getPropertyValue(object.properties, "mFogOfWarRawData")
-                  if fogOfWarRawData != None and len(fogOfWarRawData) == 1048576:
+                  if fogOfWarRawData is not None and len(fogOfWarRawData) == 1048576:
                      for idx in range(262144):
                         fogOfWarRawData[idx*4+0] = 0
                         fogOfWarRawData[idx*4+1] = 0
@@ -1080,10 +1119,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1093,8 +1132,8 @@ if __name__ == '__main__':
       savFilename = sys.argv[3]
       outFilename = sys.argv[4]
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         playerPaths = getPlayerPaths(levels)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
 
          playerState = None
          playerCharacter = None
@@ -1103,34 +1142,34 @@ if __name__ == '__main__':
                playerState = playerStateInstanceName
                playerCharacter = characterPlayer
 
-         if playerState == None:
+         if playerState is None:
             print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
-         playerName = getPlayerName(levels, playerCharacter)
+         playerName = getPlayerName(parsedSave.levels, playerCharacter)
 
          print()
-         if playerName == None:
+         if playerName is None:
             print(f"===== {playerId} =====")
          else:
             print(f"===== {playerName} ({playerId}) =====")
          print()
 
          playersHotbars = {}
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == playerState:
                   playerHotbars = sav_parse.getPropertyValue(object.properties, "mPlayerHotbars")
-                  if playerHotbars != None:
+                  if playerHotbars is not None:
                      for hotbarIdx in range(len(playerHotbars)):
                         playersHotbars[playerHotbars[hotbarIdx].pathName] = hotbarIdx
 
          playersHotbarItems = {}
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName in playersHotbars:
                   shortcuts = sav_parse.getPropertyValue(object.properties, "mShortcuts")
-                  if shortcuts != None:
+                  if shortcuts is not None:
                      for hotbarItemIdx in range(len(shortcuts)):
                         hotbarIdx = playersHotbars[object.instanceName]
                         item = shortcuts[hotbarItemIdx].pathName
@@ -1139,23 +1178,23 @@ if __name__ == '__main__':
                            playersHotbarItems[item] = (hotbarIdx, hotbarItemIdx)
 
          hotbarContents = {}
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName in playersHotbarItems:
                   (hotbarIdx, hotbarItemIdx) = playersHotbarItems[object.instanceName]
                   hotbarItem = None
                   recipeToActivate = sav_parse.getPropertyValue(object.properties, "mRecipeToActivate")
-                  if recipeToActivate != None:
+                  if recipeToActivate is not None:
                      hotbarItem = recipeToActivate.pathName
                      print(f"[{hotbarIdx}][{hotbarItemIdx}] Recipe: {hotbarItem}")
                   else:
                      emoteToActivate = sav_parse.getPropertyValue(object.properties, "mEmoteToActivate")
-                     if emoteToActivate != None:
+                     if emoteToActivate is not None:
                         hotbarItem = emoteToActivate.pathName
                         print(f"[{hotbarIdx}][{hotbarItemIdx}] Emote: {hotbarItem}")
                      else:
                         blueprintName = sav_parse.getPropertyValue(object.properties, "mBlueprintName")
-                        if blueprintName != None:
+                        if blueprintName is not None:
                            hotbarItem = blueprintName
                            print(f"[{hotbarIdx}][{hotbarItemIdx}] Blueprint: {hotbarItem}")
                         else:
@@ -1185,8 +1224,8 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         playerPaths = getPlayerPaths(levels)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
 
          playerState = None
          playerCharacter = None
@@ -1195,35 +1234,35 @@ if __name__ == '__main__':
                playerState = playerStateInstanceName
                playerCharacter = characterPlayer
 
-         if playerState == None:
+         if playerState is None:
             print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
-         playerName = getPlayerName(levels, playerCharacter)
+         playerName = getPlayerName(parsedSave.levels, playerCharacter)
 
          print()
-         if playerName == None:
+         if playerName is None:
             print(f"===== {playerId} =====")
          else:
             print(f"===== {playerName} ({playerId}) =====")
          print()
 
          playersHotbars = {}
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == playerState:
                   playerHotbars = sav_parse.getPropertyValue(object.properties, "mPlayerHotbars")
-                  if playerHotbars != None:
+                  if playerHotbars is not None:
                      for hotbarIdx in range(len(playerHotbars)):
                         playersHotbars[playerHotbars[hotbarIdx].pathName] = hotbarIdx
 
          objectsToRemove = []
          objectsToAdd = []
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName in playersHotbars:
                   shortcuts = sav_parse.getPropertyValue(object.properties, "mShortcuts")
-                  if shortcuts != None:
+                  if shortcuts is not None:
                      for hotbarItemIdx in range(len(shortcuts)):
                         hotbarIdx = playersHotbars[object.instanceName]
 
@@ -1249,7 +1288,7 @@ if __name__ == '__main__':
 
                         item = shortcuts[hotbarItemIdx].pathName
                         if len(item) == 0:
-                           if replacementHotbarItem == None:
+                           if replacementHotbarItem is None:
                               print(f"[{hotbarIdx}][{hotbarItemIdx}] is currently empty and should remain empty") # No change
                            else:
                               print(f"[{hotbarIdx}][{hotbarItemIdx}] is currently empty and should be replaced with {replacementHotbarItem}") # Need to add an Object
@@ -1258,7 +1297,7 @@ if __name__ == '__main__':
                               shortcuts[hotbarItemIdx].pathName = replacementHotbarItemNewInstanceName
                               modifiedFlag = True
                         else:
-                           if replacementHotbarItem == None:
+                           if replacementHotbarItem is None:
                               print(f"[{hotbarIdx}][{hotbarItemIdx}] currently contains {item} and should be removed.") # Set this reference to empty, and remove the Object
                               objectsToRemove.append(item)
                               shortcuts[hotbarItemIdx].levelName = ""
@@ -1266,19 +1305,19 @@ if __name__ == '__main__':
                               modifiedFlag = True
                            else:
                               hotbarItem = None
-                              (levelNameXX, actorAndComponentObjectHeadersXX, collectables1XX, objectsXX, collectables2XX) = levels[-1]
-                              for objectXX in objectsXX:
-                                 if objectXX.instanceName == item:
-                                    recipeToActivate = sav_parse.getPropertyValue(objectXX.properties, "mRecipeToActivate")
-                                    if recipeToActivate != None:
+                              persistentLevel = parsedSave.levels[-1]
+                              for persistentLevelObject in persistentLevel.objects:
+                                 if persistentLevelObject.instanceName == item:
+                                    recipeToActivate = sav_parse.getPropertyValue(persistentLevelObject.properties, "mRecipeToActivate")
+                                    if recipeToActivate is not None:
                                        hotbarItem = recipeToActivate.pathName
                                     else:
-                                       emoteToActivate = sav_parse.getPropertyValue(objectXX.properties, "mEmoteToActivate")
-                                       if emoteToActivate != None:
+                                       emoteToActivate = sav_parse.getPropertyValue(persistentLevelObject.properties, "mEmoteToActivate")
+                                       if emoteToActivate is not None:
                                           hotbarItem = emoteToActivate.pathName
                                        else:
-                                          blueprintName = sav_parse.getPropertyValue(objectXX.properties, "mBlueprintName")
-                                          if blueprintName != None:
+                                          blueprintName = sav_parse.getPropertyValue(persistentLevelObject.properties, "mBlueprintName")
+                                          if blueprintName is not None:
                                              hotbarItem = blueprintName
 
                               if hotbarItem == replacementHotbarItem:
@@ -1290,14 +1329,14 @@ if __name__ == '__main__':
                                  shortcuts[hotbarItemIdx].pathName = replacementHotbarItemNewInstanceName
                                  modifiedFlag = True
 
-         (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[-1]
-         for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+         level = parsedSave.levels[-1]
+         for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
             if isinstance(actorOrComponentObjectHeader, sav_parse.ComponentHeader) and actorOrComponentObjectHeader.instanceName in objectsToRemove:
-               actorAndComponentObjectHeaders.remove(actorOrComponentObjectHeader)
+               level.actorAndComponentObjectHeaders.remove(actorOrComponentObjectHeader)
                print(f"Removed object {actorOrComponentObjectHeader.instanceName}")
-         for object in objects:
+         for object in level.objects:
             if object.instanceName in objectsToRemove:
-               objects.remove(object)
+               level.objects.remove(object)
                print(f"Removed {object.instanceName}")
 
          for (hotbarItemIdx, replacementHotbarItemNewInstanceName, replacementHotbarItemNewClassName, replacementHotbarItemNewParentName, replacementHotbarItem) in objectsToAdd:
@@ -1310,8 +1349,9 @@ if __name__ == '__main__':
             newComponentHeader.className = f"/Script/FactoryGame.{replacementHotbarItemNewClassName}"
             newComponentHeader.rootObject = "Persistent_Level"
             newComponentHeader.instanceName = replacementHotbarItemNewInstanceName
+            newComponentHeader.flags = 0
             newComponentHeader.parentActorName = replacementHotbarItemNewParentName
-            actorAndComponentObjectHeaders.append(newComponentHeader)
+            level.actorAndComponentObjectHeaders.append(newComponentHeader)
             #print(f"Created new component header {newComponentHeader.instanceName}")
 
             #<Object: instanceName=Persistent_Level:PersistentLevel.BP_PlayerState_C_2147448362.FGPlayerHotbar_2147448361.FGRecipeShortcut_2147448341, objectGameVersion=46, flag=0, actorReferenceAssociations=n/a, properties=[[('mRecipeToActivate', <ObjectReference: levelName=, pathName=/Game/FactoryGame/Recipes/Buildings/Recipe_Workshop.Recipe_Workshop_C>), ('mShortcutIndex', 5)]], actorSpecificInfo=[None]>
@@ -1340,7 +1380,7 @@ if __name__ == '__main__':
                newObject.propertyTypes = [("mBlueprintName", "StrProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
 
             newObject.actorSpecificInfo = None
-            objects.append(newObject)
+            level.objects.append(newObject)
             print(f"Created new object {newObject.instanceName} containing {replacementHotbarItem}")
 
       except Exception as error:
@@ -1352,10 +1392,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1370,10 +1410,10 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.unlockSubsystem":
                   for idx in range(len(object.properties)):
                      (haystackPropertyName, propertyValue) = object.properties[idx]
@@ -1393,10 +1433,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1410,9 +1450,9 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
          for targetPathName in sav_data_somersloop.SOMERSLOOPS:
-            if addSomersloop(levels, targetPathName):
+            if addSomersloop(parsedSave.levels, targetPathName):
                modifiedFlag = True
 
       except Exception as error:
@@ -1424,10 +1464,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1441,12 +1481,12 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
          for targetPathName in sav_data_mercerSphere.MERCER_SPHERES:
-            if addMercerSphere(levels, targetPathName):
+            if addMercerSphere(parsedSave.levels, targetPathName):
                modifiedFlag = True
          for targetPathName in sav_data_mercerSphere.MERCER_SHRINES:
-            if addMercerShrine(levels, targetPathName):
+            if addMercerShrine(parsedSave.levels, targetPathName):
                modifiedFlag = True
 
       except Exception as error:
@@ -1458,10 +1498,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1471,16 +1511,16 @@ if __name__ == '__main__':
       outFilename = sys.argv[3]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
          # Assume True because that's accurate if the Object exists or the it's not in the save at all.
          jdata = {"Somersloops": {}}
          for pathName in sav_data_somersloop.SOMERSLOOPS:
             jdata["Somersloops"][pathName] = True
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+         for level in parsedSave.levels:
             # Checking collectables2 because the object can be in collectables2 when collectables1 is None
-            for collectable in collectables2:
+            for collectable in level.collectables2:
                if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
                   jdata["Somersloops"][collectable.pathName] = False
 
@@ -1496,7 +1536,7 @@ if __name__ == '__main__':
       outFilename = sys.argv[3]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
          # Assume True because that's accurate if the Object exists or the it's not in the save at all.
          jdata = {"MercerSpheres": {}, "MercerShrines": {}}
@@ -1505,9 +1545,9 @@ if __name__ == '__main__':
          for pathName in sav_data_mercerSphere.MERCER_SHRINES:
             jdata["MercerShrines"][pathName] = True
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
+         for level in parsedSave.levels:
             # Checking collectables2 because the object can be in collectables2 when collectables1 is None
-            for collectable in collectables2:
+            for collectable in level.collectables2:
                if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
                   jdata["MercerSpheres"][collectable.pathName] = False
                elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
@@ -1533,15 +1573,15 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
          if "Somersloops" in jdata:
             for pathName in jdata["Somersloops"]:
                if jdata["Somersloops"][pathName]:
-                  if addSomersloop(levels, pathName):
+                  if addSomersloop(parsedSave.levels, pathName):
                      modifiedFlag = True
                else:
-                  if removeSomersloop(levels, pathName):
+                  if removeSomersloop(parsedSave.levels, pathName):
                      modifiedFlag = True
 
       except Exception as error:
@@ -1553,10 +1593,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1574,24 +1614,24 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
          if "MercerSpheres" in jdata:
             for pathName in jdata["MercerSpheres"]:
                if jdata["MercerSpheres"][pathName]:
-                  if addMercerSphere(levels, pathName):
+                  if addMercerSphere(parsedSave.levels, pathName):
                      modifiedFlag = True
                else:
-                  if removeMercerSphere(levels, pathName):
+                  if removeMercerSphere(parsedSave.levels, pathName):
                      modifiedFlag = True
 
          if "MercerShrines" in jdata:
             for pathName in jdata["MercerShrines"]:
                if jdata["MercerShrines"][pathName]:
-                  if addMercerShrine(levels, pathName):
+                  if addMercerShrine(parsedSave.levels, pathName):
                      modifiedFlag = True
                else:
-                  if removeMercerShrine(levels, pathName):
+                  if removeMercerShrine(parsedSave.levels, pathName):
                      modifiedFlag = True
 
       except Exception as error:
@@ -1603,10 +1643,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1633,58 +1673,58 @@ if __name__ == '__main__':
       savFilename = sys.argv[2]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[-1]
+         level = parsedSave.levels[-1]
 
-         for object1 in objects:
+         for object1 in level.objects:
             if object1.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
                savedPaths = sav_parse.getPropertyValue(object1.properties, "mSavedPaths")
-               if savedPaths != None:
+               if savedPaths is not None:
                   for savedPath in savedPaths:
 
                      foundPathNameFlag = False
-                     for object2 in objects:
+                     for object2 in level.objects:
                         if object2.instanceName == savedPath.pathName:
                            foundPathNameFlag = True
                            pathName = sav_parse.getPropertyValue(object2.properties, "mPathName")
-                           if pathName == None:
+                           if pathName is None:
                               print("CAUTION: Missing mPathName property for save path {savedPath.pathName}")
                            else:
                               targetList = sav_parse.getPropertyValue(object2.properties, "mTargetList")
-                              if targetList == None:
+                              if targetList is None:
                                  print(f"CAUTION: Missing mTargetList property for save path '{pathName}' ({savedPath.pathName})")
                               else:
 
                                  foundTargetListFlag = False
-                                 for object3 in objects:
+                                 for object3 in level.objects:
                                     if object3.instanceName == targetList.pathName:
                                        foundTargetListFlag = True
                                        first = sav_parse.getPropertyValue(object3.properties, "mFirst")
-                                       if first == None:
+                                       if first is None:
                                           print(f"CAUTION: Missing mFirst property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
                                        else:
                                           last = sav_parse.getPropertyValue(object3.properties, "mLast")
-                                          if last == None:
+                                          if last is None:
                                              print(f"CAUTION: Missing mLast property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
                                           else:
                                              vehicleType = sav_parse.getPropertyValue(object3.properties, "mVehicleType")
-                                             if vehicleType == None:
+                                             if vehicleType is None:
                                                 print(f"CAUTION: Missing mVehicleType property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
                                              else:
                                                 pathFuelConsumption = sav_parse.getPropertyValue(object3.properties, "mPathFuelConsumption")
-                                                if pathFuelConsumption == None:
+                                                if pathFuelConsumption is None:
                                                    print(f"CAUTION: Missing mPathFuelConsumption property for target list {targetList.pathName} for save path '{pathName}' ({savedPath.pathName})")
                                                 else:
                                                    targetListNextWaypoint = first.pathName
                                                    targetListLastWaypoint = last.pathName
 
                                                    waypointCount = 0
-                                                   for object4 in objects:
-                                                      if targetListNextWaypoint != None and object4.instanceName == targetListNextWaypoint:
+                                                   for object4 in level.objects:
+                                                      if targetListNextWaypoint is not None and object4.instanceName == targetListNextWaypoint:
                                                          waypointCount += 1
                                                          next = sav_parse.getPropertyValue(object4.properties, "mNext")
-                                                         if next != None:
+                                                         if next is not None:
                                                             targetListNextWaypoint = next.pathName
                                                          elif object4.instanceName != targetListLastWaypoint:
                                                             print("ERROR: Failed to follow the full vehicle path '{pathName}'.", file=sys.stderr)
@@ -1704,51 +1744,51 @@ if __name__ == '__main__':
       outFilename = sys.argv[4]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[-1]
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         level = parsedSave.levels[-1]
 
          savedPathList = []
-         for object in objects:
+         for object in level.objects:
             if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
                savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
-               if savedPaths != None:
+               if savedPaths is not None:
                   for savedPath in savedPaths:
                      savedPathList.append(savedPath.pathName)
 
          jdata = {}
          targetListPathName = None
-         for object in objects:
+         for object in level.objects:
             if object.instanceName in savedPathList:
                pathName = sav_parse.getPropertyValue(object.properties, "mPathName")
-               if pathName != None and pathName == savedPathName:
+               if pathName is not None and pathName == savedPathName:
                   jdata["mPathName"] = pathName
                   targetList = sav_parse.getPropertyValue(object.properties, "mTargetList")
-                  if targetList == None:
+                  if targetList is None:
                      print(f"ERROR: Saved path {object.instanceName} is missing a mTargetList property")
                      exit(1)
                   targetListPathName = targetList.pathName
-         if targetListPathName == None:
+         if targetListPathName is None:
             print(f"ERROR: Failed to find a saved path with name '{savedPathName}'.")
             exit(1)
 
          targetListNextWaypoint = None
          targetListLastWaypoint = None
-         for object in objects:
+         for object in level.objects:
             if object.instanceName == targetListPathName:
                first = sav_parse.getPropertyValue(object.properties, "mFirst")
-               if first == None:
+               if first is None:
                   print(f"ERROR: Target list {object.instanceName} is missing a mFirst property.")
                   exit(1)
                last = sav_parse.getPropertyValue(object.properties, "mLast")
-               if last == None:
+               if last is None:
                   print(f"ERROR: Target list {object.instanceName} is missing a mLast property.")
                   exit(1)
                vehicleType = sav_parse.getPropertyValue(object.properties, "mVehicleType")
-               if vehicleType == None:
+               if vehicleType is None:
                   print(f"ERROR: Target list {object.instanceName} is missing a mVehicleType property.")
                   exit(1)
                pathFuelConsumption = sav_parse.getPropertyValue(object.properties, "mPathFuelConsumption")
-               if pathFuelConsumption == None:
+               if pathFuelConsumption is None:
                   print(f"ERROR: Target list {object.instanceName} is missing a mPathFuelConsumption property.")
                   exit(1)
                targetListNextWaypoint = first.pathName
@@ -1756,20 +1796,20 @@ if __name__ == '__main__':
                jdata["mVehicleType"] = vehicleType.pathName
                jdata["mPathFuelConsumption"] = pathFuelConsumption
 
-         if targetListNextWaypoint == None:
+         if targetListNextWaypoint is None:
             print(f"ERROR: Failed to find target list {targetListPathName}")
             exit(1)
 
          targetListWaypoints = []
-         for object in objects:
-            if targetListNextWaypoint != None and object.instanceName == targetListNextWaypoint:
+         for object in level.objects:
+            if targetListNextWaypoint is not None and object.instanceName == targetListNextWaypoint:
                # The final element has no mNext or mWaitTime, just mTargetSpeed=0.
                # So no details are being preserved for the final waypoint.
                next = sav_parse.getPropertyValue(object.properties, "mNext")
                targetSpeed = sav_parse.getPropertyValue(object.properties, "mTargetSpeed")
                waitTime = sav_parse.getPropertyValue(object.properties, "mWaitTime") # Only the first element seems to have mWaitTime
                targetListWaypoints.append((object.instanceName, targetSpeed, waitTime))
-               if next != None:
+               if next is not None:
                   targetListNextWaypoint = next.pathName
                elif object.instanceName != targetListLastWaypoint:
                   print("ERROR: Failed to follow the full vehicle path.", file=sys.stderr)
@@ -1777,7 +1817,7 @@ if __name__ == '__main__':
 
          targetList = jdata["mTargetList"] = []
          for (waypointPathName, targetSpeed, waitTime) in targetListWaypoints:
-            for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                if actorOrComponentObjectHeader.instanceName == waypointPathName:
                   targetList.append((actorOrComponentObjectHeader.position, actorOrComponentObjectHeader.rotation, targetSpeed, waitTime))
 
@@ -1805,8 +1845,8 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
-         (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) = levels[-1]
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         level = parsedSave.levels[-1]
 
          newDrivingTargetList = f"Persistent_Level:PersistentLevel.FGDrivingTargetList_{uuid.uuid4().hex}"
          newSavedWheeledVehiclePath = f"Persistent_Level:PersistentLevel.FGSavedWheeledVehiclePath_{uuid.uuid4().hex}"
@@ -1814,10 +1854,10 @@ if __name__ == '__main__':
          for _ in range(len(jdata["mTargetList"])):
             newVehicleTargetPoints.append(f"Persistent_Level:PersistentLevel.BP_VehicleTargetPoint_C_{uuid.uuid4().hex}")
 
-         for object in objects:
+         for object in level.objects:
             if object.instanceName == "Persistent_Level:PersistentLevel.VehicleSubsystem":
                savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
-               if savedPaths != None:
+               if savedPaths is not None:
                   print(f"Adding {len(newVehicleTargetPoints)} points as {newSavedWheeledVehiclePath} to VehicleSubsystem")
                   objectReference = sav_parse.ObjectReference()
                   objectReference.levelName = "Persistent_Level"
@@ -1829,12 +1869,13 @@ if __name__ == '__main__':
          actorHeader.typePath = "/Script/FactoryGame.FGDrivingTargetList"
          actorHeader.rootObject = "Persistent_Level"
          actorHeader.instanceName = newDrivingTargetList
+         actorHeader.flags = 0
          actorHeader.needTransform = False
          actorHeader.rotation = [0.0, 0.0, 0.0, 1.0]
          actorHeader.position = [0.0, 0.0, 0.0]
          actorHeader.scale = [1.0, 1.0, 1.0]
          actorHeader.wasPlacedInLevel = False
-         actorAndComponentObjectHeaders.append(actorHeader)
+         level.actorAndComponentObjectHeaders.append(actorHeader)
 
          object = sav_parse.Object()
          object.instanceName = newDrivingTargetList
@@ -1864,19 +1905,20 @@ if __name__ == '__main__':
             ["mVehicleType", "ObjectProperty", 0],
             ["mPathFuelConsumption", "FloatProperty", 0]]
          object.actorSpecificInfo = None
-         objects.append(object)
+         level.objects.append(object)
 
          for idx in range(len(newVehicleTargetPoints)):
             actorHeader = sav_parse.ActorHeader()
             actorHeader.typePath = "/Game/FactoryGame/Buildable/Vehicle/BP_VehicleTargetPoint.BP_VehicleTargetPoint_C"
             actorHeader.rootObject = "Persistent_Level"
             actorHeader.instanceName = newVehicleTargetPoints[idx]
+            actorHeader.flags = 0
             actorHeader.needTransform = False
             actorHeader.rotation = jdata["mTargetList"][idx][1]
             actorHeader.position = jdata["mTargetList"][idx][0]
             actorHeader.scale = [1.0, 1.0, 1.0]
             actorHeader.wasPlacedInLevel = False
-            actorAndComponentObjectHeaders.append(actorHeader)
+            level.actorAndComponentObjectHeaders.append(actorHeader)
 
             object = sav_parse.Object()
             object.instanceName = newVehicleTargetPoints[idx]
@@ -1894,24 +1936,25 @@ if __name__ == '__main__':
                nextObjectReference.pathName = newVehicleTargetPoints[idx+1]
                object.properties.append(["mNext", nextObjectReference])
                object.propertyTypes.append(["mNext", "ObjectProperty", 0])
-            if jdata["mTargetList"][idx][3] != None:
+            if jdata["mTargetList"][idx][3] is not None:
                object.properties.append(["mWaitTime", jdata["mTargetList"][idx][3]])
                object.propertyTypes.append(["mWaitTime", "FloatProperty", 0])
             object.properties.append(["mTargetSpeed", jdata["mTargetList"][idx][2]])
             object.propertyTypes.append(["mTargetSpeed", "IntProperty", 0])
             object.actorSpecificInfo = None
-            objects.append(object)
+            level.objects.append(object)
 
          actorHeader = sav_parse.ActorHeader()
          actorHeader.typePath = "/Script/FactoryGame.FGSavedWheeledVehiclePath"
          actorHeader.rootObject = "Persistent_Level"
          actorHeader.instanceName = newSavedWheeledVehiclePath
+         actorHeader.flags = 0
          actorHeader.needTransform = False
          actorHeader.rotation = [0.0, 0.0, 0.0, 1.0]
          actorHeader.position = [0.0, 0.0, 0.0]
          actorHeader.scale = [1.0, 1.0, 1.0]
          actorHeader.wasPlacedInLevel = False
-         actorAndComponentObjectHeaders.append(actorHeader)
+         level.actorAndComponentObjectHeaders.append(actorHeader)
 
          object = sav_parse.Object()
          object.instanceName = newSavedWheeledVehiclePath
@@ -1937,7 +1980,7 @@ if __name__ == '__main__':
             ["mPathName", "StrProperty", 0],
             ["mTargetList", "ObjectProperty", 0]]
          object.actorSpecificInfo = None
-         objects.append(object)
+         level.objects.append(object)
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -1948,10 +1991,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -1960,46 +2003,46 @@ if __name__ == '__main__':
       savFilename = sys.argv[3]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None:
+                        if categoryName is not None:
 
                            iconID = sav_parse.getPropertyValue(category[0], "IconID")
-                           if iconID == None:
+                           if iconID is None:
                               iconID = -1
 
                            menuPriority = sav_parse.getPropertyValue(category[0], "MenuPriority")
-                           if menuPriority == None:
+                           if menuPriority is None:
                               menuPriority = 0.0
 
                            isUndefined = sav_parse.getPropertyValue(category[0], "IsUndefined")
-                           if isUndefined == None:
+                           if isUndefined is None:
                               isUndefined = False
 
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               print(f"=== Category: {categoryName} === idx={menuPriority}, icon={iconID}, undefined={isUndefined}")
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None:
+                                 if subCategoryName is not None:
 
                                     subMenuPriority = sav_parse.getPropertyValue(subcategory[0], "MenuPriority")
-                                    if subMenuPriority == None:
+                                    if subMenuPriority is None:
                                        subMenuPriority = 0.0
 
                                     subIsUndefined = sav_parse.getPropertyValue(subcategory[0], "IsUndefined")
-                                    if subIsUndefined == None:
+                                    if subIsUndefined is None:
                                        subIsUndefined = False
 
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        print(f"   --- Subcategory: {subCategoryName} --- idx={subMenuPriority}, undefined={subIsUndefined}")
                                        for blueprintName in blueprintNames:
                                           print(f"      {blueprintName}")
@@ -2016,23 +2059,23 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None:
+                        if categoryName is not None:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None:
+                                 if subCategoryName is not None:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        blueprintNames.sort(reverse=False)
                                        modifiedFlag = True
 
@@ -2048,10 +2091,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2061,29 +2104,29 @@ if __name__ == '__main__':
       outFilename = sys.argv[4]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
          categoryStructure = {}
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None:
+                        if categoryName is not None:
                            iconID = sav_parse.getPropertyValue(category[0], "IconID")
-                           if iconID == None:
+                           if iconID is None:
                               iconID = -1
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
                            subcategoryStructure = {}
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None:
+                                 if subCategoryName is not None:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        subcategoryStructure[subCategoryName] = blueprintNames
                            categoryStructure[categoryName] = {"Icon": iconID, "Subcategories": subcategoryStructure}
 
@@ -2106,18 +2149,18 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
 
                      existingCategories = []
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None:
+                        if categoryName is not None:
                            existingCategories.append(categoryName)
                      for categoryName in categoryStructure:
                         if categoryName not in existingCategories:
@@ -2129,15 +2172,15 @@ if __name__ == '__main__':
 
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None and categoryName in categoryStructure:
+                        if categoryName is not None and categoryName in categoryStructure:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               subcategoryStructure = categoryStructure[categoryName]["Subcategories"]
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None and subCategoryName in subcategoryStructure:
+                                 if subCategoryName is not None and subCategoryName in subcategoryStructure:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        for blueprintName in blueprintNames:
                                           if blueprintName in subcategoryStructure[subCategoryName]:
                                              subcategoryStructure[subCategoryName].remove(blueprintName)
@@ -2166,10 +2209,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2184,13 +2227,13 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      blueprintCategoryRecords.append(getBlankCategory(categoryToAdd))
                      modifiedFlag = True
                      orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
@@ -2205,10 +2248,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2224,18 +2267,18 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None and categoryName == categoryToAddIn:
+                        if categoryName is not None and categoryName == categoryToAddIn:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               subCategoryRecords.append(getBlankSubcategory(subcategoryToAdd))
                               modifiedFlag = True
                            break
@@ -2252,10 +2295,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2272,24 +2315,24 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None and categoryName == categoryToAddIn:
+                        if categoryName is not None and categoryName == categoryToAddIn:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               print(f"=== Category: {categoryName} ===")
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None and subCategoryName == subcategoryToAddIn:
+                                 if subCategoryName is not None and subCategoryName == subcategoryToAddIn:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        blueprintNames.append(blueprint)
                                        modifiedFlag = True
                                     break
@@ -2303,10 +2346,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2322,21 +2365,21 @@ if __name__ == '__main__':
       modifiedFlag = False
       numberOfBlueprints = 0
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None and categoryName == categoryToRemove:
+                        if categoryName is not None and categoryName == categoryToRemove:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None:
+                                 if subCategoryName is not None:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
                                     numberOfBlueprints += len(blueprintNames)
                            if numberOfBlueprints == 0:
@@ -2359,10 +2402,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2379,23 +2422,23 @@ if __name__ == '__main__':
       modifiedFlag = False
       numberOfBlueprints = 0
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None and categoryName == categoryToRemoveIn:
+                        if categoryName is not None and categoryName == categoryToRemoveIn:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None and subCategoryName == subcategoryToRemove:
+                                 if subCategoryName is not None and subCategoryName == subcategoryToRemove:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        numberOfBlueprints = len(blueprintNames)
                                        if numberOfBlueprints == 0:
                                           subCategoryRecords.remove(subcategory)
@@ -2417,10 +2460,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2437,23 +2480,23 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None and categoryName == categoryToRemoveIn:
+                        if categoryName is not None and categoryName == categoryToRemoveIn:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None and subCategoryName == subcategoryToRemoveIn:
+                                 if subCategoryName is not None and subCategoryName == subcategoryToRemoveIn:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        if blueprintToRemove in blueprintNames:
                                           blueprintNames.remove(blueprintToRemove)
                                           modifiedFlag = True
@@ -2468,10 +2511,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2490,34 +2533,34 @@ if __name__ == '__main__':
 
       modifiedCount = 0
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      for category in blueprintCategoryRecords:
                         categoryName = sav_parse.getPropertyValue(category[0], "CategoryName")
-                        if categoryName != None and categoryName == oldCategory:
+                        if categoryName is not None and categoryName == oldCategory:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None and subCategoryName == oldSubcategory:
+                                 if subCategoryName is not None and subCategoryName == oldSubcategory:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        if blueprintToMove in blueprintNames:
                                           blueprintNames.remove(blueprintToMove)
                                           modifiedCount += 1
-                        if categoryName != None and categoryName == newCategory:
+                        if categoryName is not None and categoryName == newCategory:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
-                           if subCategoryRecords != None:
+                           if subCategoryRecords is not None:
                               for subcategory in subCategoryRecords:
                                  subCategoryName = sav_parse.getPropertyValue(subcategory[0], "SubCategoryName")
-                                 if subCategoryName != None and subCategoryName == newSubcategory:
+                                 if subCategoryName is not None and subCategoryName == newSubcategory:
                                     blueprintNames = sav_parse.getPropertyValue(subcategory[0], "BlueprintNames")
-                                    if blueprintNames != None:
+                                    if blueprintNames is not None:
                                        blueprintNames.append(blueprintToMove)
                                        modifiedCount += 1
 
@@ -2530,10 +2573,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2547,13 +2590,13 @@ if __name__ == '__main__':
 
       modifiedFlag = False
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         for (levelName, actorAndComponentObjectHeaders, collectables1, objects, collectables2) in levels:
-            for object in objects:
+         for level in parsedSave.levels:
+            for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
-                  if blueprintCategoryRecords != None:
+                  if blueprintCategoryRecords is not None:
                      blueprintCategoryRecords[:] = []
                      modifiedFlag = True
 
@@ -2566,10 +2609,10 @@ if __name__ == '__main__':
 
       try:
          if changeTimeFlag:
-            saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
@@ -2579,14 +2622,14 @@ if __name__ == '__main__':
       outFilename = sys.argv[3]
 
       try:
-         (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(savFilename)
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       try:
-         sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)
+         sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
-            (saveFileInfo, headhex, grids, levels, extraObjectReferenceList) = sav_parse.readFullSaveFile(outFilename)
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
