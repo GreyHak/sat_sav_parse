@@ -31,6 +31,7 @@ try:
    pilAvailableFlag = True
 except ModuleNotFoundError:
    pilAvailableFlag = False
+   print("Python Pillow (PIL) library not available.  Not generating maps.")
 
 DEFAULT_OUTPUT_DIR = "."
 DEFAULT_HTML_BASENAME = "save.html"
@@ -409,8 +410,6 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       if creatingMapImagesFlag:
          lines += f' (<a href="{MAP_BASENAME_SOME_MERC_SPH}">both</a>)'
       lines += "<p>\n"
-
-
 
       numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
       lines += f"Of {len(crashSiteInstances)} crash sites, {numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} been looted, {numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, {numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available.\r\n"

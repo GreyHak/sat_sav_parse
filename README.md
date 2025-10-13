@@ -9,6 +9,8 @@ and manipulating the contents.  Updated to support v1.1.1.6.
 first-person, open-world, factory-building and exploration game produced by
 [Coffee Stain Studios](https://www.coffeestain.com/).
 
+<img src="sav_to_html_map_examples.png" alt="generated map examples from save to html python script" width="816"/>
+
 ## sav_parse.py
 
 `sav_parse.py` will decode the save file.  It can be used as either a library
