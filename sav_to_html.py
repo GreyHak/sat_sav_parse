@@ -104,7 +104,7 @@ def getStackSize(itemName: str, itemCount: int) -> int:
          return knownStackSize
 
    itemStackSizes[itemName] = derivedStackSize
-   with open(ITEM_STACK_SIZE_FILENAME, "w") as fout:
+   with open(ITEM_STACK_SIZE_FILENAME, "w", newline="\n") as fout:
       json.dump(itemStackSizes, fout, indent=2)
    return derivedStackSize
 
