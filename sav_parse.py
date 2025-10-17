@@ -3345,6 +3345,7 @@ def parseProperties(offset: int, data: list) -> list:
                   "BlueprintCategoryRecord",
                   "BlueprintSubCategoryRecord",
                   "DroneTripInformation",
+                  "ElevatorFloorStopInfo",
                   "FactoryCustomizationColorSlot",
                   "FeetOffset",
                   "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
