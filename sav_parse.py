@@ -2437,8 +2437,45 @@ def parseString(offset: int, data) -> str:
 def parseData(offset: int, data, length: int):
    if offset + length > len(data):
       raise ParseError(f"Offset {offset} too large for data of length {length} in {len(data)}-byte data.")
-
    return (offset + length, data[offset:offset+length])
+
+def parseTextProperty(offset: int, data) -> list:
+   (offset, flags) = parseUint32(offset, data)
+   (offset, historyType) = parseUint8(offset, data)
+   if historyType == HistoryType.NONE.value:
+      (offset, isTextCultureInvariant) = parseUint32(offset, data)
+      (offset, s) = parseString(offset, data)
+      textProperty = [flags, historyType, isTextCultureInvariant, s]
+   elif historyType == HistoryType.BASE.value: # Only observed in modded save
+      (offset, namespace) = parseString(offset, data)
+      (offset, key) = parseString(offset, data)
+      (offset, value) = parseString(offset, data)
+      textProperty = [flags, historyType, namespace, key, value]
+   elif historyType == HistoryType.ARGUMENT_FORMAT.value: # Only observed in modded save (for propertyName="mMapText")
+      offset = confirmBasicType(offset, data, parseUint32, 8)
+      offset = confirmBasicType(offset, data, parseUint8, 0)
+      offset = confirmBasicType(offset, data, parseUint32, 1)
+      offset = confirmBasicType(offset, data, parseUint8, 0)
+      (offset, uuid) = parseString(offset, data)
+      (offset, format) = parseString(offset, data)
+      (offset, argCount) = parseUint32(offset, data)
+      args = []
+      for idx in range(argCount):
+         (offset, argName) = parseString(offset, data)
+         offset = confirmBasicType(offset, data, parseUint8, 4)
+         offset = confirmBasicType(offset, data, parseUint32, 18) # flags
+         offset = confirmBasicType(offset, data, parseUint8, 255) # historyType
+         offset = confirmBasicType(offset, data, parseUint32, 1)  # isTextCultureInvariant
+         (offset, argValue) = parseString(offset, data)
+         args.append([argName, argValue])
+      textProperty = [flags, historyType, uuid, format, args]
+   elif historyType == HistoryType.STRING_TABLE_ENTRY.value: # Only observed in modded save
+      (offset, tableId) = parseString(offset, data)
+      (offset, textKey) = parseString(offset, data)
+      textProperty = [flags, historyType, tableId, textKey]
+   else:
+      raise ParseError(f"Unexpected TextProperty historyType {historyType}")
+   return (offset, textProperty)
 
 def TESTING_ONLY_dumpSection(offset: int, data, sectionStart, sectionSize: int, name: str = "") -> int:
    if offset > sectionStart + sectionSize:
@@ -2642,7 +2679,7 @@ class Object: # Both ActorObject and ComponentObject
 
    def parse(self, offset: int, data, actorOrComponentObjectHeader):
       self.instanceName = actorOrComponentObjectHeader.instanceName
-      (offset, self.objectGameVersion) = parseUint32(offset, data) # 42=v0.8.3.3 46=v1.0.0.1 & v1.0.0.3
+      (offset, self.objectGameVersion) = parseUint32(offset, data) # 42=v0.8.3.3  46=v1.0.0.1 & v1.0.0.3  52=v1.1.0.4-v1.1.1.6
       (offset, self.shouldMigrateObjectRefsToPersistentFlag) = parseBool(offset, data, parseUint32, "Object.shouldMigrateObjectRefsToPersistentFlag")
       (offset, objectSize) = parseUint32(offset, data)
       offsetStartThis = offset
@@ -2895,6 +2932,7 @@ class Object: # Both ActorObject and ComponentObject
                "/Script/FactoryGame.FGShoppingListComponent",
                "/Script/FactoryGame.FGTrainPlatformConnection",
                "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
+               "/EditSwatchNames/DataHolder.DataHolder_C",         # Only observed in modded save
                ):
             offset = confirmBasicType(offset, data, parseUint32, 0)
 
@@ -3165,41 +3203,8 @@ def parseProperties(offset: int, data: list) -> list:
       elif propertyType == "TextProperty":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
-         (offset, flags) = parseUint32(offset, data)
-         (offset, historyType) = parseUint8(offset, data)
-         if historyType == HistoryType.NONE.value:
-            (offset, isTextCultureInvariant) = parseUint32(offset, data)
-            (offset, s) = parseString(offset, data)
-            properties.append([propertyName, [flags, historyType, isTextCultureInvariant, s]])
-         elif historyType == HistoryType.BASE.value: # Only observed in modded save
-            (offset, namespace) = parseString(offset, data)
-            (offset, key) = parseString(offset, data)
-            (offset, value) = parseString(offset, data)
-            properties.append([propertyName, [flags, historyType, namespace, key, value]])
-         elif historyType == HistoryType.ARGUMENT_FORMAT.value: # Only observed in modded save (for propertyName="mMapText")
-            offset = confirmBasicType(offset, data, parseUint32, 8)
-            offset = confirmBasicType(offset, data, parseUint8, 0)
-            offset = confirmBasicType(offset, data, parseUint32, 1)
-            offset = confirmBasicType(offset, data, parseUint8, 0)
-            (offset, uuid) = parseString(offset, data)
-            (offset, format) = parseString(offset, data)
-            (offset, argCount) = parseUint32(offset, data)
-            args = []
-            for idx in range(argCount):
-               (offset, argName) = parseString(offset, data)
-               offset = confirmBasicType(offset, data, parseUint8, 4)
-               offset = confirmBasicType(offset, data, parseUint32, 18) # flags
-               offset = confirmBasicType(offset, data, parseUint8, 255) # historyType
-               offset = confirmBasicType(offset, data, parseUint32, 1)  # isTextCultureInvariant
-               (offset, argValue) = parseString(offset, data)
-               args.append([argName, argValue])
-            properties.append([propertyName, [flags, historyType, uuid, format, args]])
-         elif historyType == HistoryType.STRING_TABLE_ENTRY.value: # Only observed in modded save
-            (offset, tableId) = parseString(offset, data)
-            (offset, textKey) = parseString(offset, data)
-            properties.append([propertyName, [flags, historyType, tableId, textKey]])
-         else:
-            raise ParseError(f"Unexpected TextProperty historyType {historyType}")
+         (offset, textProperty) = parseTextProperty(offset, data)
+         properties.append([propertyName, textProperty])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "SetProperty":
@@ -3284,11 +3289,8 @@ def parseProperties(offset: int, data: list) -> list:
                values.append(levelPathName)
          elif arrayType == "TextProperty": # Only observed in modded save
             for jdx in range(arrayCount):
-               offset = confirmBasicType(offset, data, parseUint32, 18) # flags
-               offset = confirmBasicType(offset, data, parseUint8, 255) # historyType
-               offset = confirmBasicType(offset, data, parseUint32, 1)  # isTextCultureInvariant
-               (offset, s) = parseString(offset, data)
-               values.append(s)
+               (offset, textProperty) = parseTextProperty(offset, data)
+               values.append(textProperty)
          elif arrayType == "StructProperty":
             (offset, name) = parseString(offset, data)
             if name != propertyName:
@@ -3385,6 +3387,7 @@ def parseProperties(offset: int, data: list) -> list:
                   "SignComponentVariableData",     # Only observed in modded save
                   "SignComponentVariableMetaData", # Only observed in modded save
                   "SwatchGroupData",               # Only observed in modded save
+                  "USSSwatchSaveInfo",             # Only observed in modded save
                   ):
                for jdx in range(arrayCount):
                   (offset, prop, propTypes) = parseProperties(offset, data)
@@ -3504,15 +3507,22 @@ def parseProperties(offset: int, data: list) -> list:
                "Vector_NetQuantize",
                "BuildingConnections", # Only observed in modded save
                "DTActiveConfig",      # Only observed in modded save
+               "LBBalancerData",      # Only observed in modded save
                "ManagedSignData",     # Only observed in modded save
                "Struct_PC_PartInfo",  # Only observed in modded save
                ):
             (offset, prop, propTypes) = parseProperties(offset, data)
             properties.append([propertyName, [prop, propTypes]])
          else:
-            raise ParseError(f"Unsupported structPropertyType '{structPropertyType}'")
+            if True:
+               raise ParseError(f"Unsupported structPropertyType '{structPropertyType}'")
+            else: # For debug only
+               offset = TESTING_ONLY_dumpSection(offset, data, propertyStartOffset, propertySize, f"Skipping unsupported structPropertyType '{structPropertyType}'")
+               properties.append(None)
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} structPropertyType={structPropertyType} start={propertyStartOffset}")
+         if False: # For debug only
+            print(f"DEBUG: Successfully parsed StructProperty '{structPropertyType}'.")
 
       elif propertyType == "MapProperty":
          (offset, keyType) = parseString(offset, data)
@@ -3568,7 +3578,7 @@ def parseProperties(offset: int, data: list) -> list:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
 
       else:
-         raise ParseError(f"Unsupported propertyType '{propertyType}' for property '{propertyName}' at offset {offset}")
+         raise ParseError(f"Unsupported propertyType '{propertyType}' for property '{propertyName}' at offset {offset} of size {propertySize} bytes")
 
       propertyTypes.append([propertyName, retainedPropertyType, propertyIndex])
 

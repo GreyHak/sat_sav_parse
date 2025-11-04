@@ -61,6 +61,47 @@ def addString(val):
 def addObjectReference(objectReference):
    return addString(objectReference.levelName) + addString(objectReference.pathName)
 
+def addTextProperty(textPropertyValue):
+   dataTextProp = bytearray()
+   if len(textPropertyValue) == 4 and textPropertyValue[1] == sav_parse.HistoryType.NONE.value:
+      (flags, historyType, isTextCultureInvariant, s) = textPropertyValue
+      dataTextProp.extend(addUint32(flags))
+      dataTextProp.extend(addUint8(historyType))
+      dataTextProp.extend(addUint32(isTextCultureInvariant))
+      dataTextProp.extend(addString(s))
+   elif len(textPropertyValue) == 5 and textPropertyValue[1] == sav_parse.HistoryType.BASE.value:
+      (flags, historyType, namespace, key, value) = textPropertyValue
+      dataTextProp.extend(addUint32(flags))
+      dataTextProp.extend(addUint8(historyType))
+      dataTextProp.extend(addString(namespace))
+      dataTextProp.extend(addString(key))
+      dataTextProp.extend(addString(value))
+   elif len(textPropertyValue) == 5 and textPropertyValue[1] == sav_parse.HistoryType.ARGUMENT_FORMAT.value:
+      (flags, historyType, uuid, format, args) = textPropertyValue
+      dataTextProp.extend(addUint32(flags))
+      dataTextProp.extend(addUint8(historyType))
+      dataTextProp.extend(addUint32(8))
+      dataTextProp.extend(addUint8(0))
+      dataTextProp.extend(addUint32(1))
+      dataTextProp.extend(addUint8(0))
+      dataTextProp.extend(addString(uuid))
+      dataTextProp.extend(addString(format))
+      dataTextProp.extend(addUint32(len(args)))
+      for (argName, argValue) in args:
+         dataTextProp.extend(addString(argName))
+         dataTextProp.extend(addUint8(4))
+         dataTextProp.extend(addUint32(18))
+         dataTextProp.extend(addUint8(255))
+         dataTextProp.extend(addUint32(1))
+         dataTextProp.extend(addString(argValue))
+   elif len(textPropertyValue) == 4 and textPropertyValue[1] == sav_parse.HistoryType.STRING_TABLE_ENTRY.value:
+      (flags, historyType, tableId, textKey) = textPropertyValue
+      dataTextProp.extend(addUint32(flags))
+      dataTextProp.extend(addUint8(historyType))
+      dataTextProp.extend(addString(tableId))
+      dataTextProp.extend(addString(textKey))
+   return dataTextProp
+
 def addProperties(properties, propertyTypes):
    data = bytearray()
 
@@ -124,43 +165,7 @@ def addProperties(properties, propertyTypes):
          case "TextProperty":
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
-            if len(propertyValue) == 4 and propertyValue[1] == sav_parse.HistoryType.NONE.value:
-               (flags, historyType, isTextCultureInvariant, s) = propertyValue
-               dataProp.extend(addUint32(flags))
-               dataProp.extend(addUint8(historyType))
-               dataProp.extend(addUint32(isTextCultureInvariant))
-               dataProp.extend(addString(s))
-            elif len(propertyValue) == 5 and propertyValue[1] == sav_parse.HistoryType.BASE.value:
-               (flags, historyType, namespace, key, value) = propertyValue
-               dataProp.extend(addUint32(flags))
-               dataProp.extend(addUint8(historyType))
-               dataProp.extend(addString(namespace))
-               dataProp.extend(addString(key))
-               dataProp.extend(addString(value))
-            elif len(propertyValue) == 5 and propertyValue[1] == sav_parse.HistoryType.ARGUMENT_FORMAT.value:
-               (flags, historyType, uuid, format, args) = propertyValue
-               dataProp.extend(addUint32(flags))
-               dataProp.extend(addUint8(historyType))
-               dataProp.extend(addUint32(8))
-               dataProp.extend(addUint8(0))
-               dataProp.extend(addUint32(1))
-               dataProp.extend(addUint8(0))
-               dataProp.extend(addString(uuid))
-               dataProp.extend(addString(format))
-               dataProp.extend(addUint32(len(args)))
-               for (argName, argValue) in args:
-                  dataProp.extend(addString(argName))
-                  dataProp.extend(addUint8(4))
-                  dataProp.extend(addUint32(18))
-                  dataProp.extend(addUint8(255))
-                  dataProp.extend(addUint32(1))
-                  dataProp.extend(addString(argValue))
-            elif len(propertyValue) == 4 and propertyValue[1] == sav_parse.HistoryType.STRING_TABLE_ENTRY.value:
-               (flags, historyType, tableId, textKey) = propertyValue
-               dataProp.extend(addUint32(flags))
-               dataProp.extend(addUint8(historyType))
-               dataProp.extend(addString(tableId))
-               dataProp.extend(addString(textKey))
+            dataProp.extend(addTextProperty(propertyValue))
          case "SetProperty":
             (setType, values) = propertyValue
             dataProp.extend(addString(setType))
@@ -227,10 +232,7 @@ def addProperties(properties, propertyTypes):
                               dataProp.extend(addObjectReference(value))
                         case "TextProperty": # Only observed in modded save
                            for value in propertyValue:
-                              dataProp.extend(addUint32(18))
-                              dataProp.extend(addUint8(255))
-                              dataProp.extend(addUint32(1))
-                              dataProp.extend(addString(value))
+                              dataProp.extend(addTextProperty(value))
                         case "StructProperty":
                            dataStruct = bytearray()
                            structElementType = propertyType[2]
@@ -313,6 +315,7 @@ def addProperties(properties, propertyTypes):
                                     "SignComponentVariableData",     # Only observed in modded save
                                     "SignComponentVariableMetaData", # Only observed in modded save
                                     "SwatchGroupData",               # Only observed in modded save
+                                    "USSSwatchSaveInfo",             # Only observed in modded save
                                     ):
                                  for value in propertyValue:
                                     (prop, propTypes) = value
@@ -436,6 +439,7 @@ def addProperties(properties, propertyTypes):
                               "Vector_NetQuantize",
                               "BuildingConnections", # Only observed in modded save
                               "DTActiveConfig",      # Only observed in modded save
+                              "LBBalancerData",      # Only observed in modded save
                               "ManagedSignData",     # Only observed in modded save
                               "Struct_PC_PartInfo",  # Only observed in modded save
                               ):
@@ -681,6 +685,7 @@ def addObject(object, actorOrComponentObjectHeader):
             "/Script/FactoryGame.FGShoppingListComponent",
             "/Script/FactoryGame.FGTrainPlatformConnection",
             "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
+            "/EditSwatchNames/DataHolder.DataHolder_C",         # Only observed in modded save
             ):
          dataTrailing.extend(addUint32(0))
 
