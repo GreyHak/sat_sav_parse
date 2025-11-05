@@ -1,4 +1,5 @@
 {
+  "'Employee of the Planet' Cup": 1,
   "AI Expansion Server": 50,
   "AI Limiter": 100,
   "Adaptive Control Unit": 50,
@@ -37,6 +38,7 @@
   "Copper Powder": 500,
   "Copper Sheet": 200,
   "Crystal Oscillator": 100,
+  "Cup": 1,
   "Dark Matter Crystal": 200,
   "Dark Matter": 200,
   "Diamonds": 200,
@@ -55,7 +57,7 @@
   "Gas Filter": 50,
   "Gas Mask": 1,
   "Gas Nobelisk": 50,
-  "Golden Nut Statue": 1
+  "Golden Nut Statue": 1,
   "Hard Drive": 100,
   "Hatcher Remains": 50,
   "Hazmat Suit": 1,
