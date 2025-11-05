@@ -256,7 +256,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   for storedItem in storedItems:
                      itemClass = sav_parse.getPropertyValue(storedItem[0], "ItemClass")
                      if itemClass is not None:
-                        amount = sav_parse.getPropertyValue(storedItem[0], "Amount")
+                        amount = sav_parse.getPropertyValue(storedItem[0], "amount")
                         if amount is not None:
                            itemName = sav_parse.pathNameToReadableName(itemClass.pathName)
                            dimensionalDepotContents.append((amount, itemName))
