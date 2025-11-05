@@ -761,7 +761,8 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Char_Stinger_Child_C": "Small Stinger",
 
    # Buildables
-   "BP_ProjectAssembly_C": "Space Elevator Terminal",  # This is a guess
+   "BP_ElevatorCabin_C": "Personnel Elevator Cabin",
+   "BP_ProjectAssembly_C": "Space Elevator Terminal", # Not a separate item
    "BP_SoundTrigger_C": "Sound Trigger",
    "Build_AlienPowerBuilding_C": "Alien Power Augmenter",
    "Build_AssemblerMk1_C": "Assembler",
@@ -770,11 +771,13 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Beam_Connector_Double_C": "Beam Connector Double",
    "Build_Beam_Painted_C": "Painted Beam",
    "Build_Beam_Support_C": "Beam Support",
+   "Build_BigGarageDoor_16x8_C": "Roll-Up Gate",
    "Build_Blender_C": "Blender",
    "Build_BlueprintDesigner_C": "Blueprint Designer",
    "Build_BlueprintDesigner_MK2_C": "Blueprint Designer Mk.2",
    "Build_BlueprintDesigner_Mk3_C": "Blueprint Designer Mk.3",
    "Build_Blueprint_C": "Factory Blueprint",
+   "Build_CI_C": "Collectable Indicator Config", # Mod: Collectable Indicator
    "Build_CandyCaneDecor_C": "Candy Cane",
    "Build_CatwalkCorner_C": "Catwalk Corner",
    "Build_CatwalkCross_C": "Catwalk Crossing",
@@ -787,6 +790,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Concrete_Barrier_01_C": "Road Barrier",
    "Build_ConstructorMk1_C": "Constructor",
    "Build_Converter_C": "Converter",
+   "Build_ConveyorAttachmentMergerPriority_C": "Priority Merger",
    "Build_ConveyorAttachmentMerger_C": "Conveyor Merger",
    "Build_ConveyorAttachmentSplitterProgrammable_C": "Programmable Splitter",
    "Build_ConveyorAttachmentSplitterSmart_C": "Smart Splitter",
@@ -808,6 +812,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_ConveyorPoleStackable_C": "Stackable Conveyor Pole",
    "Build_ConveyorPoleWall_C": "Conveyor Wall Mount",
    "Build_ConveyorPole_C": "Conveyor Pole",
+   "Build_ConveyorWallHole_C": "Conveyor Wall Hole",
    "Build_DownQuarterPipeInCorner_Asphalt_8x4_C": "Inverted Inner Corner Quarter Pipe (Asphalt)",
    "Build_DownQuarterPipeInCorner_ConcretePolished_8x4_C": "Inverted Inner Corner Quarter Pipe (Polished Concrete)",
    "Build_DownQuarterPipeInCorner_Concrete_8x4_C": "Inverted Inner Corner Quarter Pipe (Concrete)",
@@ -821,6 +826,8 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_DownQuarterPipe_Concrete_8x4_C": "Inverted Quarter Pipe (Concrete)",
    "Build_DownQuarterPipe_Grip_8x4_C": "Inverted Quarter Pipe (Grip)",
    "Build_DroneStation_C": "Drone Port",
+   "Build_ElevatorFloorStop_C": "Elevator Floor Stop",
+   "Build_Elevator_C": "Personnel Elevator",
    "Build_Fence_01_C": "Industrial Railing",
    "Build_Flat_Frame_01_C": "Frame Floor",
    "Build_FloodlightPole_C": "Flood Light Tower",
@@ -856,9 +863,14 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_GeneratorGeoThermal_C": "Geothermal Generator",
    "Build_GeneratorIntegratedBiomass_C": "Biomass Burner",
    "Build_GeneratorNuclear_C": "Nuclear Power Plant",
+   "Build_GlassTank_4Pipes_C": "Industrial Glass Fluid Buffer 4 pipes", # Mod: Glass Fluid Buffer
+   "Build_GlassTank_C": "Industrial Glass Fluid Buffer", # Mod: Glass Fluid Buffer
+   "Build_GlassTank_Child_C": "Glass Fluid Buffer", # Mod: Glass Fluid Buffer
+   "Build_GlassTank_Child_Child_C": "Glass Fluid Buffer 4 pipes", # Mod: Glass Fluid Buffer
    "Build_HadronCollider_C": "Particle Accelerator",
    "Build_HubTerminal_C": "HUB Terminal",
    "Build_HyperPoleStackable_C": "Stackable Hypertube Support",
+   "Build_HyperTubeJunction_C": "Hypertube Junction",
    "Build_HypertubeTJunction_C": "Hypertube Branch",
    "Build_HyperTubeWallHole_C": "Hypertube Wall Hole",
    "Build_HyperTubeWallSupport_C": "Hypertube Wall Support",
@@ -909,8 +921,22 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_MinerMk1_C": "Miner Mk.1",
    "Build_MinerMk2_C": "Miner Mk.2",
    "Build_MinerMk3_C": "Miner Mk.3",
+   "Build_Mk2Tube_C": "Hypertube Entrance Mk.2", # Mod: BetterHypertybes
+   "Build_ModularLoadBalancer_Block_C": "Block Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Box_C": "Modular Load Balancer Box", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_C": "Modular Load Balancer", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Filtered_C": "Filter Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Filtered_Output_C": "Output Only Filter Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Input_C": "Input Only Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Output_C": "Output Only Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Overflow_C": "Overflow Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Overflow_Output_C": "Output Only Overflow Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Programmable_C": "Programmable Module", # Mod: Modular Load Balancers
+   "Build_ModularLoadBalancer_Programmable_Output_C": "Output Only Programmable Module", # Mod: Modular Load Balancers
    "Build_OilPump_C": "Oil Extractor",
    "Build_OilRefinery_C": "Refinery",
+   "Build_Overlow1_C": "Dimensional Upload Priority", # Mod: Depot Uploader with Output
+   "Build_Overlow_C": "Dimensional Overflow Priority", # Mod: Depot Uploader with Output
    "Build_Packager_C": "Packager",
    "Build_PillarBase_C": "Big Pillar Support",
    "Build_PillarBase_Small_C": "Small Pillar Support",
@@ -1022,6 +1048,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_RadarTower_C": "Radar Tower",
    "Build_Railing_01_C": "Modern Railing",
    "Build_RailroadBlockSignal_C": "Block Signal",
+   "Build_RailroadEndStop_C": "Buffer Stop (Railway Transport)",
    "Build_RailroadPathSignal_C": "Path Signal",
    "Build_RailroadSwitchControl_C": "Railroad Switch Control",
    "Build_RailroadTrackIntegrated_C": "Integrated Platform Track",
@@ -1139,11 +1166,13 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Roof_Window_OutCorner_01_C": "Outer Corner Roof 1m (Window)",
    "Build_Roof_Window_OutCorner_02_C": "Outer Corner Roof 2m (Window)",
    "Build_Roof_Window_OutCorner_03_C": "Outer Corner Roof 4m (Window)",
-   "Build_SignPole_C": "Sign Pole", # Not a separate item
+   "Build_SignPole_C": "Sign Pole, Small", # Not a separate item
+   "Build_SignPole_Medium_C": "Sign Pole, Medium", # Not a separate item
    "Build_SM_RailingRamp_8x1_01_C": "SM_RailingRamp_8x1_01",
    "Build_SM_RailingRamp_8x2_01_C": "SM_RailingRamp_8x2_01",
    "Build_SM_RailingRamp_8x4_01_C": "SM_RailingRamp_8x4_01",
    "Build_SmelterMk1_C": "Smelter",
+   "Build_SMM_C": "Somersloop Finder", # Mod: Somersloop Finder
    "Build_SnowDispenser_C": "FICSMAS Snow Dispenser",
    "Build_Snowman_C": "Snowman",
    "Build_SpaceElevator_C": "Space Elevator",
@@ -1191,6 +1220,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_TrainStation_C": "Train Station",
    "Build_TreeGiftProducer_C": "FICSMAS Gift Tree",
    "Build_TruckStation_C": "Truck Station",
+   "Build_TubeCannon_C": "Hypertube Entrance Mk.3", # Mod: BetterHypertybes
    "Build_Valve_C": "Valve",
    "Build_WalkwayCross_C": "Walkway Crossing",
    "Build_WalkwayRamp_C": "Walkway Ramp",
