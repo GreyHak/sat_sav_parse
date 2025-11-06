@@ -918,6 +918,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_LookoutTower_C": "Lookout Tower",
    "Build_Mam_C": "MAM",
    "Build_ManufacturerMk1_C": "Manufacturer",
+   "Build_MF_C": "Multidimensional Factory", # Mod: Multidimensional Factory
    "Build_MinerMk1_C": "Miner Mk.1",
    "Build_MinerMk2_C": "Miner Mk.2",
    "Build_MinerMk3_C": "Miner Mk.3",
