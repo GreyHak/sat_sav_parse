@@ -39,15 +39,15 @@ except ModuleNotFoundError:
 VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
 
-def getBlankCategory(categoryName: str, iconId: int = -1):
+def getBlankCategory(categoryName: str, iconId: int = -1) -> list:
    return [[['CategoryName', categoryName], ['IconID', iconId], ['MenuPriority', 0.0], ['IsUndefined', False], ['SubCategoryRecords', [[[['SubCategoryName', 'Undefined'], ['MenuPriority', 0.0], ['IsUndefined', 1], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]]]], [['CategoryName', 'StrProperty', 0], ['IconID', 'IntProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'BoolProperty', 0], ['SubCategoryRecords', ['ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'], 0]]]
 
-def getBlankSubcategory(subcategoryName: str):
+def getBlankSubcategory(subcategoryName: str) -> list:
    return [[['SubCategoryName', subcategoryName], ['MenuPriority', 0.0], ['IsUndefined', 0], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]
 
-playerUsernames = {}
+playerUsernames: dict[str, str] = {}
 
-def getPlayerPaths(levels):
+def getPlayerPaths(levels: list) -> list:
    playerPaths = [] # = (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath)
 
    playerStateInstances = []
@@ -94,7 +94,7 @@ def getPlayerPaths(levels):
 
    return playerPaths
 
-def getPlayerName(levels, playerCharacter):
+def getPlayerName(levels: list, playerCharacter: str) -> str | None:
    global playerUsernames
    loc = playerCharacter.rfind("_")
    playerId = playerCharacter[loc+1:]
@@ -109,10 +109,10 @@ def getPlayerName(levels, playerCharacter):
                return cachedPlayerName
    return None
 
-def characterPlayerMatch(characterPlayer, playerId: int):
+def characterPlayerMatch(characterPlayer: str, playerId: str) -> bool:
    return characterPlayer == f"Persistent_Level:PersistentLevel.Char_Player_C_{playerId}"
 
-def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
+def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords) -> None:
    for categoryIdx in range(len(blueprintCategoryRecords)):
       category = blueprintCategoryRecords[categoryIdx]
       for propertyIdx in range(len(category[0])):
@@ -141,23 +141,23 @@ def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords):
 #   return pow((channel + 0.055) / 1.055, 2.4)
 
 # Converts a luminance component (a linear measure of light) an sRGB component from 0 to 1
-def lcToSRGBFloat(linearCol):
+def lcToSRGBFloat(linearCol) -> float:
    if linearCol <= 0.0031308:
       return linearCol * 12.92
    else:
       return pow(abs(linearCol), 1.0/2.4) * 1.055 - 0.055
 
 # Converts a luminance component (a linear measure of light) an sRGB component from 0 to 255
-def lcToSRGBInt(linearCol):
+def lcToSRGBInt(linearCol) -> int:
    return max(0, min(255, round(lcToSRGBFloat(linearCol) * 255)))
 
-def lcTupleToSrgbHex(linearCTuple):
+def lcTupleToSrgbHex(linearCTuple) -> str:
    srgb = ""
    for i in range(3):
       srgb += "{:x}".format(lcToSRGBInt(linearCTuple[i])).zfill(2)
    return srgb
 
-def radiansToDegrees(radians):
+def radiansToDegrees(radians) -> float:
    return radians / math.pi * 180
 
 # Credit to Addison Sears-Collins
@@ -278,10 +278,10 @@ def addSomersloop(levels, targetPathName: str) -> bool:
             newActor.instanceName = instanceName
             newActor.flags = 0
             newActor.needTransform = False
-            newActor.rotation = rotation
-            newActor.position = position
+            newActor.rotation = list(rotation)
+            newActor.position = list(position)
             newActor.scale = [1.600000023841858, 1.600000023841858, 1.600000023841858]
-            newActor.wasPlacedInLevel = 1
+            newActor.wasPlacedInLevel = True
             level.actorAndComponentObjectHeaders.append(newActor)
 
             newObject = sav_parse.Object()
@@ -327,10 +327,10 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
             newActor.instanceName = instanceName
             newActor.flags = 0
             newActor.needTransform = False
-            newActor.rotation = rotation
-            newActor.position = position
+            newActor.rotation = list(rotation)
+            newActor.position = list(position)
             newActor.scale = [2.700000047683716, 2.6999998092651367, 2.6999998092651367]
-            newActor.wasPlacedInLevel = 1
+            newActor.wasPlacedInLevel = True
             level.actorAndComponentObjectHeaders.append(newActor)
 
             newObject = sav_parse.Object()
@@ -384,10 +384,10 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
             newActor.instanceName = instanceName
             newActor.flags = 0
             newActor.needTransform = False
-            newActor.rotation = rotation
-            newActor.position = position
+            newActor.rotation = list(rotation)
+            newActor.position = list(position)
             newActor.scale = [scale, scale, scale]
-            newActor.wasPlacedInLevel = 1
+            newActor.wasPlacedInLevel = True
             level.actorAndComponentObjectHeaders.append(newActor)
 
             newObject = sav_parse.Object()
@@ -648,7 +648,7 @@ if __name__ == '__main__':
 
          levelPersistentFlag = levelData["levelPersistentFlag"]
 
-         collectables1 = None
+         collectables1: list[sav_parse.ObjectReference] | None = None
          if levelData["collectables1"] is not None:
             collectables1 = []
             for objectReference in levelData["collectables1"]:
@@ -762,8 +762,8 @@ if __name__ == '__main__':
                      diDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(255,255,0))
                      diDraw.text((posX, posY), str(quantity), font=smallFont, fill=(0,0,0))
                   if len(sys.argv) == 4:
-                     diDraw.text(sav_to_html.MAP_TEXT_1, saveFileInfo.saveDatetime.strftime(f"{total} free {itemName} from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(50,50,50))
-                     diDraw.text(sav_to_html.MAP_TEXT_2, saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+                     diDraw.text(sav_to_html.MAP_TEXT_1, parsedSave.saveDatetime.strftime(f"{total} free {itemName} from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(50,50,50))
+                     diDraw.text(sav_to_html.MAP_TEXT_2, parsedSave.sessionName, font=imageFont, fill=(0,0,0))
                   else:
                      diDraw.text(sav_to_html.MAP_TEXT_1, f"All {total} free {itemName}", font=imageFont, fill=(0,0,0))
                   imageFilename = MAP_BASENAME_FREE_ITEM
@@ -844,7 +844,7 @@ if __name__ == '__main__':
             print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
-         inventoryContents = []
+         inventoryContents: list[list | None] = []
 
          for level in parsedSave.levels:
             for object in level.objects:
@@ -878,9 +878,9 @@ if __name__ == '__main__':
          changeTimeFlag = False
 
       with open(inFilename, "r") as fin:
-         inventoryContents = json.load(fin)
+         importedInventoryContents: list[list | None] = json.load(fin)
 
-      for inventoryContent in inventoryContents:
+      for inventoryContent in importedInventoryContents:
          if inventoryContent is not None:
             itemPathName = inventoryContent[0]
             if itemPathName not in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
@@ -907,19 +907,19 @@ if __name__ == '__main__':
                   inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
                   if inventoryStacks:
                      for idx in range(len(inventoryStacks)):
-                        if idx < len(inventoryContents):
+                        if idx < len(importedInventoryContents):
                            print(f"Replacing {sav_parse.toString(inventoryStacks[idx][0])}")
-                           if inventoryContents[idx] is None:
+                           if importedInventoryContents[idx] is None:
                               inventoryStacks[idx][0][0] = ["Item", ["", 1]]
                               inventoryStacks[idx][0][1] = ["NumItems", 0]
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to be Empty")
-                           elif len(inventoryContents[idx]) == 2:
-                              (itemPathName, itemQuantity) = inventoryContents[idx]
+                           elif len(importedInventoryContents[idx]) == 2:
+                              (itemPathName, itemQuantity) = importedInventoryContents[idx]
                               inventoryStacks[idx][0][0] = ["Item", [itemPathName, 1]]
                               inventoryStacks[idx][0][1] = ["NumItems", itemQuantity]
                               print(f"Setting player {playerInventory}'s inventory slot {idx} to include {itemQuantity} x {sav_parse.pathNameToReadableName(itemPathName)}")
-                           elif len(inventoryContents[idx]) == 4:
-                              (itemPathName, itemQuantity, itemPropName, itemProps) = inventoryContents[idx]
+                           elif len(importedInventoryContents[idx]) == 4:
+                              (itemPathName, itemQuantity, itemPropName, itemProps) = importedInventoryContents[idx]
                               if itemPropName == "/Script/FactoryGame.FGJetPackItemState":
                                  inventoryStacks[idx][0][0] = ["Item", [itemPathName, [itemPropName, itemProps, [['CurrentFuel', 'FloatProperty', 0], ['CurrentFuelType', 'IntProperty', 0], ['SelectedFuelType', 'IntProperty', 0]]]]]
                               if itemPropName == "/Script/FactoryGame.FGChainsawItemState":
@@ -1061,9 +1061,9 @@ if __name__ == '__main__':
                               oldYaw = euler[2]
                               euler[2] += math.pi/180
                               if euler[2] > math.pi:
-                                 math.pi -= 2 * math.pi
+                                 euler[2] -= 2 * math.pi
                               elif euler[2] < -math.pi:
-                                 math.pi += 2 * math.pi
+                                 euler[2] += 2 * math.pi
                               print(f"Rotated foundation {buildItemPathName} from {radiansToDegrees(oldYaw)} to {radiansToDegrees(euler[2])}.")
                               newRotationQuaternion = eulerToQuaternion(euler)
                               for idx in range(4):
@@ -1146,7 +1146,9 @@ if __name__ == '__main__':
             print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
-         playerName = getPlayerName(parsedSave.levels, playerCharacter)
+         playerName = None
+         if playerCharacter is not None:
+            playerName = getPlayerName(parsedSave.levels, playerCharacter)
 
          print()
          if playerName is None:
@@ -1155,7 +1157,7 @@ if __name__ == '__main__':
             print(f"===== {playerName} ({playerId}) =====")
          print()
 
-         playersHotbars = {}
+         playersHotbars: dict[str, int] = {}
          for level in parsedSave.levels:
             for object in level.objects:
                if object.instanceName == playerState:
@@ -1164,7 +1166,7 @@ if __name__ == '__main__':
                      for hotbarIdx in range(len(playerHotbars)):
                         playersHotbars[playerHotbars[hotbarIdx].pathName] = hotbarIdx
 
-         playersHotbarItems = {}
+         playersHotbarItems: dict[str, tuple[int, int]] = {}
          for level in parsedSave.levels:
             for object in level.objects:
                if object.instanceName in playersHotbars:
@@ -1177,7 +1179,7 @@ if __name__ == '__main__':
                            #print(f"[{hotbarIdx}][{hotbarItemIdx}] {item}")
                            playersHotbarItems[item] = (hotbarIdx, hotbarItemIdx)
 
-         hotbarContents = {}
+         hotbarContents: dict[int, dict[int, str | None]] = {}
          for level in parsedSave.levels:
             for object in level.objects:
                if object.instanceName in playersHotbarItems:
@@ -1220,7 +1222,7 @@ if __name__ == '__main__':
          changeTimeFlag = False
 
       with open(inFilename, "r") as fin:
-         hotbarContents = json.load(fin)
+         hotbarContents_strKeys: dict[str, dict[str, str]] = json.load(fin)
 
       modifiedFlag = False
       try:
@@ -1234,7 +1236,7 @@ if __name__ == '__main__':
                playerState = playerStateInstanceName
                playerCharacter = characterPlayer
 
-         if playerState is None:
+         if playerCharacter is None:
             print(f"Unable to match player '{playerId}'", file=sys.stderr)
             exit(1)
 
@@ -1271,10 +1273,10 @@ if __name__ == '__main__':
                         replacementHotbarItemNewParentName = None
                         replacementHotbarItemNewInstanceName = None
                         hotbarIdxStr = str(hotbarIdx)
-                        if hotbarIdxStr in hotbarContents:
+                        if hotbarIdxStr in hotbarContents_strKeys:
                            hotbarItemIdxStr = str(hotbarItemIdx)
-                           if hotbarItemIdxStr in hotbarContents[hotbarIdxStr]:
-                              replacementHotbarItem = hotbarContents[hotbarIdxStr][hotbarItemIdxStr]
+                           if hotbarItemIdxStr in hotbarContents_strKeys[hotbarIdxStr]:
+                              replacementHotbarItem = hotbarContents_strKeys[hotbarIdxStr][hotbarItemIdxStr]
 
                               if replacementHotbarItem.startswith("/Game/FactoryGame/Recipes/"):
                                  replacementHotbarItemNewClassName = "FGRecipeShortcut"
@@ -1288,7 +1290,7 @@ if __name__ == '__main__':
 
                         item = shortcuts[hotbarItemIdx].pathName
                         if len(item) == 0:
-                           if replacementHotbarItem is None:
+                           if replacementHotbarItem is None or replacementHotbarItemNewClassName is None or replacementHotbarItemNewParentName is None or replacementHotbarItemNewInstanceName is None:
                               print(f"[{hotbarIdx}][{hotbarItemIdx}] is currently empty and should remain empty") # No change
                            else:
                               print(f"[{hotbarIdx}][{hotbarItemIdx}] is currently empty and should be replaced with {replacementHotbarItem}") # Need to add an Object
@@ -1297,7 +1299,7 @@ if __name__ == '__main__':
                               shortcuts[hotbarItemIdx].pathName = replacementHotbarItemNewInstanceName
                               modifiedFlag = True
                         else:
-                           if replacementHotbarItem is None:
+                           if replacementHotbarItem is None or replacementHotbarItemNewClassName is None or replacementHotbarItemNewParentName is None or replacementHotbarItemNewInstanceName is None:
                               print(f"[{hotbarIdx}][{hotbarItemIdx}] currently contains {item} and should be removed.") # Set this reference to empty, and remove the Object
                               objectsToRemove.append(item)
                               shortcuts[hotbarItemIdx].levelName = ""
@@ -2453,7 +2455,7 @@ if __name__ == '__main__':
 
       if not modifiedFlag:
          if numberOfBlueprints == 0:
-            print(f"ERROR: Failed to find category '{categoryToRemove}', subcategory '{subcategoryToRemove}' to remove.", file=sys.stderr)
+            print(f"ERROR: Failed to find category '{categoryToRemoveIn}', subcategory '{subcategoryToRemove}' to remove.", file=sys.stderr)
          else:
             print(f"ERROR: Subcategory '{subcategoryToRemove}' contains {numberOfBlueprints} blueprints.  Must be empty to remove.", file=sys.stderr)
          exit(1)

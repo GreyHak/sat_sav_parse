@@ -2389,66 +2389,66 @@ MILESTONE_COSTS = {
    },
 }
 
-satisfactoryCalculatorInteractiveMapExtras = []
+satisfactoryCalculatorInteractiveMapExtras: list[str] = []
 
 class ParseError(Exception):
     pass
 
-def parseInt8(offset: int, data):
+def parseInt8(offset: int, data) -> tuple:
    nextOffset = offset + 1
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int8 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<c", data[offset:nextOffset])[0])
 
-def parseUint8(offset: int, data):
+def parseUint8(offset: int, data) -> tuple:
    nextOffset = offset + 1
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for uint8 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<B", data[offset:nextOffset])[0])
 
-def parseInt32(offset: int, data):
+def parseInt32(offset: int, data) -> tuple:
    nextOffset = offset + 4
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int32 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<i", data[offset:nextOffset])[0])
 
-def parseUint32(offset: int, data):
+def parseUint32(offset: int, data) -> tuple:
    nextOffset = offset + 4
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for uint32 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<I", data[offset:nextOffset])[0])
 
-def parseInt64(offset: int, data):
+def parseInt64(offset: int, data) -> tuple:
    nextOffset = offset + 8
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int64 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<q", data[offset:nextOffset])[0])
 
-def parseUint64(offset: int, data):
+def parseUint64(offset: int, data) -> tuple:
    nextOffset = offset + 8
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for int64 in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<Q", data[offset:nextOffset])[0])
 
-def parseFloat(offset: int, data) -> float:
+def parseFloat(offset: int, data) -> tuple:
    nextOffset = offset + 4
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for float in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<f", data[offset:nextOffset])[0])
 
-def parseDouble(offset: int, data):
+def parseDouble(offset: int, data) -> tuple:
    nextOffset = offset + 8
    if nextOffset > len(data):
       raise ParseError(f"Offset {offset} too large for double in {len(data)}-byte data.")
    return (nextOffset, struct.unpack("<d", data[offset:nextOffset])[0])
 
-def parseBool(offset: int, data, parser, contextForException) -> bool:
+def parseBool(offset: int, data, parser, contextForException) -> tuple[int, bool]:
    (offset, flag) = parser(offset, data)
    if flag != 0 and flag != 1:
       raise ParseError(f"Oops: Inaccurate assumption of {contextForException} value.  Actual={flag}")
    return (offset, flag != 0)
 
-def parseString(offset: int, data) -> str:
+def parseString(offset: int, data) -> tuple[int, str]:
    (offset, strlen) = parseInt32(offset, data)
    if strlen == 0:
       return (offset, "")
@@ -2465,12 +2465,12 @@ def parseString(offset: int, data) -> str:
 
    return (offset + strlen, string)
 
-def parseData(offset: int, data, length: int):
+def parseData(offset: int, data, length: int) -> tuple:
    if offset + length > len(data):
       raise ParseError(f"Offset {offset} too large for data of length {length} in {len(data)}-byte data.")
    return (offset + length, data[offset:offset+length])
 
-def parseTextProperty(offset: int, data) -> list:
+def parseTextProperty(offset: int, data) -> tuple:
    (offset, flags) = parseUint32(offset, data)
    (offset, historyType) = parseUint8(offset, data)
    if historyType == HistoryType.NONE.value:
@@ -2677,7 +2677,7 @@ class ComponentHeader:
    def __str__(self):
       return f"<ComponentHeader: className={self.className}, rootObject={self.rootObject}, instanceName={self.instanceName}, flags={self.flags}, parentActorName={self.parentActorName}>"
 
-def toString(value: any) -> str:
+def toString(value) -> str:
    if isinstance(value, str):
       return f"'{value}'"
    elif isinstance(value, (tuple, list)):
@@ -2700,7 +2700,7 @@ def toString(value: any) -> str:
    else: # if isinstance(value, (int, float, bool, complex)):
       return str(value)
 
-def getPropertyValue(properties, needlePropertyName: str) -> any:
+def getPropertyValue(properties, needlePropertyName: str):
    for (haystackPropertyName, propertyValue) in properties:
       if haystackPropertyName == needlePropertyName:
          return propertyValue
@@ -2715,11 +2715,11 @@ class Object: # Both ActorObject and ComponentObject
       (offset, objectSize) = parseUint32(offset, data)
       offsetStartThis = offset
 
-      self.actorReferenceAssociations = None
+      self.actorReferenceAssociations: list | None = None
       if isinstance(actorOrComponentObjectHeader, ActorHeader):
          (offset, parentObjectReference) = parseObjectReference(offset, data)
          (offset, actorComponentReferenceCount) = parseUint32(offset, data)
-         actorComponentReferences = []
+         actorComponentReferences: list[ObjectReference] = []
          for jdx in range(actorComponentReferenceCount):
             (offset, actorComponentReference) = parseObjectReference(offset, data)
             actorComponentReferences.append(actorComponentReference)
@@ -2729,7 +2729,7 @@ class Object: # Both ActorObject and ComponentObject
 
       offset = confirmBasicType(offset, data, parseUint32, 0)
 
-      self.actorSpecificInfo = None
+      self.actorSpecificInfo: list | bool | int | None = None
       trailingByteSize = offsetStartThis + objectSize - offset
       if isinstance(actorOrComponentObjectHeader, ActorHeader):
          if actorOrComponentObjectHeader.typePath in CONVEYOR_BELTS:
@@ -2783,7 +2783,7 @@ class Object: # Both ActorObject and ComponentObject
                "/Game/FactoryGame/Buildable/Vehicle/Train/Wagon/BP_FreightWagon.BP_FreightWagon_C"):
             (offset, numTrains) = parseUint32(offset, data)
             #print(f"   numTrains={numTrains}")
-            trainList = []
+            trainList: list[str] = []
             for idx in range(numTrains):
                raise ParseError(f"numTrains {numTrains} for Object trailing data for {actorOrComponentObjectHeader.typePath} now allows greater parse testing.")
                #(offset, name) = parseString(offset, data)
@@ -3039,7 +3039,7 @@ class ObjectReference:
       else:
          return f"<ObjectReference: levelName={self.levelName}, pathName={self.pathName}>"
 
-def parseObjectReference(offset: int, data):
+def parseObjectReference(offset: int, data) -> tuple[int, ObjectReference]:
    objectReference = ObjectReference()
    offset = objectReference.parse(offset, data)
    return (offset, objectReference)
@@ -3069,7 +3069,39 @@ def getLevelSize(offset: int, data, persistentLevelFlag: bool = False):
 
    return (offset, actorAndComponentCount * 2)
 
-def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar = None):
+class ProgressBar():
+   prior = None
+   current = 0
+   fillChar = "#"
+   emptyChar = "."
+   completedChar = b'\x13\x27'.decode('utf-16')
+   fillColor = "\033[1;37;47m"
+   emptyColor = "\033[0;30;40m"
+   resetColor = "\033[0m"
+
+   def __init__(self, total, prefix: str = "", width: int = 70):
+      self.total = total
+      self.prefix = prefix
+      self.width = width
+      self.show()
+   def add(self, more = 1):
+      self.current += more
+      self.show()
+   def set(self, current = 1):
+      self.current = current
+      self.show()
+   def show(self):
+      # Loosely based on imbr's (https://stackoverflow.com/users/1207193/imbr) code at https://stackoverflow.com/questions/3160699/python-progress-bar
+      filled = int(round(self.current / self.total * self.width))
+      if filled != self.prior:
+         if sys.stdout.isatty():
+            print(f"{self.prefix}[{self.fillColor}{self.fillChar*filled}{self.emptyColor}{(self.emptyChar*(self.width-filled))}{self.resetColor}]   {round(self.current)}/{self.total}", end='\r', flush=True)
+         self.prior = filled
+   def complete(self):
+      if sys.stdout.isatty():
+         print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
+
+def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar = ProgressBar):
    if persistentLevelFlag:
       levelName = None
    else:
@@ -3084,6 +3116,7 @@ def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar
    for idx in range(actorAndComponentCount):
       (offset, headerType) = parseUint32(offset, data)
 
+      objectHeader: ActorHeader | ComponentHeader
       if headerType == 1:
          objectHeader = ActorHeader()
       elif headerType == 0:
@@ -3102,7 +3135,7 @@ def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar
          offset = confirmBasicType(offset, data, parseString, "Persistent_Level", "Level Persistent String")
 
    # Collectables #1
-   collectables1 = None
+   collectables1: list[ObjectReference] | None = None
    if objectHeaderAndCollectable1Size != offset - objectHeaderAndCollectable1StartOffset:
       collectables1 = []
       (offset, collectedCount1) = parseUint32(offset, data)
@@ -3141,7 +3174,7 @@ def parseLevel(offset: int, data, persistentLevelFlag: bool = False, progressBar
 
    return (offset, Level(levelName, actorAndComponentObjectHeaders, levelPersistentFlag, collectables1, objects, levelSaveVersion, collectables2))
 
-def parseProperties(offset: int, data: list) -> list:
+def parseProperties(offset: int, data: list) -> tuple:
    properties = []
    propertyTypes = []
    while True:
@@ -3152,7 +3185,7 @@ def parseProperties(offset: int, data: list) -> list:
       (offset, propertyType) = parseString(offset, data)
       (offset, propertySize) = parseUint32(offset, data)
       (offset, propertyIndex) = parseUint32(offset, data)  # Doesn't appear to be an actual 'index'.  Can be non-zero for propertyType=StructProperty.
-      retainedPropertyType = propertyType
+      retainedPropertyType: str | list = propertyType
 
       propertyStartOffset = 0
       if propertyType == "BoolProperty":
@@ -3447,7 +3480,7 @@ def parseProperties(offset: int, data: list) -> list:
             offset = confirmBasicType(offset, data, parseUint32, 0)
             (offset, itemName) = parseString(offset, data)
             (offset, itemHasPropertiesFlag) = parseBool(offset, data, parseUint32, "StructProperty.InventoryItem.itemHasPropertiesFlag")
-            itemProperties = 1
+            itemProperties: list | int = 1
             if itemHasPropertiesFlag:
                offset = confirmBasicType(offset, data, parseUint32, 0)
                (offset, typePath) = parseString(offset, data)
@@ -3549,7 +3582,7 @@ def parseProperties(offset: int, data: list) -> list:
                raise ParseError(f"Unsupported structPropertyType '{structPropertyType}'")
             else: # For debug only
                offset = TESTING_ONLY_dumpSection(offset, data, propertyStartOffset, propertySize, f"Skipping unsupported structPropertyType '{structPropertyType}'")
-               properties.append(None)
+               properties.append([propertyName])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} structPropertyType={structPropertyType} start={propertyStartOffset}")
          if False: # For debug only
@@ -3564,7 +3597,7 @@ def parseProperties(offset: int, data: list) -> list:
          offset = confirmBasicType(offset, data, parseUint32, 0)
          (offset, numberOfElements) = parseUint32(offset, data)
          values = []
-         propTypess = None
+         propTypess: list | None = None
          if valueType == "StructProperty":
             propTypess = []
          for jdx in range(numberOfElements):
@@ -3621,38 +3654,6 @@ def parseProperties(offset: int, data: list) -> list:
 def readCompressedSaveFile(filename: str):
    with open(filename, "rb") as fin:
       return fin.read()
-
-class ProgressBar():
-   prior = None
-   current = 0
-   fillChar = "#"
-   emptyChar = "."
-   completedChar = b'\x13\x27'.decode('utf-16')
-   fillColor = "\033[1;37;47m"
-   emptyColor = "\033[0;30;40m"
-   resetColor = "\033[0m"
-
-   def __init__(self, total, prefix: str = "", width: int = 70):
-      self.total = total
-      self.prefix = prefix
-      self.width = width
-      self.show()
-   def add(self, more = 1):
-      self.current += more
-      self.show()
-   def set(self, current = 1):
-      self.current = current
-      self.show()
-   def show(self):
-      # Loosely based on imbr's (https://stackoverflow.com/users/1207193/imbr) code at https://stackoverflow.com/questions/3160699/python-progress-bar
-      filled = int(round(self.current / self.total * self.width))
-      if filled != self.prior:
-         if sys.stdout.isatty():
-            print(f"{self.prefix}[{self.fillColor}{self.fillChar*filled}{self.emptyColor}{(self.emptyChar*(self.width-filled))}{self.resetColor}]   {round(self.current)}/{self.total}", end='\r', flush=True)
-         self.prior = filled
-   def complete(self):
-      if sys.stdout.isatty():
-         print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
 
 def decompressSaveFile(offset: int, data: list):
    decompressedData = b""
@@ -3711,7 +3712,7 @@ def pathNameToReadableName(name: str) -> str:
       name = name[1:]
    return f"{name} ({originalName})"
 
-def readFullSaveFile(filename: str, decompressedOutputFilename: str = None):
+def readFullSaveFile(filename: str, decompressedOutputFilename: str | None = None):
    global satisfactoryCalculatorInteractiveMapExtras
    satisfactoryCalculatorInteractiveMapExtras = []
 
@@ -3801,7 +3802,7 @@ def readFullSaveFile(filename: str, decompressedOutputFilename: str = None):
 
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
-   if PROGRESS_BAR_ENABLE_PARSE:
+   if PROGRESS_BAR_ENABLE_PARSE and progressBar is not None:
       progressBar.complete()
 
    if len(satisfactoryCalculatorInteractiveMapExtras) > 0:
@@ -3978,7 +3979,7 @@ if __name__ == '__main__':
                for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                   if isinstance(actorOrComponentObjectHeader, ActorHeader) and actorOrComponentObjectHeader.typePath == "/Script/FactoryGame.FGItemPickup_Spawnable":
                      items[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
-            specificItems = {}
+            specificItems: dict[str, list] = {}
             for level in parsedSave.levels:
                for object in level.objects:
                   if object.instanceName in items:

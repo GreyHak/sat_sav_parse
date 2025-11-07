@@ -74,9 +74,9 @@ def chown(filename: str):
 
 CURRENT_DEPOT_STACK_LIMIT = 5
 ITEM_STACK_SIZE_FILENAME = "sav_stack_sizes.json"
-itemStackSizes = {}
+itemStackSizes: dict[str, int | None] = {}
 VALID_STACK_SIZES = (500, 200, 100, 50) # In reducing order
-def getStackSize(itemName: str, itemCount: int) -> int:
+def getStackSize(itemName: str, itemCount: int) -> int | None:
    global itemStackSizes
    if len(itemStackSizes) == 0 and os.path.isfile(ITEM_STACK_SIZE_FILENAME):
       with open(ITEM_STACK_SIZE_FILENAME, "r") as fin:
@@ -84,9 +84,8 @@ def getStackSize(itemName: str, itemCount: int) -> int:
 
    derivedStackSize = None
    if itemCount != 0:
-      itemCount = itemCount / CURRENT_DEPOT_STACK_LIMIT
       for validStackSize in VALID_STACK_SIZES:
-         if (itemCount % validStackSize) == 0:
+         if ((itemCount / CURRENT_DEPOT_STACK_LIMIT) % validStackSize) == 0:
             derivedStackSize = validStackSize
             break
 
@@ -124,7 +123,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       activeSchematicShortName = None
       activeSchematicDescription = None
       numBuildables = 0
-      buildablesMap = {}
+      buildablesMap: dict[str, int] = {}
       minerInstances = []
       minerTypesInstanceAndPositions = []
       minedResourceActors = {}
@@ -449,13 +448,13 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       if len(buildablesMap) > 0:
          lines += f"{numBuildables} current built items:\n"
          lines += '<ul style="margin-top:0px">\n'
-         buildables = []
-         for buildable in buildablesMap:
-            buildables.append((buildablesMap[buildable], buildable))
+         buildables: list[tuple] = []
+         for buildableStr in buildablesMap:
+            buildables.append((buildablesMap[buildableStr], buildableStr))
          buildables.sort(reverse=True, key=lambda x: x[0])
-         for buildable in buildables:
-            shortName = sav_parse.pathNameToReadableName(buildable[1])
-            lines += f"<li>{buildable[0]} x {shortName}</li>\n"
+         for buildableTuple in buildables:
+            shortName = sav_parse.pathNameToReadableName(buildableTuple[1])
+            lines += f"<li>{buildableTuple[0]} x {shortName}</li>\n"
          lines += "</ul>\n"
 
       if numCreaturesKilled > 0:
