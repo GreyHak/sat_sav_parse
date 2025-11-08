@@ -21,11 +21,7 @@ import os
 import sys
 
 import sav_parse
-
-from data import sav_data_mercerSphere
-from data import sav_data_slug
-from data import sav_data_somersloop
-from data import sav_data_resourcePurity
+import sav_data.data
 
 try:
    from PIL import Image, ImageDraw, ImageFont
@@ -114,11 +110,11 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       parsedSave = sav_parse.readFullSaveFile(savFilename)
       #htmlFilename = f"save_{parsedSave.saveFileInfo.sessionName}_{parsedSave.saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.html"
 
-      uncollectedPowerSlugsBlue = sav_data_slug.POWER_SLUGS_BLUE.copy()
-      uncollectedPowerSlugsYellow = sav_data_slug.POWER_SLUGS_YELLOW.copy()
-      uncollectedPowerSlugsPurple = sav_data_slug.POWER_SLUGS_PURPLE.copy()
-      uncollectedSomersloops = sav_data_somersloop.SOMERSLOOPS.copy()
-      uncollectedMercerSpheres = sav_data_mercerSphere.MERCER_SPHERES.copy()
+      uncollectedPowerSlugsBlue = sav_data.slug.POWER_SLUGS_BLUE.copy()
+      uncollectedPowerSlugsYellow = sav_data.slug.POWER_SLUGS_YELLOW.copy()
+      uncollectedPowerSlugsPurple = sav_data.slug.POWER_SLUGS_PURPLE.copy()
+      uncollectedSomersloops = sav_data.somersloop.SOMERSLOOPS.copy()
+      uncollectedMercerSpheres = sav_data.mercerSphere.MERCER_SPHERES.copy()
 
       activeSchematic = None
       activeSchematicShortName = None
@@ -138,9 +134,9 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       pointProgressLines = ""
       unlockCount_hardDrives = 0
       unlockCount_awesomeShop = 0
-      unlockRemaining_awesomeShop = list(sav_parse.UNLOCK_PATHS__AWESOME_SHOP)
+      unlockRemaining_awesomeShop = list(sav_data.data.UNLOCK_PATHS__AWESOME_SHOP)
       unlockCount_mam = 0
-      unlockRemaining_mam = list(sav_parse.UNLOCK_PATHS__MAM)
+      unlockRemaining_mam = list(sav_data.data.UNLOCK_PATHS__MAM)
       unlockCount_hubTiers = 0
       unlockCount_special = 0
       dimensionalDepotContents = []
@@ -159,15 +155,15 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   if typePath in sav_parse.MINERS:
                      minerInstances.append(actorOrComponentObjectHeader.instanceName)
                      minerTypesInstanceAndPositions.append((typePath, actorOrComponentObjectHeader.instanceName, actorOrComponentObjectHeader.position))
-               if typePath in sav_parse.MINED_RESOURCES:
+               if typePath in sav_data.data.MINED_RESOURCES:
                   resourceType = None
                   purity = None
-                  if actorOrComponentObjectHeader.instanceName in sav_data_resourcePurity.RESOURCE_PURITY: # Won't be found for BP_FrackingCore_C
-                     (resourceType, purity) = sav_data_resourcePurity.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
+                  if actorOrComponentObjectHeader.instanceName in sav_data.resourcePurity.RESOURCE_PURITY: # Won't be found for BP_FrackingCore_C
+                     (resourceType, purity) = sav_data.resourcePurity.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
                   minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, resourceType, purity)
-               elif typePath == sav_parse.CRASH_SITE:
+               elif typePath == sav_data.data.CRASH_SITE:
                   crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
-               elif typePath == sav_parse.POWER_LINE:
+               elif typePath == sav_data.data.POWER_LINE:
                   powerLines[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
          for object in level.objects:
             if object.instanceName == "Persistent_Level:PersistentLevel.StatisticsSubsystem":
@@ -180,14 +176,14 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             elif object.instanceName == "Persistent_Level:PersistentLevel.GamePhaseManager":
                currentGamePhase = sav_parse.getPropertyValue(object.properties, "mCurrentGamePhase")
                if currentGamePhase is not None:
-                  if currentGamePhase.pathName == sav_parse.FINAL_PROJECT_ASSEMBLY_PHASE_7: # mTargetGamePhase will be phase 1
+                  if currentGamePhase.pathName == sav_data.data.FINAL_PROJECT_ASSEMBLY_PHASE_7: # mTargetGamePhase will be phase 1
                      gamePhase = "<b>Project Assembly Completed.</b>"
                   else:
                      gamePhase = f"<b>{sav_parse.pathNameToReadableName(currentGamePhase.pathName)}</b>"
                      targetGamePhase = sav_parse.getPropertyValue(object.properties, "mTargetGamePhase")
                      if targetGamePhase is not None:
                         targetGamePhase = targetGamePhase.pathName
-                        if targetGamePhase == sav_parse.FINAL_PROJECT_ASSEMBLY_PHASE_6:
+                        if targetGamePhase == sav_data.data.FINAL_PROJECT_ASSEMBLY_PHASE_6:
                            gamePhase = "<b>Project Assembly Complete[ing]</b>"
                         else:
                            gamePhase += f" toward <b>{sav_parse.pathNameToReadableName(targetGamePhase)}</b>"
@@ -238,17 +234,17 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                purchasedSchematics = sav_parse.getPropertyValue(object.properties, "mPurchasedSchematics")
                if purchasedSchematics is not None:
                   for purchasedSchematic in purchasedSchematics:
-                     if purchasedSchematic.pathName in sav_parse.UNLOCK_PATHS__HARD_DRIVES:
+                     if purchasedSchematic.pathName in sav_data.data.UNLOCK_PATHS__HARD_DRIVES:
                         unlockCount_hardDrives += 1
-                     elif purchasedSchematic.pathName in sav_parse.UNLOCK_PATHS__AWESOME_SHOP:
+                     elif purchasedSchematic.pathName in sav_data.data.UNLOCK_PATHS__AWESOME_SHOP:
                         unlockCount_awesomeShop += 1
                         unlockRemaining_awesomeShop.remove(purchasedSchematic.pathName)
-                     elif purchasedSchematic.pathName in sav_parse.UNLOCK_PATHS__MAM:
+                     elif purchasedSchematic.pathName in sav_data.data.UNLOCK_PATHS__MAM:
                         unlockCount_mam += 1
                         unlockRemaining_mam.remove(purchasedSchematic.pathName)
-                     elif purchasedSchematic.pathName in sav_parse.UNLOCK_PATHS__HUB_TIERS:
+                     elif purchasedSchematic.pathName in sav_data.data.UNLOCK_PATHS__HUB_TIERS:
                         unlockCount_hubTiers += 1
-                     elif purchasedSchematic.pathName in sav_parse.UNLOCK_PATHS__SPECIAL:
+                     elif purchasedSchematic.pathName in sav_data.data.UNLOCK_PATHS__SPECIAL:
                         unlockCount_special += 1
             elif object.instanceName == "Persistent_Level:PersistentLevel.CentralStorageSubsystem":
                storedItems = sav_parse.getPropertyValue(object.properties, "mStoredItems")
@@ -388,22 +384,22 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       else:
          lines += ".<p>\n"
 
-      TOTAL_NUM_SLUGS = len(sav_data_slug.POWER_SLUGS_BLUE) + len(sav_data_slug.POWER_SLUGS_YELLOW) + len(sav_data_slug.POWER_SLUGS_PURPLE)
+      TOTAL_NUM_SLUGS = len(sav_data.slug.POWER_SLUGS_BLUE) + len(sav_data.slug.POWER_SLUGS_YELLOW) + len(sav_data.slug.POWER_SLUGS_PURPLE)
       totalNumCollectedSlugs = numCollectedSlugsMk1 + numCollectedSlugsMk2 + numCollectedSlugsMk3
       lines += f"{totalNumCollectedSlugs} of {TOTAL_NUM_SLUGS} slugs collected.\n"
-      lines += f"{numCollectedSlugsMk1} of {len(sav_data_slug.POWER_SLUGS_BLUE)} blue.\n"
-      lines += f"{numCollectedSlugsMk2} of {len(sav_data_slug.POWER_SLUGS_YELLOW)} yellow.\n"
-      lines += f"{numCollectedSlugsMk3} of {len(sav_data_slug.POWER_SLUGS_PURPLE)} purple."
+      lines += f"{numCollectedSlugsMk1} of {len(sav_data.slug.POWER_SLUGS_BLUE)} blue.\n"
+      lines += f"{numCollectedSlugsMk2} of {len(sav_data.slug.POWER_SLUGS_YELLOW)} yellow.\n"
+      lines += f"{numCollectedSlugsMk3} of {len(sav_data.slug.POWER_SLUGS_PURPLE)} purple."
       if creatingMapImagesFlag:
          lines += f'\n<a href="{MAP_BASENAME_SLUGS}">Map of remaining slugs.</a>'
       lines += "<p>\n"
 
-      lines += f"{len(uncollectedSomersloops)} Somersloops remaining ({round(len(uncollectedSomersloops)/len(sav_data_somersloop.SOMERSLOOPS)*100,1)}% of {len(sav_data_somersloop.SOMERSLOOPS)})."
+      lines += f"{len(uncollectedSomersloops)} Somersloops remaining ({round(len(uncollectedSomersloops)/len(sav_data.somersloop.SOMERSLOOPS)*100,1)}% of {len(sav_data.somersloop.SOMERSLOOPS)})."
       if creatingMapImagesFlag:
          lines += f' <a href="{MAP_BASENAME_SOMERSLOOP}">map</a>'
       lines += "<br>\n"
 
-      lines += f"{len(uncollectedMercerSpheres)} Mercer Spheres remaining ({round(len(uncollectedMercerSpheres)/len(sav_data_mercerSphere.MERCER_SPHERES)*100,1)}% of {len(sav_data_mercerSphere.MERCER_SPHERES)})."
+      lines += f"{len(uncollectedMercerSpheres)} Mercer Spheres remaining ({round(len(uncollectedMercerSpheres)/len(sav_data.mercerSphere.MERCER_SPHERES)*100,1)}% of {len(sav_data.mercerSphere.MERCER_SPHERES)})."
       if creatingMapImagesFlag:
          lines += f' <a href="{MAP_BASENAME_MERCER_SPHERE}">map</a>'
 
@@ -419,13 +415,13 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
       lines += "Unlock Progress:\n"
       lines += '<ul style="margin-top:0px">\n'
-      lines += f"<li>HUB Tiers: {unlockCount_hubTiers} of {len(sav_parse.UNLOCK_PATHS__HUB_TIERS)}</li>\n"
-      lines += f"<li>MAM: {unlockCount_mam} of {len(sav_parse.UNLOCK_PATHS__MAM)}</li>\n"
+      lines += f"<li>HUB Tiers: {unlockCount_hubTiers} of {len(sav_data.data.UNLOCK_PATHS__HUB_TIERS)}</li>\n"
+      lines += f"<li>MAM: {unlockCount_mam} of {len(sav_data.data.UNLOCK_PATHS__MAM)}</li>\n"
       #lines += str(unlockRemaining_mam) # Research_AO_Hog and Research_AO_Spitter remain, but they're clearly unlocked
-      lines += f"<li>Awesome Shop: {unlockCount_awesomeShop} of {len(sav_parse.UNLOCK_PATHS__AWESOME_SHOP)}</li>\n"
+      lines += f"<li>Awesome Shop: {unlockCount_awesomeShop} of {len(sav_data.data.UNLOCK_PATHS__AWESOME_SHOP)}</li>\n"
       #lines += str(unlockRemaining_awesomeShop) # TODO: Why ResourceSink_Checkmark???  My calculation is the same as satisfactory-calculator, but not the game
-      lines += f"<li>Hard Drives: {unlockCount_hardDrives} of {len(sav_parse.UNLOCK_PATHS__HARD_DRIVES)}</li>\n"
-      lines += f"<li>Special: {unlockCount_special} of {len(sav_parse.UNLOCK_PATHS__SPECIAL)}</li>\n"
+      lines += f"<li>Hard Drives: {unlockCount_hardDrives} of {len(sav_data.data.UNLOCK_PATHS__HARD_DRIVES)}</li>\n"
+      lines += f"<li>Special: {unlockCount_special} of {len(sav_data.data.UNLOCK_PATHS__SPECIAL)}</li>\n"
       lines += "</ul>\n"
 
       if len(pointProgressLines) > 0:

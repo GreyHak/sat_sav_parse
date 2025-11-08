@@ -24,10 +24,7 @@ import uuid
 
 import sav_parse
 import sav_to_resave
-
-from data import sav_data_free
-from data import sav_data_mercerSphere
-from data import sav_data_somersloop
+import sav_data.data
 
 try:
    import sav_to_html
@@ -270,7 +267,7 @@ def addSomersloop(levels, targetPathName: str) -> bool:
             level.collectables2.remove(collectable)
 
             instanceName = collectable.pathName
-            (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[collectable.pathName]
+            (rootObject, rotation, position) = sav_data.somersloop.SOMERSLOOPS[collectable.pathName]
 
             newActor = sav_parse.ActorHeader()
             newActor.typePath = sav_parse.SOMERSLOOP
@@ -319,7 +316,7 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
             level.collectables2.remove(collectable)
 
             instanceName = collectable.pathName
-            (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[collectable.pathName]
+            (rootObject, rotation, position) = sav_data.mercerSphere.MERCER_SPHERES[collectable.pathName]
 
             newActor = sav_parse.ActorHeader()
             newActor.typePath = sav_parse.MERCER_SPHERE
@@ -376,7 +373,7 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
                   level.collectables2.remove(duplicate)
 
             instanceName = collectable.pathName
-            (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[collectable.pathName]
+            (rootObject, rotation, position, scale) = sav_data.mercerSphere.MERCER_SHRINES[collectable.pathName]
 
             newActor = sav_parse.ActorHeader()
             newActor.typePath = sav_parse.MERCER_SHRINE
@@ -448,17 +445,17 @@ def removeInstance(levels: list, humanReadableName: str, rootObject, targetInsta
    return False
 
 def removeSomersloop(levels, targetInstanceName: str) -> bool:
-   (rootObject, rotation, position) = sav_data_somersloop.SOMERSLOOPS[targetInstanceName]
+   (rootObject, rotation, position) = sav_data.somersloop.SOMERSLOOPS[targetInstanceName]
    print(f"Removing Somersloop {targetInstanceName} at {position}")
    return removeInstance(levels, "Somersloops", rootObject, targetInstanceName, position)
 
 def removeMercerSphere(levels, targetInstanceName: str) -> bool:
-   (rootObject, rotation, position) = sav_data_mercerSphere.MERCER_SPHERES[targetInstanceName]
+   (rootObject, rotation, position) = sav_data.mercerSphere.MERCER_SPHERES[targetInstanceName]
    print(f"Removing Mercer Sphere {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Sphere", rootObject, targetInstanceName, position)
 
 def removeMercerShrine(levels, targetInstanceName: str) -> bool:
-   (rootObject, rotation, position, scale) = sav_data_mercerSphere.MERCER_SHRINES[targetInstanceName]
+   (rootObject, rotation, position, scale) = sav_data.mercerSphere.MERCER_SHRINES[targetInstanceName]
    print(f"Removing Mercer Shrine {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Shrine", rootObject, targetInstanceName, position)
 
@@ -710,9 +707,9 @@ if __name__ == '__main__':
    elif len(sys.argv) in (2, 3, 4) and sys.argv[1] == "--find-free-stuff" and (len(sys.argv) < 4 or os.path.isfile(sys.argv[3])):
 
       if len(sys.argv) == 2:
-         for item in sav_data_free.FREE_DROPPED_ITEMS:
+         for item in sav_data.freeStuff.FREE_DROPPED_ITEMS:
             total = 0
-            for (quantity, position, instanceName) in sav_data_free.FREE_DROPPED_ITEMS[item]:
+            for (quantity, position, instanceName) in sav_data.freeStuff.FREE_DROPPED_ITEMS[item]:
                total += quantity
             print(f"{total} x {sav_parse.pathNameToReadableName(item)}")
       else:
@@ -720,10 +717,10 @@ if __name__ == '__main__':
          itemName = sys.argv[2]
 
          droppedInstances = {}
-         for item in sav_data_free.FREE_DROPPED_ITEMS:
+         for item in sav_data.freeStuff.FREE_DROPPED_ITEMS:
             if sav_parse.pathNameToReadableName(item) == itemName:
-               for idx in range(len(sav_data_free.FREE_DROPPED_ITEMS[item])):
-                  (quantity, position, instanceName) = sav_data_free.FREE_DROPPED_ITEMS[item][idx]
+               for idx in range(len(sav_data.freeStuff.FREE_DROPPED_ITEMS[item])):
+                  (quantity, position, instanceName) = sav_data.freeStuff.FREE_DROPPED_ITEMS[item][idx]
                   droppedInstances[instanceName] = (quantity, position)
                break
          if len(droppedInstances) == 0:
@@ -883,7 +880,7 @@ if __name__ == '__main__':
       for inventoryContent in importedInventoryContents:
          if inventoryContent is not None:
             itemPathName = inventoryContent[0]
-            if itemPathName not in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
+            if itemPathName not in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY:
                print(f"ERROR: {itemPathName} not a valid item path name.")
                exit(1)
 
@@ -956,18 +953,18 @@ if __name__ == '__main__':
       if len(sys.argv) == 9 and sys.argv[8] == "--same-time":
          changeTimeFlag = False
 
-      if tweakItemName not in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
-         for className in sav_parse.READABLE_PATH_NAME_CORRECTIONS:
-            if tweakItemName == sav_parse.READABLE_PATH_NAME_CORRECTIONS[className]:
+      if tweakItemName not in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY:
+         for className in sav_data.readableNames.READABLE_PATH_NAME_CORRECTIONS:
+            if tweakItemName == sav_data.readableNames.READABLE_PATH_NAME_CORRECTIONS[className]:
                suffixSearch = f".{className}"
-               for pathName in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
+               for pathName in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY:
                   if pathName.endswith(suffixSearch):
                      print(f"Using '{pathName}' for {tweakItemName}")
                      tweakItemName = pathName
                      break
                break
 
-         if tweakItemName not in sav_parse.ITEMS_FOR_PLAYER_INVENTORY:
+         if tweakItemName not in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY:
             print(f"ERROR: {tweakItemName} not a valid item path name.")
             exit(1)
 
@@ -1453,7 +1450,7 @@ if __name__ == '__main__':
       modifiedFlag = False
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
-         for targetPathName in sav_data_somersloop.SOMERSLOOPS:
+         for targetPathName in sav_data.somersloop.SOMERSLOOPS:
             if addSomersloop(parsedSave.levels, targetPathName):
                modifiedFlag = True
 
@@ -1484,10 +1481,10 @@ if __name__ == '__main__':
       modifiedFlag = False
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
-         for targetPathName in sav_data_mercerSphere.MERCER_SPHERES:
+         for targetPathName in sav_data.mercerSphere.MERCER_SPHERES:
             if addMercerSphere(parsedSave.levels, targetPathName):
                modifiedFlag = True
-         for targetPathName in sav_data_mercerSphere.MERCER_SHRINES:
+         for targetPathName in sav_data.mercerSphere.MERCER_SHRINES:
             if addMercerShrine(parsedSave.levels, targetPathName):
                modifiedFlag = True
 
@@ -1517,13 +1514,13 @@ if __name__ == '__main__':
 
          # Assume True because that's accurate if the Object exists or the it's not in the save at all.
          jdata = {"Somersloops": {}}
-         for pathName in sav_data_somersloop.SOMERSLOOPS:
+         for pathName in sav_data.somersloop.SOMERSLOOPS:
             jdata["Somersloops"][pathName] = True
 
          for level in parsedSave.levels:
             # Checking collectables2 because the object can be in collectables2 when collectables1 is None
             for collectable in level.collectables2:
-               if collectable.pathName in sav_data_somersloop.SOMERSLOOPS:
+               if collectable.pathName in sav_data.somersloop.SOMERSLOOPS:
                   jdata["Somersloops"][collectable.pathName] = False
 
       except Exception as error:
@@ -1542,17 +1539,17 @@ if __name__ == '__main__':
 
          # Assume True because that's accurate if the Object exists or the it's not in the save at all.
          jdata = {"MercerSpheres": {}, "MercerShrines": {}}
-         for pathName in sav_data_mercerSphere.MERCER_SPHERES:
+         for pathName in sav_data.mercerSphere.MERCER_SPHERES:
             jdata["MercerSpheres"][pathName] = True
-         for pathName in sav_data_mercerSphere.MERCER_SHRINES:
+         for pathName in sav_data.mercerSphere.MERCER_SHRINES:
             jdata["MercerShrines"][pathName] = True
 
          for level in parsedSave.levels:
             # Checking collectables2 because the object can be in collectables2 when collectables1 is None
             for collectable in level.collectables2:
-               if collectable.pathName in sav_data_mercerSphere.MERCER_SPHERES:
+               if collectable.pathName in sav_data.mercerSphere.MERCER_SPHERES:
                   jdata["MercerSpheres"][collectable.pathName] = False
-               elif collectable.pathName in sav_data_mercerSphere.MERCER_SHRINES:
+               elif collectable.pathName in sav_data.mercerSphere.MERCER_SHRINES:
                   jdata["MercerShrines"][collectable.pathName] = False
 
       except Exception as error:
