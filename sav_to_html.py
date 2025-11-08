@@ -152,7 +152,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                      buildablesMap[typePath] += 1
                   else:
                      buildablesMap[typePath] = 1
-                  if typePath in sav_parse.MINERS:
+                  if typePath in sav_data.data.MINERS:
                      minerInstances.append(actorOrComponentObjectHeader.instanceName)
                      minerTypesInstanceAndPositions.append((typePath, actorOrComponentObjectHeader.instanceName, actorOrComponentObjectHeader.position))
                if typePath in sav_data.data.MINED_RESOURCES:
@@ -200,11 +200,11 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                                        itemName = itemCostClass.pathName
                                        itemName = sav_parse.pathNameToReadableName(itemName)
                                        alreadySupplied[itemName] = amountSupplied
-                              if targetGamePhase not in sav_parse.PROJECT_ASSEMBLY_COSTS:
+                              if targetGamePhase not in sav_data.data.PROJECT_ASSEMBLY_COSTS:
                                  gamePhase = f"{gamePhase}<li>ERROR: {targetGamePhase} not in PROJECT_ASSEMBLY_COSTS</li>\n"
                               else:
-                                 for itemName in sav_parse.PROJECT_ASSEMBLY_COSTS[targetGamePhase]:
-                                    totalCost = sav_parse.PROJECT_ASSEMBLY_COSTS[targetGamePhase][itemName]
+                                 for itemName in sav_data.data.PROJECT_ASSEMBLY_COSTS[targetGamePhase]:
+                                    totalCost = sav_data.data.PROJECT_ASSEMBLY_COSTS[targetGamePhase][itemName]
                                     if itemName in alreadySupplied:
                                        amountSupplied = alreadySupplied[itemName]
                                     else:
@@ -315,7 +315,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                      itemCostForActiveSchematic = sav_parse.getPropertyValue(paidOffSchematic[0], "ItemCost")
                      if paidOffSchematic_schematic is not None and itemCostForActiveSchematic is not None and paidOffSchematic_schematic.pathName == activeSchematic:
                         activeSchematicDescription = f'{activeSchematicDescription} Already supplied:\n<ul style="margin-top:0px">\t\n'
-                        if activeSchematicShortName not in sav_parse.MILESTONE_COSTS:
+                        if activeSchematicShortName not in sav_data.data.MILESTONE_COSTS:
                            activeSchematicDescription = f"{activeSchematicDescription}<li>ERROR: {activeSchematicShortName} not in MILESTONE_COSTS</li>\n"
                         else:
                            alreadySupplied = {}
@@ -327,8 +327,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                                     itemName = itemClass.pathName
                                     itemName = sav_parse.pathNameToReadableName(itemName)
                                     alreadySupplied[itemName] = amountSupplied
-                           for itemName in sav_parse.MILESTONE_COSTS[activeSchematicShortName]:
-                              totalCost = sav_parse.MILESTONE_COSTS[activeSchematicShortName][itemName]
+                           for itemName in sav_data.data.MILESTONE_COSTS[activeSchematicShortName]:
+                              totalCost = sav_data.data.MILESTONE_COSTS[activeSchematicShortName][itemName]
                               if itemName in alreadySupplied:
                                  amountSupplied = alreadySupplied[itemName]
                               else:

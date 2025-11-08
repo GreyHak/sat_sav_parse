@@ -5,9 +5,18 @@ import sav_data.resourcePurity
 import sav_data.slug
 import sav_data.somersloop
 
-ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
+# New items can be identified for the ITEMS_FOR_PLAYER_INVENTORY tuple by
+# enabling CHECK_ITEMS_FOR_PLAYER_INVENTORY in sav_cli.py and running:
+#    py sav_cli.py --list-player-inventory <player-id> <file>
+ITEMS_FOR_PLAYER_INVENTORY = (
    "/Game/FactoryGame/Equipment/Chainsaw/Desc_Chainsaw.Desc_Chainsaw_C",
+   "/Game/FactoryGame/Equipment/NobeliskDetonator/Ammo/Desc_NobeliskCluster.Desc_NobeliskCluster_C",
+   "/Game/FactoryGame/Equipment/NobeliskDetonator/Ammo/Desc_NobeliskGas.Desc_NobeliskGas_C",
+   "/Game/FactoryGame/Equipment/NobeliskDetonator/Ammo/Desc_NobeliskShockwave.Desc_NobeliskShockwave_C",
+   "/Game/FactoryGame/Equipment/RebarGun/Ammo/Desc_Rebar_Explosive.Desc_Rebar_Explosive_C",
    "/Game/FactoryGame/Equipment/RebarGun/Ammo/Desc_Rebar_Stunshot.Desc_Rebar_Stunshot_C",
+   "/Game/FactoryGame/Equipment/Rifle/Ammo/Desc_CartridgeChaos.Desc_CartridgeChaos_C",
+   "/Game/FactoryGame/Equipment/Rifle/Ammo/Desc_CartridgeSmartProjectile.Desc_CartridgeSmartProjectile_C",
    "/Game/FactoryGame/Events/Christmas/Parts/Desc_CandyCane.Desc_CandyCane_C",
    "/Game/FactoryGame/Events/Christmas/Parts/Desc_Gift.Desc_Gift_C",
    "/Game/FactoryGame/Events/Christmas/Parts/Desc_Snow.Desc_Snow_C",
@@ -31,6 +40,7 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Environment/DesertShroom/Desc_Shroom.Desc_Shroom_C",
    "/Game/FactoryGame/Resource/Environment/Nut/Desc_Nut.Desc_Nut_C",
    "/Game/FactoryGame/Resource/Equipment/Beacon/Desc_Parachute.Desc_Parachute_C",
+   "/Game/FactoryGame/Resource/Equipment/Cup/BP_EquipmentDescriptorCup.BP_EquipmentDescriptorCup_C",
    "/Game/FactoryGame/Resource/Equipment/GemstoneScanner/BP_EquipmentDescriptorObjectScanner.BP_EquipmentDescriptorObjectScanner_C",
    "/Game/FactoryGame/Resource/Equipment/GolfCart/Desc_GolfCart.Desc_GolfCart_C",
    "/Game/FactoryGame/Resource/Equipment/GolfCart/Desc_GolfCartGold.Desc_GolfCartGold_C",
@@ -56,6 +66,7 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Parts/AnimalParts/Desc_StingerParts.Desc_StingerParts_C",
    "/Game/FactoryGame/Resource/Parts/Battery/Desc_Battery.Desc_Battery_C",
    "/Game/FactoryGame/Resource/Parts/BioFuel/Desc_Biofuel.Desc_Biofuel_C",
+   "/Game/FactoryGame/Resource/Parts/BioFuel/Desc_PackagedBiofuel.Desc_PackagedBiofuel_C",
    "/Game/FactoryGame/Resource/Parts/Cable/Desc_Cable.Desc_Cable_C",
    "/Game/FactoryGame/Resource/Parts/CartridgeStandard/Desc_CartridgeStandard.Desc_CartridgeStandard_C",
    "/Game/FactoryGame/Resource/Parts/Cement/Desc_Cement.Desc_Cement_C",
@@ -72,6 +83,7 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Parts/CopperSheet/Desc_CopperSheet.Desc_CopperSheet_C",
    "/Game/FactoryGame/Resource/Parts/CrystalOscillator/Desc_CrystalOscillator.Desc_CrystalOscillator_C",
    "/Game/FactoryGame/Resource/Parts/ElectromagneticControlRod/Desc_ElectromagneticControlRod.Desc_ElectromagneticControlRod_C",
+   "/Game/FactoryGame/Resource/Parts/FicsiteMesh/Desc_FicsiteMesh.Desc_FicsiteMesh_C",
    "/Game/FactoryGame/Resource/Parts/Ficsonium/Desc_Ficsonium.Desc_Ficsonium_C",
    "/Game/FactoryGame/Resource/Parts/FicsoniumFuelRod/Desc_FicsoniumFuelRod.Desc_FicsoniumFuelRod_C",
    "/Game/FactoryGame/Resource/Parts/Filter/Desc_Filter.Desc_Filter_C",
@@ -109,15 +121,21 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Parts/QuantumOscillator/Desc_QuantumOscillator.Desc_QuantumOscillator_C",
    "/Game/FactoryGame/Resource/Parts/QuartzCrystal/Desc_QuartzCrystal.Desc_QuartzCrystal_C",
    "/Game/FactoryGame/Resource/Parts/ResourceSinkCoupon/Desc_ResourceSinkCoupon.Desc_ResourceSinkCoupon_C",
+   "/Game/FactoryGame/Resource/Parts/RocketFuel/Desc_PackagedRocketFuel.Desc_PackagedRocketFuel_C",
    "/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C",
    "/Game/FactoryGame/Resource/Parts/Rubber/Desc_Rubber.Desc_Rubber_C",
+   "/Game/FactoryGame/Resource/Parts/SAMFluctuator/Desc_SAMFluctuator.Desc_SAMFluctuator_C",
+   "/Game/FactoryGame/Resource/Parts/SAMIngot/Desc_SAMIngot.Desc_SAMIngot_C",
    "/Game/FactoryGame/Resource/Parts/Silica/Desc_Silica.Desc_Silica_C",
    "/Game/FactoryGame/Resource/Parts/SnowballProjectile/Desc_SnowballProjectile.Desc_SnowballProjectile_C",
    "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_1.Desc_SpaceElevatorPart_1_C",
+   "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_10.Desc_SpaceElevatorPart_10_C",
+   "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_12.Desc_SpaceElevatorPart_12_C",
    "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_2.Desc_SpaceElevatorPart_2_C",
    "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_3.Desc_SpaceElevatorPart_3_C",
    "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_4.Desc_SpaceElevatorPart_4_C",
    "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_5.Desc_SpaceElevatorPart_5_C",
+   "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_6.Desc_SpaceElevatorPart_6_C",
    "/Game/FactoryGame/Resource/Parts/SpaceElevatorParts/Desc_SpaceElevatorPart_9.Desc_SpaceElevatorPart_9_C",
    "/Game/FactoryGame/Resource/Parts/SpikedRebar/Desc_SpikedRebar.Desc_SpikedRebar_C",
    "/Game/FactoryGame/Resource/Parts/Stator/Desc_Stator.Desc_Stator_C",
@@ -125,6 +143,7 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/Parts/SteelPipe/Desc_SteelPipe.Desc_SteelPipe_C",
    "/Game/FactoryGame/Resource/Parts/SteelPlate/Desc_SteelPlate.Desc_SteelPlate_C",
    "/Game/FactoryGame/Resource/Parts/SteelPlateReinforced/Desc_SteelPlateReinforced.Desc_SteelPlateReinforced_C",
+   "/Game/FactoryGame/Resource/Parts/TimeCrystal/Desc_TimeCrystal.Desc_TimeCrystal_C",
    "/Game/FactoryGame/Resource/Parts/Turbofuel/Desc_TurboFuel.Desc_TurboFuel_C",
    "/Game/FactoryGame/Resource/Parts/Wire/Desc_Wire.Desc_Wire_C",
    "/Game/FactoryGame/Resource/RawResources/Coal/Desc_Coal.Desc_Coal_C",
@@ -136,7 +155,7 @@ ITEMS_FOR_PLAYER_INVENTORY = ( # @@@ TODO: THIS LIST IS KNOWN TO BE INCOMPLETE
    "/Game/FactoryGame/Resource/RawResources/SAM/Desc_SAM.Desc_SAM_C",
    "/Game/FactoryGame/Resource/RawResources/Stone/Desc_Stone.Desc_Stone_C",
    "/Game/FactoryGame/Resource/RawResources/Sulfur/Desc_Sulfur.Desc_Sulfur_C",
-   "/Game/FactoryGame/Resource/RawResources/Water/Desc_PackagedWater.Desc_PackagedWater_C"
+   "/Game/FactoryGame/Resource/RawResources/Water/Desc_PackagedWater.Desc_PackagedWater_C",
 )
 
 CONVEYOR_BELTS = (

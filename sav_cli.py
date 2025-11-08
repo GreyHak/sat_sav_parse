@@ -35,6 +35,7 @@ except ModuleNotFoundError:
 
 VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
+CHECK_ITEMS_FOR_PLAYER_INVENTORY = False
 
 def getBlankCategory(categoryName: str, iconId: int = -1) -> list:
    return [[['CategoryName', categoryName], ['IconID', iconId], ['MenuPriority', 0.0], ['IsUndefined', False], ['SubCategoryRecords', [[[['SubCategoryName', 'Undefined'], ['MenuPriority', 0.0], ['IsUndefined', 1], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]]]], [['CategoryName', 'StrProperty', 0], ['IconID', 'IntProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'BoolProperty', 0], ['SubCategoryRecords', ['ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'], 0]]]
@@ -809,6 +810,8 @@ if __name__ == '__main__':
                            if len(itemName) == 0:
                               print(f"[{str(idx).rjust(2)}] Empty")
                            else:
+                              if CHECK_ITEMS_FOR_PLAYER_INVENTORY and itemName not in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY:
+                                 print(f"{itemName} not found in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY.  Recommend adding to support --import-player-inventory and --tweak-player-inventory functions.")
                               itemName = sav_parse.pathNameToReadableName(itemName)
                               itemQuantity = item[1][1]
 
