@@ -25,6 +25,7 @@ import sav_parse
 from data import sav_data_mercerSphere
 from data import sav_data_slug
 from data import sav_data_somersloop
+from data import sav_data_resourcePurity
 
 try:
    from PIL import Image, ImageDraw, ImageFont
@@ -161,8 +162,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                if typePath in sav_parse.MINED_RESOURCES:
                   resourceType = None
                   purity = None
-                  if actorOrComponentObjectHeader.instanceName in sav_parse.RESOURCE_PURITY: # Won't be found for BP_FrackingCore_C
-                     (resourceType, purity) = sav_parse.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
+                  if actorOrComponentObjectHeader.instanceName in sav_data_resourcePurity.RESOURCE_PURITY: # Won't be found for BP_FrackingCore_C
+                     (resourceType, purity) = sav_data_resourcePurity.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
                   minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, resourceType, purity)
                elif typePath == sav_parse.CRASH_SITE:
                   crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
