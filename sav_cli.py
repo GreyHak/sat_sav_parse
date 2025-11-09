@@ -761,8 +761,8 @@ if __name__ == '__main__':
                      diDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(255,255,0))
                      diDraw.text((posX, posY), str(quantity), font=smallFont, fill=(0,0,0))
                   if len(sys.argv) == 4:
-                     diDraw.text(sav_to_html.MAP_TEXT_1, parsedSave.saveDatetime.strftime(f"{total} free {itemName} from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(50,50,50))
-                     diDraw.text(sav_to_html.MAP_TEXT_2, parsedSave.sessionName, font=imageFont, fill=(0,0,0))
+                     diDraw.text(sav_to_html.MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime(f"{total} free {itemName} from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(50,50,50))
+                     diDraw.text(sav_to_html.MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
                   else:
                      diDraw.text(sav_to_html.MAP_TEXT_1, f"All {total} free {itemName}", font=imageFont, fill=(0,0,0))
                   imageFilename = MAP_BASENAME_FREE_ITEM

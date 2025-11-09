@@ -1,9 +1,27 @@
-import sav_data.freeStuff
-import sav_data.mercerSphere
-import sav_data.readableNames
-import sav_data.resourcePurity
-import sav_data.slug
-import sav_data.somersloop
+try:
+   import sav_data.freeStuff
+except:
+   pass
+try:
+   import sav_data.mercerSphere
+except:
+   pass
+try:
+   import sav_data.readableNames
+except:
+   pass
+try:
+   import sav_data.resourcePurity
+except:
+   pass
+try:
+   import sav_data.slug
+except:
+   pass
+try:
+   import sav_data.somersloop
+except:
+   pass
 
 # New items can be identified for the ITEMS_FOR_PLAYER_INVENTORY tuple by
 # enabling CHECK_ITEMS_FOR_PLAYER_INVENTORY in sav_cli.py and running:

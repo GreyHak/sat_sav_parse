@@ -600,9 +600,9 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                sz = 2
 
             purityColors = {
-               sav_parse.Purity.IMPURE: (210,52,48),
-               sav_parse.Purity.NORMAL: (242,100,24),
-               sav_parse.Purity.PURE: (128,177,57),
+               sav_data.resourcePurity.Purity.IMPURE: (210,52,48),
+               sav_data.resourcePurity.Purity.NORMAL: (242,100,24),
+               sav_data.resourcePurity.Purity.PURE: (128,177,57),
             }
             if purity in purityColors:
                rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=purityColors[purity])
