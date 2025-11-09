@@ -2086,7 +2086,7 @@ if __name__ == '__main__':
 
       if not modifiedFlag:
          print("Nothing reordered.", file=sys.stderr)
-         exit(1)
+         exit(0)
 
       try:
          if changeTimeFlag:
