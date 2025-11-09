@@ -549,15 +549,74 @@ if __name__ == '__main__':
          print(f"Persistent Save Identifier: {parsedSave.saveFileInfo.persistentSaveIdentifier}")
          print(f"Random: {parsedSave.saveFileInfo.random}")
          print(f"Cheat Flag: {parsedSave.saveFileInfo.cheatFlag}")
-   
-         print("Players:")
+
          playerPaths = getPlayerPaths(parsedSave.levels)
-         for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            playerName = getPlayerName(parsedSave.levels, characterPlayer)
-            if playerName is None:
-               print(f"   {characterPlayer}")
-            else:
-               print(f"   {characterPlayer} ({playerName})")
+
+         gameStateInstanceName = None
+         for level in parsedSave.levels:
+            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and actorOrComponentObjectHeader.typePath == "/Game/FactoryGame/-Shared/Blueprint/BP_GameState.BP_GameState_C":
+                  gameStateInstanceName = actorOrComponentObjectHeader.instanceName
+
+         for level in parsedSave.levels:
+            for object in level.objects:
+
+               if object.instanceName == "Persistent_Level:PersistentLevel.GameRulesSubsystem":
+                  mStartingTier = sav_parse.getPropertyValue(object.properties, "mStartingTier")
+                  if mStartingTier is not None:
+                     print(f"Game Rules, mStartingTier: {mStartingTier}")
+                  mUnlockInstantAltRecipes = sav_parse.getPropertyValue(object.properties, "mUnlockInstantAltRecipes")
+                  if mUnlockInstantAltRecipes is not None:
+                     print(f"Game Rules, mUnlockInstantAltRecipes: {mUnlockInstantAltRecipes}")
+                  mUnlockAllMilestoneSchematics = sav_parse.getPropertyValue(object.properties, "mUnlockAllMilestoneSchematics")
+                  if mUnlockAllMilestoneSchematics is not None:
+                     print(f"Game Rules, mUnlockAllMilestoneSchematics: {mUnlockAllMilestoneSchematics}")
+                  mUnlockAllResourceSinkSchematics = sav_parse.getPropertyValue(object.properties, "mUnlockAllResourceSinkSchematics")
+                  if mUnlockAllResourceSinkSchematics is not None:
+                     print(f"Game Rules, mUnlockAllResourceSinkSchematics: {mUnlockAllResourceSinkSchematics}")
+                  mUnlockAllResearchSchematics = sav_parse.getPropertyValue(object.properties, "mUnlockAllResearchSchematics")
+                  if mUnlockAllResearchSchematics is not None:
+                     print(f"Game Rules, mUnlockAllResearchSchematics: {mUnlockAllResearchSchematics}")
+                  mNoUnlockCost = sav_parse.getPropertyValue(object.properties, "mNoUnlockCost")
+                  if mNoUnlockCost is not None:
+                     print(f"Game Rules, mNoUnlockCost: {mNoUnlockCost}")
+
+               elif object.instanceName == gameStateInstanceName:
+                  mIsCreativeModeEnabled = sav_parse.getPropertyValue(object.properties, "mIsCreativeModeEnabled")
+                  if mIsCreativeModeEnabled is not None:
+                     print(f"Game State, mIsCreativeModeEnabled: {mIsCreativeModeEnabled}")
+                  mCheatNoPower = sav_parse.getPropertyValue(object.properties, "mCheatNoPower")
+                  if mCheatNoPower is not None:
+                     print(f"Game State, mCheatNoPower: {mCheatNoPower}")
+                  mCheatNoFuel = sav_parse.getPropertyValue(object.properties, "mCheatNoFuel")
+                  if mCheatNoFuel is not None:
+                     print(f"Game State, mCheatNoFuel: {mCheatNoFuel}")
+                  mCheatNoCost = sav_parse.getPropertyValue(object.properties, "mCheatNoCost")
+                  if mCheatNoCost is not None:
+                     print(f"Game State, mCheatNoCost: {mCheatNoCost}")
+
+         print("Players:")
+         for level in parsedSave.levels:
+            for object in level.objects:
+               for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
+                  if object.instanceName == playerStateInstanceName:
+                     playerName = getPlayerName(parsedSave.levels, characterPlayer)
+                     if playerName is None:
+                        print(f"   {characterPlayer}")
+                     else:
+                        print(f"   {characterPlayer} ({playerName})")
+
+                     mPlayerRules = sav_parse.getPropertyValue(object.properties, "mPlayerRules")
+                     if mPlayerRules is not None:
+                        noBuildCost = sav_parse.getPropertyValue(mPlayerRules[0], "NoBuildCost")
+                        if noBuildCost is not None:
+                           print(f"      Player Rules, NoBuildCost: {noBuildCost}")
+                        flightMode = sav_parse.getPropertyValue(mPlayerRules[0], "FlightMode")
+                        if flightMode is not None:
+                           print(f"      Player Rules, FlightMode: {flightMode}")
+                        godMode = sav_parse.getPropertyValue(mPlayerRules[0], "GodMode")
+                        if godMode is not None:
+                           print(f"      Player Rules, GodMode: {godMode}")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
