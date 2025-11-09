@@ -490,6 +490,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --import-vehicle-path <path-name> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-dimensional-depot <save-filename> <output-json-filename>")
    print("   py sav_cli.py --reorder-dimensional-depot <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --adjust-dimensional-depot <original-save-filename> <item-name> <new-quantity> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -1420,7 +1421,7 @@ if __name__ == '__main__':
          for level in parsedSave.levels:
             for object in level.objects:
                if object.instanceName == "Persistent_Level:PersistentLevel.unlockSubsystem":
-                  for idx in range(len(object.properties)):
+                  for idx in range(len(object.properties)): # setPropertyValue
                      (haystackPropertyName, propertyValue) = object.properties[idx]
                      if haystackPropertyName == "mNumTotalInventorySlots":
                         if propertyValue >= newNumInventorySlots:
@@ -1565,7 +1566,7 @@ if __name__ == '__main__':
       with open(outFilename, "w") as fout:
          json.dump(jdata, fout, indent=2)
 
-   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--import-somersloops" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--import-somersloops" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[2]
       inFilename = sys.argv[3]
       outFilename = sys.argv[4]
@@ -2024,6 +2025,7 @@ if __name__ == '__main__':
                            amount = sav_parse.getPropertyValue(storedItem[0], "amount")
                            if amount is not None:
                               itemName = sav_parse.pathNameToReadableName(itemClass.pathName)
+                              print(f"{itemName}, {amount}")
                               jdata.append((itemName, amount))
 
          print(f"Writing {outFilename}")
@@ -2033,7 +2035,7 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
-   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--reorder-dimensional-depot" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--reorder-dimensional-depot" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[2]
       inFilename = sys.argv[3]
       outFilename = sys.argv[4]
@@ -2078,6 +2080,53 @@ if __name__ == '__main__':
                                     modifiedFlag = True
                                  destIdx += 1
                                  next
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("Nothing reordered.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--adjust-dimensional-depot" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      targetItemName = sys.argv[3]
+      newItemQuantity = int(sys.argv[4])
+      outFilename = sys.argv[5]
+      changeTimeFlag = True
+      if len(sys.argv) == 7 and sys.argv[6] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.CentralStorageSubsystem":
+                  storedItems = sav_parse.getPropertyValue(object.properties, "mStoredItems")
+                  if storedItems is not None:
+                     for storedItem in storedItems:
+                        itemClass = sav_parse.getPropertyValue(storedItem[0], "ItemClass")
+                        if itemClass is not None:
+                           itemName = sav_parse.pathNameToReadableName(itemClass.pathName)
+                           if itemName == targetItemName:
+                              for idx in range(len(storedItem[0])): # setPropertyValue where storedItem[0] is the property list
+                                 (haystackPropertyName, propertyValue) = storedItem[0][idx]
+                                 if haystackPropertyName == "amount":
+                                    storedItem[0][idx] = [haystackPropertyName, newItemQuantity]
+                                    modifiedFlag = True
+                                    break
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")

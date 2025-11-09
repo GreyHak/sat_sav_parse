@@ -65,6 +65,7 @@ Usage:
   - `py sav_cli.py --import-vehicle-path <path-name> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --export-dimensional-depot <save-filename> <output-json-filename>`
   - `py sav_cli.py --reorder-dimensional-depot <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --adjust-dimensional-depot <original-save-filename> <item-name> <new-quantity> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --show <save-filename>`
   - `py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --export <save-filename> <output-json-filename>`
