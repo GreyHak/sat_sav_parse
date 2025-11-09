@@ -632,6 +632,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
 
    # Items
    "Desc_AlienDNACapsule_C": "Alien DNA Capsule",
+   "Desc_AlienPowerFuel_C": "Alien Power Matrix",
    "Desc_AlienProtein_C": "Alien Protein",
    "Desc_AluminaSolution_C": "Alumina Solution",
    "Desc_AluminumCasing_C": "Aluminum Casing",

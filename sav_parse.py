@@ -144,11 +144,11 @@ def parseTextProperty(offset: int, data) -> tuple:
       for idx in range(argCount):
          (offset, argName) = parseString(offset, data)
          offset = confirmBasicType(offset, data, parseUint8, 4)
-         offset = confirmBasicType(offset, data, parseUint32, 18) # flags
+         (offset, argFlags) = parseUint32(offset, data) # some-nuclear.sav
          offset = confirmBasicType(offset, data, parseUint8, 255) # historyType
          offset = confirmBasicType(offset, data, parseUint32, 1)  # isTextCultureInvariant
          (offset, argValue) = parseString(offset, data)
-         args.append([argName, argValue])
+         args.append([argName, argValue, argFlags])
       textProperty = [flags, historyType, uuid, format, args]
    elif historyType == HistoryType.STRING_TABLE_ENTRY.value: # Only observed in modded save
       (offset, tableId) = parseString(offset, data)
@@ -615,7 +615,9 @@ class Object: # Both ActorObject and ComponentObject
                "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
                "/EditSwatchNames/DataHolder.DataHolder_C",         # Only observed in modded save
                ):
-            offset = confirmBasicType(offset, data, parseUint32, 0)
+            self.actorSpecificInfo = offset < offsetStartThis + objectSize
+            if self.actorSpecificInfo: # some-nuclear.sav
+               offset = confirmBasicType(offset, data, parseUint32, 0, actorOrComponentObjectHeader.className)
 
       if offset < offsetStartThis + objectSize: # Items here for save files saved by satisfactory-calculator.com/en/interactive-map
          global satisfactoryCalculatorInteractiveMapExtras

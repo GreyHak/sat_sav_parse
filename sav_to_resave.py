@@ -87,12 +87,12 @@ def addTextProperty(textPropertyValue):
       dataTextProp.extend(addString(uuid))
       dataTextProp.extend(addString(format))
       dataTextProp.extend(addUint32(len(args)))
-      for (argName, argValue) in args:
+      for (argName, argValue, argFlags) in args:
          dataTextProp.extend(addString(argName))
          dataTextProp.extend(addUint8(4))
-         dataTextProp.extend(addUint32(18))
-         dataTextProp.extend(addUint8(255))
-         dataTextProp.extend(addUint32(1))
+         dataTextProp.extend(addUint32(argFlags))
+         dataTextProp.extend(addUint8(255)) # historyType
+         dataTextProp.extend(addUint32(1)) # isTextCultureInvariant
          dataTextProp.extend(addString(argValue))
    elif len(textPropertyValue) == 4 and textPropertyValue[1] == sav_parse.HistoryType.STRING_TABLE_ENTRY.value:
       (flags, historyType, tableId, textKey) = textPropertyValue
@@ -687,7 +687,8 @@ def addObject(object, actorOrComponentObjectHeader):
             "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
             "/EditSwatchNames/DataHolder.DataHolder_C",         # Only observed in modded save
             ):
-         dataTrailing.extend(addUint32(0))
+         if object.actorSpecificInfo:
+            dataTrailing.extend(addUint32(0))
 
    dataEntity = bytearray()
 
