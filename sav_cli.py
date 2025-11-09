@@ -488,6 +488,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --list-vehicle-paths <save-filename>")
    print("   py sav_cli.py --export-vehicle-path <path-name> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-vehicle-path <path-name> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --export-dimensional-depot <save-filename> <output-json-filename>")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -2001,6 +2002,35 @@ if __name__ == '__main__':
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--export-dimensional-depot" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         jdata = []
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.CentralStorageSubsystem":
+                  storedItems = sav_parse.getPropertyValue(object.properties, "mStoredItems")
+                  if storedItems is not None:
+                     for storedItem in storedItems:
+                        itemClass = sav_parse.getPropertyValue(storedItem[0], "ItemClass")
+                        if itemClass is not None:
+                           amount = sav_parse.getPropertyValue(storedItem[0], "amount")
+                           if amount is not None:
+                              itemName = sav_parse.pathNameToReadableName(itemClass.pathName)
+                              jdata.append((itemName, amount))
+
+         print(f"Writing {outFilename}")
+         with open(outFilename, "w") as fout:
+            json.dump(jdata, fout, indent=2)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--show" and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[3]
