@@ -544,8 +544,9 @@ if __name__ == '__main__':
          print(f"Save Date Time: {parsedSave.saveFileInfo.saveDateTimeInTicks} ticks ({parsedSave.saveFileInfo.saveDatetime.strftime('%m/%d/%Y %I:%M:%S %p')})")
          print(f"Session Visibility: {parsedSave.saveFileInfo.sessionVisibility}")
          print(f"Editor Object Version: {parsedSave.saveFileInfo.editorObjectVersion}")
-         print(f"Mod Metadata: {parsedSave.saveFileInfo.modMetadata}")
          print(f"Is Modded Save: {parsedSave.saveFileInfo.isModdedSave}")
+         if not parsedSave.saveFileInfo.isModdedSave and len(parsedSave.saveFileInfo.modMetadata) > 0: # This should never happen
+            print(f"Mod Metadata: {parsedSave.saveFileInfo.modMetadata}")
          print(f"Persistent Save Identifier: {parsedSave.saveFileInfo.persistentSaveIdentifier}")
          print(f"Random: {parsedSave.saveFileInfo.random}")
          print(f"Cheat Flag: {parsedSave.saveFileInfo.cheatFlag}")
@@ -617,6 +618,15 @@ if __name__ == '__main__':
                         godMode = sav_parse.getPropertyValue(mPlayerRules[0], "GodMode")
                         if godMode is not None:
                            print(f"      Player Rules, GodMode: {godMode}")
+
+         if parsedSave.saveFileInfo.isModdedSave:
+            # modMetadata is of type str representing a JSON dict
+            print(f"Mod Metadata:")
+            jdata = json.loads(parsedSave.saveFileInfo.modMetadata)
+            if "Mods" in jdata:
+               for mod in jdata["Mods"]:
+                  if "Name" in mod and "Version" in mod:
+                     print(f"   {mod['Name']}, {mod['Version']}")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
