@@ -501,6 +501,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --blueprint --move-blueprint <old-category> <old-subcategory> <new-category> <new-subcategory> <blueprint> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --reset <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --resave-only <original-save-filename> <new-save-filename>")
+   print("   py sav_cli.py --add-missing-items-to-sav_stack_sizes")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -2635,6 +2636,67 @@ if __name__ == '__main__':
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 2 and sys.argv[1] == "--add-missing-items-to-sav_stack_sizes":
+      # Cross-checks contents item-stack-size file against sav_data.data.ITEMS_FOR_PLAYER_INVENTORY
+      # using sav_data.readableNames.READABLE_PATH_NAME_CORRECTIONS as a translation between the two.
+
+      ITEM_STACK_SIZE_FILENAME = "sav_stack_sizes.json"
+
+      itemStackSizes: dict[str, int | None] = {}
+      if os.path.isfile(ITEM_STACK_SIZE_FILENAME):
+         with open(ITEM_STACK_SIZE_FILENAME, "r") as fin:
+            itemStackSizes = json.load(fin)
+
+      print()
+      print("Items missing from sav_data.readableNames.READABLE_PATH_NAME_CORRECTIONS")
+      noneFoundFlag = True
+      inventoryItemsMissingNameCorrections = []
+      for fullPathName in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY:
+         pos = fullPathName.rfind(".")
+         if pos != -1:
+            pathName = fullPathName[pos+1:]
+            if pathName not in sav_data.readableNames.READABLE_PATH_NAME_CORRECTIONS:
+               noneFoundFlag = False
+               print(f'   "{fullPathName}",')
+               inventoryItemsMissingNameCorrections.append(fullPathName)
+      if noneFoundFlag:
+         print("   None")
+      else:
+         print("if you're going to add these entries, you'll need to determine the in-game name.")
+
+      print()
+      print(f"Items missing from {ITEM_STACK_SIZE_FILENAME}")
+      itemAddCount = 0
+      missingItems = itemStackSizes.copy()
+      for pathName in sav_data.data.ITEMS_FOR_PLAYER_INVENTORY:
+         readableName = sav_parse.pathNameToReadableName(pathName)
+         if readableName not in itemStackSizes:
+            if pathName not in inventoryItemsMissingNameCorrections:
+               itemAddCount += 1
+               itemStackSizes[readableName] = None
+               print(f'   Added "{readableName}"')
+         else:
+            del missingItems[readableName]
+      if itemAddCount == 0:
+         print("   None")
+      else:
+         with open(ITEM_STACK_SIZE_FILENAME, "w", newline="\n") as fout:
+            json.dump(itemStackSizes, fout, indent=2)
+         print(f"{itemAddCount} items added to {ITEM_STACK_SIZE_FILENAME}.  You should fill in the stack limits.")
+
+      print()
+      print("Items missing from sav_data.data.ITEMS_FOR_PLAYER_INVENTORY")
+      if len(missingItems) == 0:
+         print("   None")
+      else:
+         print("If you're going to add these entries, you'll need to determine the full path names.")
+         for readableName in missingItems:
+            print(f'   {readableName}')
+         # Add item to in-game inventory, save, and parse with:
+         #    py sav_parse.py <save>
+         # Use the partial path name found for the readable names above in readableNames.py
+         # and review <save>-dump.txt
 
    else:
       print(f"ERROR: Did not understand {len(sys.argv)} arguments: {sys.argv}", file=sys.stderr)
