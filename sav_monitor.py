@@ -60,27 +60,30 @@ if __name__ == '__main__':
       print(f"Monitoring {savePath} and archiving to {archivePath}")
 
    priorSavFilename = None
-   while True:
-      allSaveFiles = glob.glob(f"{savePath}/*.sav")
-      try:
-         savFilename = max(allSaveFiles, key=os.path.getmtime)
-      except FileNotFoundError:
-         next
+   try:
+      while True:
+         allSaveFiles = glob.glob(f"{savePath}/*.sav")
+         try:
+            savFilename = max(allSaveFiles, key=os.path.getmtime)
+         except FileNotFoundError:
+            next
 
-      if savFilename != priorSavFilename:
-         priorSavFilename = savFilename
-         savBasename = os.path.basename(savFilename)
-         print(f"Found new file {savBasename}")
+         if savFilename != priorSavFilename:
+            priorSavFilename = savFilename
+            savBasename = os.path.basename(savFilename)
+            print(f"Found new file {savBasename}")
 
-         print(f"Generating HTML in {htmlOutputDir}")
-         sav_to_html.generateHTML(savFilename, htmlOutputDir)
+            print(f"Generating HTML in {htmlOutputDir}")
+            sav_to_html.generateHTML(savFilename, htmlOutputDir)
 
-         if archivePath is not None:
-            saveFileInfo = sav_parse.readSaveFileInfo(savFilename)
-            archiveFilePath = os.path.join(archivePath, f"{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.sav")
-            if not os.path.exists(archiveFilePath):
-               print(f"Archiving save to {archiveFilePath}")
-               shutil.copy2(savFilename, archiveFilePath)
+            if archivePath is not None:
+               saveFileInfo = sav_parse.readSaveFileInfo(savFilename)
+               archiveFilePath = os.path.join(archivePath, f"{saveFileInfo.sessionName}_{saveFileInfo.saveDatetime.strftime('%Y%m%d-%H%M%S')}.sav")
+               if not os.path.exists(archiveFilePath):
+                  print(f"Archiving save to {archiveFilePath}")
+                  shutil.copy2(savFilename, archiveFilePath)
 
-         print()
-      time.sleep(sleepTimeInSeconds)
+            print()
+         time.sleep(sleepTimeInSeconds)
+   except KeyboardInterrupt:
+      pass
