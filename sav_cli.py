@@ -489,6 +489,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --export-vehicle-path <path-name> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-vehicle-path <path-name> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-dimensional-depot <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --reorder-dimensional-depot <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -2031,6 +2032,69 @@ if __name__ == '__main__':
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--reorder-dimensional-depot" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[2]
+      inFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      with open(inFilename, "r") as fin:
+         jdata = json.load(fin)
+
+      # Acceptable input either a list of strings, or a list of (string, int)
+      # This for-loop takes the (string, int) and makes them just strings.
+      for idx in range(len(jdata)):
+         if isinstance(jdata[idx], list) and len(jdata[idx]) > 0:
+            jdata[idx] = jdata[idx][0]
+      print(jdata)
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.CentralStorageSubsystem":
+                  storedItems = sav_parse.getPropertyValue(object.properties, "mStoredItems")
+                  if storedItems is not None:
+                     destIdx = 0
+                     for nextItem in jdata:
+                        for srcIdx in range(len(storedItems)):
+                           if srcIdx < destIdx:
+                              next # Can't be this one
+                           storedItem = storedItems[srcIdx]
+                           itemClass = sav_parse.getPropertyValue(storedItem[0], "ItemClass")
+                           if itemClass is not None:
+                              readableName = sav_parse.pathNameToReadableName(itemClass.pathName)
+                              if readableName == nextItem:
+                                 # Found
+                                 if srcIdx > destIdx:
+                                    # Swap
+                                    storedItems[srcIdx] = storedItems[destIdx]
+                                    storedItems[destIdx] = storedItem
+                                    modifiedFlag = True
+                                 destIdx += 1
+                                 next
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("Nothing reordered.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--show" and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[3]
