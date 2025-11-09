@@ -530,23 +530,37 @@ if __name__ == '__main__':
 
    elif len(sys.argv) == 3 and sys.argv[1] == "--info" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
-      saveFileInfo = sav_parse.readSaveFileInfo(savFilename)
-      print(f"Save Header Type: {saveFileInfo.saveHeaderType}")
-      print(f"Save Version: {saveFileInfo.saveVersion}")
-      print(f"Build Version: {saveFileInfo.buildVersion}")
-      print(f"Save Name: {saveFileInfo.saveName}")
-      print(f"Map Name: {saveFileInfo.mapName}")
-      print(f"Map Options: {saveFileInfo.mapOptions}")
-      print(f"Session Name: {saveFileInfo.sessionName}")
-      print(f"Play Duration: {saveFileInfo.playDurationInSeconds} seconds")
-      print(f"Save Date Time: {saveFileInfo.saveDateTimeInTicks} ticks ({saveFileInfo.saveDatetime.strftime('%m/%d/%Y %I:%M:%S %p')})")
-      print(f"Session Visibility: {saveFileInfo.sessionVisibility}")
-      print(f"Editor Object Version: {saveFileInfo.editorObjectVersion}")
-      print(f"Mod Metadata: {saveFileInfo.modMetadata}")
-      print(f"Is Modded Save: {saveFileInfo.isModdedSave}")
-      print(f"Persistent Save Identifier: {saveFileInfo.persistentSaveIdentifier}")
-      print(f"Random: {saveFileInfo.random}")
-      print(f"Cheat Flag: {saveFileInfo.cheatFlag}")
+
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         print(f"Save Header Type: {parsedSave.saveFileInfo.saveHeaderType}")
+         print(f"Save Version: {parsedSave.saveFileInfo.saveVersion}")
+         print(f"Build Version: {parsedSave.saveFileInfo.buildVersion}")
+         print(f"Save Name: {parsedSave.saveFileInfo.saveName}")
+         print(f"Map Name: {parsedSave.saveFileInfo.mapName}")
+         print(f"Map Options: {parsedSave.saveFileInfo.mapOptions}")
+         print(f"Session Name: {parsedSave.saveFileInfo.sessionName}")
+         print(f"Play Duration: {parsedSave.saveFileInfo.playDurationInSeconds} seconds")
+         print(f"Save Date Time: {parsedSave.saveFileInfo.saveDateTimeInTicks} ticks ({parsedSave.saveFileInfo.saveDatetime.strftime('%m/%d/%Y %I:%M:%S %p')})")
+         print(f"Session Visibility: {parsedSave.saveFileInfo.sessionVisibility}")
+         print(f"Editor Object Version: {parsedSave.saveFileInfo.editorObjectVersion}")
+         print(f"Mod Metadata: {parsedSave.saveFileInfo.modMetadata}")
+         print(f"Is Modded Save: {parsedSave.saveFileInfo.isModdedSave}")
+         print(f"Persistent Save Identifier: {parsedSave.saveFileInfo.persistentSaveIdentifier}")
+         print(f"Random: {parsedSave.saveFileInfo.random}")
+         print(f"Cheat Flag: {parsedSave.saveFileInfo.cheatFlag}")
+   
+         print("Players:")
+         playerPaths = getPlayerPaths(parsedSave.levels)
+         for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
+            playerName = getPlayerName(parsedSave.levels, characterPlayer)
+            if playerName is None:
+               print(f"   {characterPlayer}")
+            else:
+               print(f"   {characterPlayer} ({playerName})")
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--to-json" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
