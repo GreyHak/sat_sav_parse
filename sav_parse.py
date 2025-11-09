@@ -1508,6 +1508,7 @@ if __name__ == '__main__':
    mercerSphereOutputFilename = outBase + "-mercerSphere.txt"
    decompressedOutputFilename = outBase + "-decompressed.txt"
    droppedItemsOutputFilename = outBase + "-free.txt"
+   crashSitesOutputFilename = outBase + "-crashSites.txt"
 
    if not os.path.isfile(savFilename):
       print(f"ERROR: Save file does not exist: '{savFilename}'", file=sys.stderr)
@@ -1654,6 +1655,16 @@ if __name__ == '__main__':
                   dropOut.write(f'      ({quantity}, {location}, "{instanceName}"),\n')
                dropOut.write(f'      ],\n')
             dropOut.write("} # FREE_DROPPED_ITEMS\n")
+
+         with open(crashSitesOutputFilename, "w") as csOut:
+            csOut.write("# Exported from Satisfactory\n")
+            csOut.write("CRASH_SITES = [\n")
+            for level in parsedSave.levels:
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+                  if isinstance(actorOrComponentObjectHeader, ActorHeader):
+                     if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
+                        csOut.write(f'   "{actorOrComponentObjectHeader.instanceName}", # {actorOrComponentObjectHeader.position}\n')
+            csOut.write("] # CRASH_SITES\n")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")

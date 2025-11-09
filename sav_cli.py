@@ -491,6 +491,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --export-dimensional-depot <save-filename> <output-json-filename>")
    print("   py sav_cli.py --reorder-dimensional-depot <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --adjust-dimensional-depot <original-save-filename> <item-name> <new-quantity> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -628,20 +629,19 @@ if __name__ == '__main__':
                   if "Name" in mod and "Version" in mod:
                      print(f"   {mod['Name']}, {mod['Version']}")
 
-         crashSiteInstances = {}
+         crashSitesExplored = []
          for level in parsedSave.levels:
             for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
                   if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                     crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
-         crashSitesOpenWithDrive = []
-         crashSitesUnopenedKeys = list(crashSiteInstances.keys())
+                     crashSitesExplored.append(actorOrComponentObjectHeader.instanceName)
+         crashSitesUnopenedKeys = crashSitesExplored.copy()
          numOpenAndEmptyCrashSites = 0
          numOpenAndFullCrashSites = 0
          crashSiteInventoryPathName = {}
          for level in parsedSave.levels:
             for object in level.objects:
-               if object.instanceName in crashSiteInstances:
+               if object.instanceName in crashSitesExplored:
                   hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
                   if hasBeenOpened is not None and hasBeenOpened:
                      crashSitesUnopenedKeys.remove(object.instanceName)
@@ -653,7 +653,6 @@ if __name__ == '__main__':
                         numOpenAndEmptyCrashSites += 1
                      else: # This case has not been observed
                         numOpenAndFullCrashSites += 1
-                        crashSitesOpenWithDrive.append(crashSiteInstances[object.instanceName])
          for level in parsedSave.levels:
             for object in level.objects:
                if object.instanceName in crashSiteInventoryPathName:
@@ -666,9 +665,8 @@ if __name__ == '__main__':
                               numOpenAndEmptyCrashSites -= 1
                               numOpenAndFullCrashSites += 1
                               # Use inventory object to get droppod object to get location
-                              crashSitesOpenWithDrive.append(crashSiteInstances[crashSiteInventoryPathName[object.instanceName]])
-         numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
-         print(f"{len(crashSiteInstances)} crash sites explored:")
+         numCrashSitesNotOpened = len(crashSitesExplored) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
+         print(f"{len(crashSitesExplored)}/{len(sav_data.crashSites.CRASH_SITES)} crash sites explored:")
          print(f"   {numCrashSitesNotOpened} not opened.")
          print(f"   {numOpenAndFullCrashSites} opened with hard drive.")
          print(f"   {numOpenAndEmptyCrashSites} opened and empty.")
@@ -2272,6 +2270,79 @@ if __name__ == '__main__':
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--export-crash-sites" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         crashSitesExplored = []
+         for level in parsedSave.levels:
+            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
+                  if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
+                     crashSitesExplored.append(actorOrComponentObjectHeader.instanceName)
+         crashSitesOpenWithDrive = []
+         crashSitesUnopenedKeys = crashSitesExplored.copy()
+         openAndEmptyCrashSites = []
+         openAndFullCrashSites = []
+         crashSiteInventoryPathName = {} # Maps inventory instance path name to crash site instance path name
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName in crashSitesExplored:
+                  hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
+                  if hasBeenOpened is not None and hasBeenOpened:
+                     crashSitesUnopenedKeys.remove(object.instanceName)
+                     hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
+                     if hasBeenLooted is None:
+                        crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
+                        hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
+                     if hasBeenLooted:
+                        openAndEmptyCrashSites.append(object.instanceName)
+                     else: # This case has not been observed
+                        openAndFullCrashSites.append(object.instanceName)
+                        crashSitesOpenWithDrive.append(object.instanceName)
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName in crashSiteInventoryPathName:
+                  inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
+                  if inventoryStacks is not None:
+                     item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
+                     if item is not None:
+                        if len(item) == 2 and isinstance(item[0], str):
+                           if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
+                              crashSiteInstancePathName = crashSiteInventoryPathName[object.instanceName]
+                              del openAndEmptyCrashSites[crashSiteInstancePathName]
+                              openAndFullCrashSites.append(crashSiteInstancePathName)
+                              # Use inventory object to get droppod object to get location
+                              crashSitesOpenWithDrive.append(crashSiteInstancePathName)
+         numCrashSitesNotOpened = len(crashSitesExplored) - len(openAndEmptyCrashSites) - len(openAndFullCrashSites)
+         print(f"{len(crashSitesExplored)}/{len(sav_data.crashSites.CRASH_SITES)} crash sites explored:")
+         print(f"   {numCrashSitesNotOpened} not opened.")
+         print(f"   {len(openAndFullCrashSites)} opened with hard drive.")
+         print(f"   {len(openAndEmptyCrashSites)} opened and empty.")
+
+         jdata = {}
+         for crashSite in openAndEmptyCrashSites:
+            jdata[crashSite] = "EXPLORED_OPEN_EMPTY"
+         for crashSite in openAndFullCrashSites:
+            jdata[crashSite] = "EXPLORED_OPEN_FULL"
+         for crashSite in crashSitesExplored:
+            if crashSite not in openAndEmptyCrashSites and crashSite not in openAndFullCrashSites:
+               jdata[crashSite] = "EXPLORED_CLOSED"
+         for crashSite in sav_data.crashSites.CRASH_SITES:
+            if crashSite not in crashSitesExplored:
+               jdata[crashSite] = "UNDISCOVERED"
+
+         print(f"Writing {outFilename}")
+         with open(outFilename, "w") as fout:
+            json.dump(jdata, fout, indent=2)
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--show" and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[3]
