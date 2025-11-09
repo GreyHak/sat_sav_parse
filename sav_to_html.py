@@ -300,7 +300,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   crashSitesUnopenedKeys.remove(object.instanceName)
                   hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
                   if hasBeenLooted is None:
-                     crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any any open, but unlooted droppods from Update 8 will be empty in v1.0.
+                     crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
                      hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
                   if hasBeenLooted:
                      numOpenAndEmptyCrashSites += 1
@@ -408,7 +408,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       lines += "<p>\n"
 
       numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
-      lines += f"Of {len(crashSiteInstances)} crash sites, {numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} been looted, {numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, {numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available.\r\n"
+      lines += f"Of {len(crashSiteInstances)} crash sites explored, {numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} been looted, {numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, {numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available.\r\n"
       if creatingMapImagesFlag:
          lines += f'<a href="{MAP_BASENAME_HARD_DRIVES}">Map of hard drives.</a>'
       lines += '<p style="margin-bottom:0px">\n'
