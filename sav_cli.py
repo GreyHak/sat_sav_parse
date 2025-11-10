@@ -2318,7 +2318,7 @@ if __name__ == '__main__':
                         if len(item) == 2 and isinstance(item[0], str):
                            if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
                               crashSiteInstancePathName = crashSiteInventoryPathName[object.instanceName]
-                              del openAndEmptyCrashSites[crashSiteInstancePathName]
+                              openAndEmptyCrashSites.remove(crashSiteInstancePathName)
                               openAndFullCrashSites.append(crashSiteInstancePathName)
                               # Use inventory object to get droppod object to get location
                               crashSitesOpenWithDrive.append(crashSiteInstancePathName)
