@@ -36,6 +36,7 @@ FREE_DROPPED_ITEMS = {
       (29, (363272.0, -215973.828125, 4085.749267578125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_428"),
       (53, (357789.65625, -104815.484375, 11058.7763671875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7908CC01_1420554022"),
       (69, (346549.375, -40608.55859375, -1727.4285888671875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79FECB01_2112985256"),
+      (68, (112179.8203125, -53247.3671875, 16860.775390625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F797BC501_1624849853"),
       ),
    "/Game/FactoryGame/Resource/Parts/Cement/Desc_Cement.Desc_Cement_C": ( # Concrete
       (100, (-107497.5625, 214104.53125, 3144.637939453125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79CFC401_1769749568"),
@@ -68,6 +69,7 @@ FREE_DROPPED_ITEMS = {
       (103, (8077.0, -42615.0, 13143.396484375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79A4CD01_1683933516"),
       (34, (294222.40625, -171439.984375, 7312.923828125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable184"),
       (120, (301876.5625, -247807.6875, 2612.859375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_415"),
+      (66, (112768.7109375, -54149.9140625, 16972.8359375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F797BC501_1624848852"),
       ),
    "/Game/FactoryGame/Resource/Parts/Wire/Desc_Wire.Desc_Wire_C": ( # Wire
       (110, (-79028.0, 291697.0, -4851.48046875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F799EC101_1316629776"),
@@ -172,6 +174,7 @@ FREE_DROPPED_ITEMS = {
       (27, (361161.96875, -218614.953125, 4113.55126953125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7994C301_1349062140"),
       (74, (358632.71875, -103315.640625, 11128.1083984375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7908CC01_1420584026"),
       (58, (347451.71875, -38624.640625, -1693.8912353515625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79FECB01_2113019260"),
+      (55, (110983.9765625, -53001.65625, 16816.373046875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F797BC501_1624850854"),
       ),
    "/Game/FactoryGame/Resource/Parts/SteelPlateReinforced/Desc_SteelPlateReinforced.Desc_SteelPlateReinforced_C": ( # Encased Industrial Beam
       (75, (-258831.1875, 107261.203125, -1641.1287841796875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7943CE01_2038675489"),
@@ -210,6 +213,7 @@ FREE_DROPPED_ITEMS = {
       (74, (128090.0, -115614.0, -1490.60400390625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7948CE01_1311992380"),
       (40, (304404.4375, -244986.375, 4076.5625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_418"),
       (17, (349661.375, -39793.4609375, -1582.0726318359375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79FECB01_2113018259"),
+      (40, (111402.90625, -52885.58203125, 16835.052734375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F797BC501_1624824851"),
       ),
    "/Game/FactoryGame/Resource/Parts/Fuel/Desc_Fuel.Desc_Fuel_C": ( # Packaged Fuel
       (6, (-260158.828125, 106252.7265625, -1656.432861328125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7943CE01_2038676490"),
@@ -296,6 +300,11 @@ FREE_DROPPED_ITEMS = {
       (37, (218284.140625, 1684.538330078125, -1666.079345703125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7970D601_1742962875"),
       (31, (272086.875, 29579.16796875, -1677.978759765625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1894813571"),
       (27, (250592.8125, 59149.38671875, -1379.3492431640625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1679194565"),
+      (25, (286872.59375, 72929.1640625, -1666.833740234375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1278922556"),
+      (25, (233658.140625, 77299.5390625, -1664.079345703125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7973D601_1399877415"),
+      (25, (233207.796875, 79056.5390625, -1643.578369140625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7973D601_1399880417"),
+      (20, (225531.546875, 99264.1875, 7263.3212890625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F790FD201_1548952579"),
+      (30, (190132.0, -128628.0, 15991.2763671875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B9D601_1495303774"),
       ),
    "/Game/FactoryGame/Resource/Parts/Stator/Desc_Stator.Desc_Stator_C": ( # Stator
       (37, (-245354.625, -143523.953125, 4453.962890625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79C8C501_1120037424"),
@@ -335,6 +344,7 @@ FREE_DROPPED_ITEMS = {
       (55, (209068.640625, -68117.0234375, 12137.111328125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_391"),
       (22, (360213.34375, -104472.6953125, 11208.9560546875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7908CC01_1420583025"),
       (40, (348195.71875, -40770.03515625, -1743.200927734375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79FECB01_2113016257"),
+      (15, (112101.3203125, -54031.94140625, 16991.365234375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F797BC501_1624852856"),
       ),
    "/Game/FactoryGame/Resource/Parts/SteelPlate/Desc_SteelPlate.Desc_SteelPlate_C": ( # Steel Beam
       (50, (-194948.09375, -58664.0546875, -353.5832214355469), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F791CC501_2060866161"),
@@ -356,6 +366,7 @@ FREE_DROPPED_ITEMS = {
       (110, (365068.0625, -302291.40625, -7332.0732421875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7910CC01_1825297443"),
       (143, (54910.0, -49718.0, 13857.396484375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79A0CD01_1139909806"),
       (62, (346649.1875, -39955.54296875, -1738.88818359375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79FECB01_2113020261"),
+      (80, (111703.5546875, -52913.5546875, 16832.228515625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F797BC501_1624851855"),
       ),
    "/Game/FactoryGame/Resource/Parts/IronRod/Desc_IronRod.Desc_IronRod_C": ( # Iron Rod
       (74, (-233219.0, -51066.0, -461.4290466308594), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7931C301_1073929716"),
@@ -438,6 +449,9 @@ FREE_DROPPED_ITEMS = {
       (123, (232581.796875, 27659.537109375, -1728.10107421875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7971D601_1955786059"),
       (125, (249392.875, 59909.12890625, -1105.745361328125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1679190562"),
       (149, (292652.90625, 2605.50341796875, 773.8316040039062), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1940795577"),
+      (110, (286988.1875, 73160.390625, -1640.916259765625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1278925559"),
+      (80, (226443.78125, 100680.3046875, 7210.8447265625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F790FD201_1548952578"),
+      (107, (191329.8125, -129448.3671875, 15968.7783203125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B9D601_1495307775"),
       ),
    "/Game/FactoryGame/Resource/Parts/AluminumPlate/Desc_AluminumPlate.Desc_AluminumPlate_C": ( # Alclad Aluminum Sheet
       (32, (-234819.578125, 18118.083984375, 19658.287109375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79F4D201_1463602866"),
@@ -462,6 +476,7 @@ FREE_DROPPED_ITEMS = {
       (71, (177551.78125, -242843.453125, 7702.37255859375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B6D601_1844804232"),
       (68, (233205.671875, 27156.779296875, -1752.038818359375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7971D601_1955765056"),
       (171, (271510.625, 29439.888671875, -1664.8450927734375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1894812570"),
+      (75, (231971.984375, 76542.390625, -1667.03857421875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7973D601_1399878416"),
       ),
    "/Game/FactoryGame/Resource/Parts/CrystalOscillator/Desc_CrystalOscillator.Desc_CrystalOscillator_C": ( # Crystal Oscillator
       (58, (-236159.046875, 17587.55859375, 19611.400390625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79F4D201_1463580864"),
@@ -478,6 +493,8 @@ FREE_DROPPED_ITEMS = {
       (36, (191355.78125, 37187.8671875, 5528.85546875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F796CD601_1908069164"),
       (32, (199503.609375, -41647.41796875, 13978.3251953125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79D9D401_1734577300"),
       (59, (291452.71875, 1889.6563720703125, 802.5924682617188), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1940791573"),
+      (30, (288053.78125, 74818.4453125, -1655.7283935546875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1278924558"),
+      (37, (227056.90625, 99557.375, 7161.7626953125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F790FD201_1548923574"),
       ),
    "/Game/FactoryGame/Resource/Parts/CoolingSystem/Desc_CoolingSystem.Desc_CoolingSystem_C": ( # Cooling System
       (17, (-235471.28125, 18885.662109375, 19611.896484375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79F4D201_1463603867"),
@@ -486,6 +503,8 @@ FREE_DROPPED_ITEMS = {
       (37, (-41430.96875, 64067.7890625, 25808.853515625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79FED201_1915244650"),
       (15, (215675.765625, 2013.9141845703125, -1665.31689453125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7970D601_1742965878"),
       (20, (233786.0, 28674.24609375, -1691.0927734375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7971D601_1955788061"),
+      (17, (288622.15625, 72076.75, -1609.62841796875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1278898554"),
+      (15, (233503.765625, 75763.9140625, -1659.958984375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7973D601_1399881418"),
       ),
    "/Game/FactoryGame/Resource/Parts/QuartzCrystal/Desc_QuartzCrystal.Desc_QuartzCrystal_C": ( # Quartz Crystal
       (70, (-191718.828125, 66860.7265625, 23669.275390625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F795ED701_1232929760"),
@@ -507,6 +526,7 @@ FREE_DROPPED_ITEMS = {
       (77, (214649.953125, -879.6430053710938, -1656.7686767578125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7970D601_1742963876"),
       (68, (219883.78125, -939.1320190429688, -1667.3857421875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7970D601_1742942874"),
       (101, (273087.09375, 26235.44140625, -1667.6661376953125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1894808567"),
+      (75, (286287.5625, 71432.8359375, -1665.007080078125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1278921555"),
       ),
    "/Game/FactoryGame/Resource/Parts/ModularFrameHeavy/Desc_ModularFrameHeavy.Desc_ModularFrameHeavy_C": ( # Heavy Modular Frame
       (19, (-191550.28125, 66771.03125, 23728.048828125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F795ED701_1232931762"),
@@ -570,6 +590,7 @@ FREE_DROPPED_ITEMS = {
       (79, (66177.0, -13901.0, 13302.8369140625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F799ACD01_1565897745"),
       (117, (181264.0, 94525.0, 17910.0), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79DACE01_1166767079"),
       (71, (128864.0, -116212.0, -1498.806884765625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7948CE01_1312028385"),
+      (100, (225491.546875, 100133.1875, 7234.08203125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F790FD201_1548951577"),
       ),
    "/Game/FactoryGame/Resource/Parts/NobeliskExplosive/Desc_NobeliskExplosive.Desc_NobeliskExplosive_C": ( # Nobelisk
       (1, (-182706.453125, 69246.59375, 14190.591796875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7956DD01_1675839678"),
@@ -607,6 +628,7 @@ FREE_DROPPED_ITEMS = {
       (35, (148302.46875, 146368.234375, 7815.0576171875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79DACE01_1155111073"),
       (27, (201150.0, 133488.0, 7110.81201171875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7904D201_1917486626"),
       (30, (166650.0, 61451.0, 21174.8125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79DACE01_1143866066"),
+      (19, (226975.546875, 100203.1875, 7212.89404296875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F790FD201_1548950576"),
       ),
    "/Game/FactoryGame/Resource/Parts/Silica/Desc_Silica.Desc_Silica_C": ( # Silica
       (55, (-141400.1875, 98701.1953125, 18586.333984375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F795ED701_1798755776"),
@@ -631,6 +653,8 @@ FREE_DROPPED_ITEMS = {
       (89, (231251.75, 25149.935546875, -1755.800537109375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7971D601_1955785058"),
       (69, (250437.5625, 60080.37890625, -1351.0146484375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1679193564"),
       (63, (291091.34375, 2658.77392578125, 869.7711181640625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1940794576"),
+      (90, (233806.15625, 78554.7578125, -1666.68701171875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7973D601_1399859414"),
+      (72, (189654.625, -126234.734375, 15977.146484375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B9D601_1495297772"),
       ),
    "/Game/FactoryGame/Resource/Parts/AluminumCasing/Desc_AluminumCasing.Desc_AluminumCasing_C": ( # Aluminum Casing
       (60, (-142074.828125, 98593.7265625, 18538.166015625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F795ED701_1798751772"),
@@ -653,6 +677,8 @@ FREE_DROPPED_ITEMS = {
       (74, (143740.9375, 37028.08203125, 17172.2578125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79D4D401_2023578398"),
       (89, (175339.875, -244328.375, 7071.814453125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B6D601_1844777230"),
       (67, (248901.65625, 58164.65234375, -1660.28564453125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1679189561"),
+      (55, (226387.28125, 99903.3671875, 7190.4052734375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F790FD201_1548949575"),
+      (90, (187532.703125, -128964.6484375, 15921.9853515625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B9D601_1495273770"),
       ),
    "/Game/FactoryGame/Equipment/RebarGun/Ammo/Desc_Rebar_Stunshot.Desc_Rebar_Stunshot_C": ( # Stun Rebar
       (10, (-108784.8359375, 108263.7265625, 9930.5673828125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79C4C501_1269706715"),
@@ -667,6 +693,7 @@ FREE_DROPPED_ITEMS = {
       (7, (93391.1171875, 106433.4453125, 9865.3037109375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7978D501_1524845337"),
       (8, (90497.359375, 128846.0078125, 9233.7177734375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7960D601_1844993049"),
       (7, (217660.09375, 1175.421630859375, -1667.1119384765625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7970D601_1742966879"),
+      (9, (287187.71875, 72754.265625, -1647.430419921875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1278923557"),
       ),
    "/Game/FactoryGame/Equipment/NobeliskDetonator/Ammo/Desc_NobeliskCluster.Desc_NobeliskCluster_C": ( # Cluster Nobelisk
       (3, (-117546.625, 74459.03125, 17108.8359375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79F6D201_1222012224"),
@@ -708,6 +735,7 @@ FREE_DROPPED_ITEMS = {
       (17, (190480.390625, 37959.54296875, 5410.6845703125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7970D601_1288619873"),
       (17, (250121.515625, 59157.62109375, -1429.7542724609375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1679167560"),
       (27, (291314.15625, 2850.7578125, 843.0955200195312), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1940793575"),
+      (5, (234255.640625, 80359.6953125, -1670.0462646484375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7973D601_1399883419"),
       ),
    "/Game/FactoryGame/Resource/Parts/BioFuel/Desc_PackagedBiofuel.Desc_PackagedBiofuel_C": ( # Packaged Liquid Biofuel
       (7, (-77287.828125, 91759.2421875, 20218.748046875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79FCD201_2085720292"),
@@ -729,6 +757,7 @@ FREE_DROPPED_ITEMS = {
       (19, (232008.6875, 25226.845703125, -1723.688232421875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F7971D601_1955787060"),
       (37, (271136.71875, 29856.962890625, -1643.8759765625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1894811569"),
       (40, (292458.9375, 1616.680908203125, 753.1085205078125), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79AED201_1940769572"),
+      (15, (188897.171875, -127497.40625, 15986.9482421875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B9D601_1495295771"),
       ),
    "/Game/FactoryGame/Resource/Parts/SpikedRebar/Desc_SpikedRebar.Desc_SpikedRebar_C": ( # Iron Rebar
       (7, (27423.8046875, 195295.453125, 17016.396484375), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79DAC401_1183609533"),
@@ -755,6 +784,7 @@ FREE_DROPPED_ITEMS = {
       (16, (108142.7421875, -162850.953125, 15478.7998046875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B9D601_1286302765"),
       (17, (158022.734375, -145613.890625, 23204.91015625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B1D601_1363258333"),
       (16, (187619.453125, 16483.072265625, 13038.775390625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79DAD401_1816333484"),
+      (17, (191382.90625, -128120.8515625, 16019.171875), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79B9D601_1495299773"),
       ),
    "/Game/FactoryGame/Resource/Parts/Filter/Desc_Filter.Desc_Filter_C": ( # Gas Filter
       (3, (233138.078125, -313534.375, 9918.2890625), "Persistent_Level:PersistentLevel.FGItemPickup_Spawnable_UAID_40B076DF2F79A7CD01_2130365061"),
