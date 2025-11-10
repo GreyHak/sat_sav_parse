@@ -2250,15 +2250,18 @@ if __name__ == '__main__':
                               for idx in range(len(storedItem[0])): # setPropertyValue where storedItem[0] is the property list
                                  (haystackPropertyName, propertyValue) = storedItem[0][idx]
                                  if haystackPropertyName == "amount":
-                                    storedItem[0][idx] = [haystackPropertyName, newItemQuantity]
-                                    modifiedFlag = True
-                                    break
+                                    if propertyValue == newItemQuantity:
+                                       print("{haystackPropertyName} quantity already {propertyValue}")
+                                    else:
+                                       storedItem[0][idx] = [haystackPropertyName, newItemQuantity]
+                                       modifiedFlag = True
+                                       break
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       if not modifiedFlag:
-         print("Nothing reordered.", file=sys.stderr)
+         print("Nothing adjusted.", file=sys.stderr)
          exit(1)
 
       try:
