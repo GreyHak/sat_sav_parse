@@ -127,6 +127,19 @@ Usage: `py sav_monitor.py [save-directory] [html-output-directory] [monitor-peri
 `sav_monitor.py` will check for new save files, generate html/png summary of
 new save files, and optionally archive the save files.
 
+`[save-directory]` defaults to `.config/Epic/FactoryGame/Saved/SaveGames/server`
+or `%LOCALAPPDATA%/FactoryGame/Saved/SaveGames/*.`  The `[save-directory]` must
+exist for the monitor to start.
+
+`[html-output-directory]` defaults to the current-working-directory.  HTML and
+map generation is only performed if the provided `[html-output-directory]` exists.
+
+`[monitor-period]` is the rate in seconds that the monitor looks for new saves.
+The default `[monitor-period]` is 1.0 second.  Settings between 0.2 and 120.0
+would be completely reasonable.
+
+Archiving is only performed if the `[archive-directory]` is provided and exists.
+
 ## Credits
 
 The source code in this repo was developed by [GreyHak](https://github.com/GreyHak).
