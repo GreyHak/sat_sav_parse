@@ -136,8 +136,13 @@ these files are available on your system, you can obtain a .ttf font file from
 
 ### Legend: save_all_collectables.png
 
-- Somersloops and Mercer Spheres are solid circles, red and dark purple, respectively.
-- Slugs are non-solid circle outlines; blue, yellow and purple.
+- Somersloops and Mercer Spheres are solid circles.
+Somersloops are red [![](https://placehold.co/15x15/f43845/f43845.png)](#) and
+Mercer Spheres are dark purple [![](https://placehold.co/15x15/4e1071/4e1071.png)](#).
+- Slugs are non-solid circle outlines;
+[![](https://placehold.co/15x15/0000ff/0000ff.png)](#) blue,
+[![](https://placehold.co/15x15/ffff00/ffff00.png)](#) yellow and
+[![](https://placehold.co/15x15/c000c0/c000c0.png)](#) purple.
 
 ### Legend: save_nodes.png
 
@@ -164,9 +169,9 @@ these files are available on your system, you can obtain a .ttf font file from
 
 ### Legend: save_hd.png
 
-- blue: unopened
-- green: open with drive
-- white: open and empty
+- [![](https://placehold.co/15x15/0000ff/0000ff.png)](#) blue: unopened
+- [![](https://placehold.co/15x15/00ff00/00ff00.png)](#) green: open with drive
+- [![](https://placehold.co/15x15/ffffff/ffffff.png)](#) white: open and empty
 
 ## sav_monitor.py
 

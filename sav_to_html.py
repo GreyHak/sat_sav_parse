@@ -45,9 +45,44 @@ MAP_BASENAME_COLLECTABLES   = "save_all_collectables.png"
 MAP_BASENAME_POWER          = "save_power.png"
 MAP_BASENAME_RESOURCE_NODES = "save_nodes.png"
 
+MAP_RESOURCE_NODE_CIRCLE_SIZE_UNUSED = 3
+MAP_RESOURCE_NODE_CIRCLE_SIZE_USED = 2
+MAP_COLOR_TEXT = (0,0,0)
+MAP_COLOR_SLUG_BLUE = (0,0,255)
+MAP_COLOR_SLUG_YELLOW = (255,255,0)
+MAP_COLOR_SLUG_PURPLE = (192,0,192)
+MAP_COLOR_CRASH_SITE_UNOPENED = (0,0,255)
+MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE = (0,255,0)
+MAP_COLOR_CRASH_SITE_OPEN_EMPTY = (255,255,255)
+MAP_COLOR_UNCOLLECTED_SOMERSLOOP = (244,56,69)
+MAP_COLOR_UNCOLLECTED_MERCER_SPHERE = (78,16,113)
+MAP_COLOR_POWER_LINE = (22,47,101)
+MAP_COLOR_NODE_PURITY = {
+   sav_data.resourcePurity.Purity.IMPURE: (210,52,48),
+   sav_data.resourcePurity.Purity.NORMAL: (242,100,24),
+   sav_data.resourcePurity.Purity.PURE: (128,177,57),
+}
+MAP_COLOR_NODE_TYPE = {
+   None: (255,255,255),
+   "Desc_Coal_C": (80,80,80),
+   "Desc_Geyser_C": (192,192,255),
+   "Desc_LiquidOil_C": (20,20,20),
+   "Desc_LiquidOilWell_C": (20,20,20),
+   "Desc_NitrogenGas_C": (232,229,196),
+   "Desc_OreBauxite_C": (200,140,114),
+   "Desc_OreCopper_C": (149,93,87),
+   "Desc_OreGold_C": (210,188,150),
+   "Desc_OreIron_C": (111,80,93),
+   "Desc_OreUranium_C": (94,141,82),
+   "Desc_RawQuartz_C": (221,154,201),
+   "Desc_SAM_C": (110,46,169),
+   "Desc_Stone_C": (191,178,168),
+   "Desc_Sulfur_C": (205,191,102),
+   "Desc_Water_C": (165,204,223),
+}
+
 MAP_FONT_SIZE = 760/MAP_DESCALE
-MAP_TEXT_1 = (4400/MAP_DESCALE, 4300/MAP_DESCALE)
-MAP_TEXT_2 = (4400/MAP_DESCALE, 5400/MAP_DESCALE)
+MAP_TEXT_POSITION = (4400/MAP_DESCALE, 4300/MAP_DESCALE)
 CROP_SETTINGS = (4096/MAP_DESCALE, 4096/MAP_DESCALE, 36864/MAP_DESCALE, 36864/MAP_DESCALE)
 def adjPos(pos, yFlag):
    newPos = (pos / 22.887 + (18282.5,20480)[yFlag]) / MAP_DESCALE
@@ -496,14 +531,13 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
          slugImage = origImage.copy()
          slugDraw = ImageDraw.Draw(slugImage)
-         addSlugs(slugDraw, uncollectedPowerSlugsBlue, (0,0,255))
-         addSlugs(slugDraw, uncollectedPowerSlugsYellow, (255,255,0))
-         addSlugs(slugDraw, uncollectedPowerSlugsPurple, (192,0,192))
-         addSlugs(smsDraw, uncollectedPowerSlugsBlue, outline=(0,0,255))
-         addSlugs(smsDraw, uncollectedPowerSlugsYellow, outline=(255,255,0))
-         addSlugs(smsDraw, uncollectedPowerSlugsPurple, outline=(192,0,192))
-         slugDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Slugs from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         slugDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+         addSlugs(slugDraw, uncollectedPowerSlugsBlue, MAP_COLOR_SLUG_BLUE)
+         addSlugs(slugDraw, uncollectedPowerSlugsYellow, MAP_COLOR_SLUG_YELLOW)
+         addSlugs(slugDraw, uncollectedPowerSlugsPurple, MAP_COLOR_SLUG_PURPLE)
+         addSlugs(smsDraw, uncollectedPowerSlugsBlue, outline=MAP_COLOR_SLUG_BLUE)
+         addSlugs(smsDraw, uncollectedPowerSlugsYellow, outline=MAP_COLOR_SLUG_YELLOW)
+         addSlugs(smsDraw, uncollectedPowerSlugsPurple, outline=MAP_COLOR_SLUG_PURPLE)
+         slugDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Uncollected Slugs\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_SLUGS}"
          slugImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -514,21 +548,20 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             coord = crashSiteInstances[key]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
-            hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(255,255,255))
+            hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_EMPTY)
          for key in crashSitesUnopenedKeys:
             coord = crashSiteInstances[key]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
-            hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,0,255))
-            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,0,255))
+            hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
+            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
          for coord in crashSitesOpenWithDrive:
             if coord is not None:
                posX = adjPos(coord[0], False)
                posY = adjPos(coord[1], True)
-               hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,255,0))
-               smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(0,255,0))
-         hdDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Hard drives from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         hdDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+               hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
+               smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
+         hdDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Hard drives\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_HARD_DRIVES}"
          hdImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -539,11 +572,10 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             (rootObject, rotation, position) = uncollectedSomersloops[instanceName]
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
-            ssDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
-            smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
-            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(244,56,69))
-         ssDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Somersloops from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         ssDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+            ssDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_SOMERSLOOP)
+            smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_SOMERSLOOP)
+            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_SOMERSLOOP)
+         ssDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Uncollected Somersloops\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_SOMERSLOOP}"
          ssImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -554,22 +586,20 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             (rootObject, rotation, position) = uncollectedMercerSpheres[instanceName]
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
-            msDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
-            smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
-            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=(78,16,113))
-         msDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Mercer Spheres from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         msDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+            msDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_MERCER_SPHERE)
+            smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_MERCER_SPHERE)
+            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_MERCER_SPHERE)
+         msDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Uncollected Mercer Spheres\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_MERCER_SPHERE}"
          msImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
 
-         smDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Somersloops & Mercer Spheres from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         smDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+         smDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Uncollected Somersloops & Mercer Spheres\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_SOME_MERC_SPH}"
          smImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
 
-         smsDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime(f"Somersloops & Mercer Spheres &\nSlugs & Crash Sites from save %m/%d/%Y %I:%M:%S %p\n{parsedSave.saveFileInfo.sessionName}"), font=imageFont, fill=(0,0,0))
+         smsDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Uncollected Somersloops & Mercer Spheres &\nSlugs & Crash Sites\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_COLLECTABLES}"
          smsImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -581,9 +611,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             posdX = adjPos(dst[0], False)
             possY = adjPos(src[1], True)
             posdY = adjPos(dst[1], True)
-            plDraw.line(((possX, possY), (posdX, posdY)), fill=(22,47,101), width=2)
-         plDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Power Lines from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         plDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+            plDraw.line(((possX, possY), (posdX, posdY)), fill=MAP_COLOR_POWER_LINE, width=2)
+         plDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Power Lines\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_POWER}"
          plImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -595,42 +624,18 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
 
-            sz = 3
+            sz = MAP_RESOURCE_NODE_CIRCLE_SIZE_UNUSED
             if instanceName in minedResources:
-               sz = 2
+               sz = MAP_RESOURCE_NODE_CIRCLE_SIZE_USED
 
-            purityColors = {
-               sav_data.resourcePurity.Purity.IMPURE: (210,52,48),
-               sav_data.resourcePurity.Purity.NORMAL: (242,100,24),
-               sav_data.resourcePurity.Purity.PURE: (128,177,57),
-            }
-            if purity in purityColors:
-               rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=purityColors[purity])
+            if purity in MAP_COLOR_NODE_PURITY:
+               rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=MAP_COLOR_NODE_PURITY[purity])
 
             sz -= 1
 
-            typeColors = {
-               None: (255,255,255),
-               "Desc_Coal_C": (80,80,80),
-               "Desc_Geyser_C": (192,192,255),
-               "Desc_LiquidOil_C": (20,20,20),
-               "Desc_LiquidOilWell_C": (20,20,20),
-               "Desc_NitrogenGas_C": (232,229,196),
-               "Desc_OreBauxite_C": (200,140,114),
-               "Desc_OreCopper_C": (149,93,87),
-               "Desc_OreGold_C": (210,188,150),
-               "Desc_OreIron_C": (111,80,93),
-               "Desc_OreUranium_C": (94,141,82),
-               "Desc_RawQuartz_C": (221,154,201),
-               "Desc_SAM_C": (110,46,169),
-               "Desc_Stone_C": (191,178,168),
-               "Desc_Sulfur_C": (205,191,102),
-               "Desc_Water_C": (165,204,223),
-            }
-            if type in typeColors:
-               rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=typeColors[type])
-         rnDraw.text(MAP_TEXT_1, parsedSave.saveFileInfo.saveDatetime.strftime("Resource Nodes from save %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=(0,0,0))
-         rnDraw.text(MAP_TEXT_2, parsedSave.saveFileInfo.sessionName, font=imageFont, fill=(0,0,0))
+            if type in MAP_COLOR_NODE_TYPE:
+               rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=MAP_COLOR_NODE_TYPE[type])
+         rnDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Resource Nodes\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_RESOURCE_NODES}"
          rnImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
