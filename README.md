@@ -11,6 +11,15 @@ first-person, open-world, factory-building and exploration game produced by
 
 <img src="sav_to_html_map_examples.png" alt="generated map examples from save to html python script" width="816"/>
 
+Table of Contents:
+- [sav_parse.py](#sav_parsepy) - Parser script
+- [sav_to_resave.py](#sav_to_resavepy) - Save generation script
+- [sav_cli.py](#sav_clipy) - Save editor CLI
+- [sav_to_html.py](#sav_to_htmlpy) - HTML and Map generator
+- [sav_monitor.py](#sav_monitorpy) - Automation for sav_to_html.py
+- [Credits](#credits) and Thanks
+- [License](#license)
+
 ## sav_parse.py
 
 `sav_parse.py` will decode the save file.  It can be used as either a library
