@@ -120,6 +120,20 @@ is provided, this script also creates maps of:
   - The power grid.
   - The resource nodes including their type, locations, purity, and usage.
 
+The map size can be increased or decreased by changing two things.
+`blank_map20.png` is 2048x2048.  The "20" in the filename is a scale,
+configured in `sav_to_html.py` by the variable `MAP_DESCALE`.  The size is
+relative to a scale of 1 representing 40960x40960.  So 2048 = 40960 / 20.
+A slightly larger map than the default could be `MAP_DESCALE = 16` and a
+2560x2560 `blank_map16.png`.  You can either manually resize `blank_map20.png`
+yourself, or contact grey.hak on Discord or submit an Issue request on github.
+
+The maps get labeled using the .ttf font file defined in `sav_to_html.py` by the variable
+`FONT_FILENAME`.  On Linux this defaults to `/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf`.
+On Windows this defaults to `C:\Windows\Fonts\DejaVuSerif.ttf`.  If neither of
+these files are available on your system, you can obtain a .ttf font file from
+[https://github.com/kiwi0fruit/open-fonts](https://github.com/kiwi0fruit/open-fonts).
+
 ### Legend: save_all_collectables.png
 
 - Somersloops and Mercer Spheres are solid circles, red and dark purple, respectively.
