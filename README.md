@@ -120,6 +120,40 @@ is provided, this script also creates maps of:
   - The power grid.
   - The resource nodes including their type, locations, purity, and usage.
 
+### Legend: save_all_collectables.png
+
+- Somersloops and Mercer Spheres are solid circles, red and dark purple, respectively.
+- Slugs are non-solid circle outlines; blue, yellow and purple.
+
+### Legend: save_nodes.png
+
+- The size of the circle is smaller if the node is mined, and larger if the node is unused.
+- The center color represents the node purity;
+     [![](https://placehold.co/15x15/d23430/d23430.png)](#) for impure,
+     [![](https://placehold.co/15x15/f26418/f26418.png)](#) for normal,
+     [![](https://placehold.co/15x15/80b139/80b139.png)](#) for pure
+- The outline color represents the node type;
+   - [![](https://placehold.co/15x15/505050/505050.png)](#) for goal
+   - [![](https://placehold.co/15x15/c0c0ff/c0c0ff.png)](#) for geyser
+   - [![](https://placehold.co/15x15/141414/141414.png)](#) for oil
+   - [![](https://placehold.co/15x15/e8e5c4/e8e5c4.png)](#) for nitrogen gas
+   - [![](https://placehold.co/15x15/c88c72/c88c72.png)](#) for bauxite
+   - [![](https://placehold.co/15x15/955d57/955d57.png)](#) for copper
+   - [![](https://placehold.co/15x15/d2bc96/d2bc96.png)](#) for caterium
+   - [![](https://placehold.co/15x15/6f505d/6f505d.png)](#) for iron
+   - [![](https://placehold.co/15x15/5e8d52/5e8d52.png)](#) for uranium
+   - [![](https://placehold.co/15x15/dd9ac9/dd9ac9.png)](#) for raw quartz
+   - [![](https://placehold.co/15x15/6e2ea9/6e2ea9.png)](#) for SAM
+   - [![](https://placehold.co/15x15/bfb2a8/bfb2a8.png)](#) for limestone
+   - [![](https://placehold.co/15x15/cdbf66/cdbf66.png)](#) for sulfur
+   - [![](https://placehold.co/15x15/a5ccdf/a5ccdf.png)](#) for water
+
+### Legend: save_hd.png
+
+- blue: unopened
+- green: open with drive
+- white: open and empty
+
 ## sav_monitor.py
 
 Usage: `py sav_monitor.py [save-directory] [html-output-directory] [monitor-period] [archive-directory]`
