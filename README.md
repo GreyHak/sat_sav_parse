@@ -25,8 +25,8 @@ Table of Contents:
 `sav_parse.py` will decode the save file.  It can be used as either a library
 or a program.
 
-When used as a library, call `sav_parse.readFullSaveFile(<filename>)` to
-parse the entire save file, or `sav_parse.readSaveFileInfo(<filename>)` to
+When used as a library, call `sav_parse.readFullSaveFile(filename: str)` to
+parse the entire save file, or `sav_parse.readSaveFileInfo(filename: str)` to
 parse just the header information.
 
 When used as a program, from the command line call `py sav_parse.py <filename>`
@@ -36,9 +36,8 @@ to generate a text file representation of the save file.
 
 `sav_to_resave.py` will create a save file based on the data producted by
 `sav_parse.py` or a manipulated varient of that data.  The interface is
-`sav_to_resave.saveFile(saveFileInfo, headhex, grids, levels, extraObjectReferenceList, outFilename)`
-where the first five parameters are the variables that `sav_parse.readSaveFileInfo`
-returns.
+`saveFile(parsedSave: sav_parse.ParsedSave, outFilename: str)` where
+the first parameter are the variable returned by `sav_parse.readSaveFileInfo`.
 
 ## sav_cli.py
 
