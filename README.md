@@ -101,7 +101,7 @@ operation since the game's reverse-sorting is performed on save-open time.
 
 Command line: `py sav_to_html.py <save-filename> [output-html-file]`
 
-Library: `sav_to_html.generateHTML(str savFilePath, str outputDirectory, str htmlBaseName)`
+Library: `sav_to_html.generateHTML(savFilePath: str, outputDirectory: str, htmlBaseName: str)`
 
 `sav_to_html.py` makes use of `sav_parse.py` to decode a save file and creates
 a save.html.  The HTML page contains:
