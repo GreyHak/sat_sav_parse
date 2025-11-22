@@ -440,6 +440,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
       if creatingMapImagesFlag:
          lines += f' (<a href="{MAP_BASENAME_SOME_MERC_SPH}">both</a>)'
+         lines += f' (<a href="{MAP_BASENAME_COLLECTABLES}">all collectables</a>)'
       lines += "<p>\n"
 
       numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
