@@ -1,121 +1,121 @@
 # Exported from Satisfactory v1.1.1.6
-CRASH_SITES = [
-   "Persistent_Level:PersistentLevel.BP_DropPod1", # [87739.6796875, -62975.45703125, 13444.25]
-   "Persistent_Level:PersistentLevel.BP_DropPod10", # [232138.0, 27191.0, -1629.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod11_2", # [-238333.984375, 17321.701171875, 19741.078125]
-   "Persistent_Level:PersistentLevel.BP_DropPod12", # [-4706.82080078125, -76301.984375, 13618.501953125]
-   "Persistent_Level:PersistentLevel.BP_DropPod13", # [55247.98828125, -51316.34375, 14363.263671875]
-   "Persistent_Level:PersistentLevel.BP_DropPod14_389", # [-43144.0, 145820.0, 7472.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod15_821", # [-189258.109375, 116331.0, -1764.3046875]
-   "Persistent_Level:PersistentLevel.BP_DropPod16_4595", # [30383.755859375, 266975.65625, -987.3851928710938]
-   "Persistent_Level:PersistentLevel.BP_DropPod17_7892", # [-108812.875, 214051.125, 3200.816650390625]
-   "Persistent_Level:PersistentLevel.BP_DropPod18", # [-259577.125, 105048.828125, -1548.1669921875]
-   "Persistent_Level:PersistentLevel.BP_DropPod19", # [8680.0, -41777.97265625, 13053.4443359375]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_0", # [-89284.0, -50630.0, 16019.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_1", # [293299.28125, 51.7546272277832, 522.8636474609375]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_2", # [157249.75, -40206.21875, 13694.84765625]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_22", # [-95228.078125, 6970.71826171875, 25142.943359375]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_3", # [46951.75, 221859.125, 5917.33154296875]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_4", # [303169.40625, -246169.015625, 5487.82373046875]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_8", # [176423.359375, 243273.59375, -9780.2314453125]
-   "Persistent_Level:PersistentLevel.BP_DropPod1_9", # [-118480.78125, 74929.7578125, 16995.3515625]
-   "Persistent_Level:PersistentLevel.BP_DropPod2", # [-26327.44921875, -129047.5, 7780.93212890625]
-   "Persistent_Level:PersistentLevel.BP_DropPod20", # [66652.421875, -13642.076171875, 13420.91796875]
-   "Persistent_Level:PersistentLevel.BP_DropPod21_2", # [295166.53125, -173139.6875, 8083.01513671875]
-   "Persistent_Level:PersistentLevel.BP_DropPod22", # [366637.46875, -303548.8125, -7288.51318359375]
-   "Persistent_Level:PersistentLevel.BP_DropPod23", # [360285.0, -217558.578125, 3900.66015625]
-   "Persistent_Level:PersistentLevel.BP_DropPod24_1", # [174948.34375, -276436.40625, 21151.328125]
-   "Persistent_Level:PersistentLevel.BP_DropPod25", # [159088.34375, -145116.40625, 23164.8515625]
-   "Persistent_Level:PersistentLevel.BP_DropPod26", # [-55111.1015625, -204857.859375, 7844.7626953125]
-   "Persistent_Level:PersistentLevel.BP_DropPod27_20823", # [163999.0, 61333.0, 21481.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod28_23787", # [232515.75, -20519.28515625, 8979.958984375]
-   "Persistent_Level:PersistentLevel.BP_DropPod29_27444", # [94267.0, 47237.0, 9435.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_0", # [47767.35546875, 195703.109375, 2890.685546875]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_1", # [209272.09375, -66916.875, 14011.0107421875]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_10", # [-78236.40625, 90857.046875, 20305.7734375]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_11", # [187056.4375, 223656.734375, -3215.46728515625]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_1325", # [-195756.015625, -59210.41015625, -84.3333740234375]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_2", # [232255.375, 79925.5546875, -1275.73828125]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_23", # [12249.8037109375, 114177.2265625, 26721.71875]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_5", # [46048.18359375, 141933.078125, 13064.6240234375]
-   "Persistent_Level:PersistentLevel.BP_DropPod2_6", # [360114.71875, -106614.1328125, 11815.2353515625]
-   "Persistent_Level:PersistentLevel.BP_DropPod3", # [-174494.890625, -197134.84375, -1538.0528564453125]
-   "Persistent_Level:PersistentLevel.BP_DropPod30_6998", # [170057.671875, -10579.9609375, 18823.9140625]
-   "Persistent_Level:PersistentLevel.BP_DropPod31", # [200510.453125, 131912.359375, 6341.11279296875]
-   "Persistent_Level:PersistentLevel.BP_DropPod32_1", # [90313.921875, 129583.78125, 9112.5146484375]
-   "Persistent_Level:PersistentLevel.BP_DropPod33", # [-78884.0, 292640.0, -4767.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod34", # [-152279.0, 229520.0, 1052.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod35", # [5302.2138671875, -187090.59375, -1608.4810791015625]
-   "Persistent_Level:PersistentLevel.BP_DropPod36", # [-135.6539306640625, -237257.375, -1760.7264404296875]
-   "Persistent_Level:PersistentLevel.BP_DropPod36_UAID_40B076DF2F79496001_1121515405", # [-50655.65234375, -259272.375, -1667.7264404296875]
-   "Persistent_Level:PersistentLevel.BP_DropPod37", # [44579.46484375, -244343.984375, -874.5206298828125]
-   "Persistent_Level:PersistentLevel.BP_DropPod38", # [84256.1328125, -171122.515625, -290.7247009277344]
-   "Persistent_Level:PersistentLevel.BP_DropPod39", # [119338.546875, -165710.640625, -171.06915283203125]
-   "Persistent_Level:PersistentLevel.BP_DropPod39_UAID_40B076DF2F79F35F01_1355966267", # [52686.546875, -163604.640625, 15413.9306640625]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_1", # [17807.6953125, -136922.796875, 13621.9619140625]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_11", # [-40194.1171875, 62956.59375, 26261.65625]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_12", # [190459.03125, 176105.3125, 11478.5673828125]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_2", # [-56144.28125, -72864.0546875, 27668.361328125]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_24", # [-3511.89208984375, 62314.76953125, 22109.423828125]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_3", # [291821.78125, 74782.0546875, -1574.70361328125]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_4", # [94940.0, 105482.9609375, 9860.046875]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_5", # [28695.544921875, 193441.09375, 17459.802734375]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_7", # [275070.0, -52585.0, 5980.0810546875]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_8", # [-56987.55859375, -144927.625, 2202.423828125]
-   "Persistent_Level:PersistentLevel.BP_DropPod3_8348", # [-232498.0, -51432.0, -386.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod4", # [111212.859375, -113040.625, 12036.1845703125]
-   "Persistent_Level:PersistentLevel.BP_DropPod40_1163", # [21373.3828125, 132336.28125, 2510.828125]
-   "Persistent_Level:PersistentLevel.BP_DropPod41_8375", # [-9988.3759765625, 227625.5, -1017.2890625]
-   "Persistent_Level:PersistentLevel.BP_DropPod42", # [221070.0, 185915.0, 11560.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod42_5", # [190785.0, -236810.0, 23130.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod43_2", # [176245.0, -243985.0, 7165.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod44_10", # [109775.0, -162730.0, 15570.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod45_6", # [190865.0, -127670.0, 16020.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_1", # [143671.609375, 92573.4765625, 24990.03515625]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_12", # [-157077.9375, -6312.6201171875, 25128.533203125]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_13058", # [-200203.453125, -17766.8046875, 12193.2958984375]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_25", # [-33340.2265625, 5176.29150390625, 23519.095703125]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_4", # [191366.203125, 37694.171875, 5676.720703125]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_6", # [88323.6953125, 188913.625, 1420.112060546875]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_7", # [98306.2890625, -149781.84375, 2552.47119140625]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_8033", # [144456.53125, 36294.046875, 17301.25390625]
-   "Persistent_Level:PersistentLevel.BP_DropPod4_9", # [118349.953125, 221905.25, -7063.04296875]
-   "Persistent_Level:PersistentLevel.BP_DropPod5", # [226418.21875, 98109.5078125, 7339.3720703125]
-   "Persistent_Level:PersistentLevel.BP_DropPod5_10", # [156569.671875, 191767.78125, -9312.1083984375]
-   "Persistent_Level:PersistentLevel.BP_DropPod5_13", # [-152676.609375, 33864.58984375, 19283.484375]
-   "Persistent_Level:PersistentLevel.BP_DropPod5_26", # [35096.1328125, 16492.3359375, 22705.03515625]
-   "Persistent_Level:PersistentLevel.BP_DropPod5_6", # [127215.8828125, -116866.953125, -1397.322021484375]
-   "Persistent_Level:PersistentLevel.BP_DropPod5_740", # [-151842.0, 72468.0, 9945.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod5_9", # [349295.3125, -38831.99609375, -1485.3040771484375]
-   "Persistent_Level:PersistentLevel.BP_DropPod6", # [272715.125, 28087.708984375, -1586.1102294921875]
-   "Persistent_Level:PersistentLevel.BP_DropPod6_2102", # [-108774.0, 107811.0, 10154.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod6_27", # [-35359.9921875, 116594.390625, 21827.935546875]
-   "Persistent_Level:PersistentLevel.BP_DropPod7", # [216096.71875, -268.4361877441406, -1592.905517578125]
-   "Persistent_Level:PersistentLevel.BP_DropPod7_5615", # [-121994.0, 166916.0, -49.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod8", # [261797.5, 124616.828125, -2597.287109375]
-   "Persistent_Level:PersistentLevel.BP_DropPod9", # [249919.5, 59534.234375, 2430.315185546875]
-   "Persistent_Level:PersistentLevel.BP_DropPod9_1568", # [-129115.0, 60165.0, 4800.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_1145", # [-157080.046875, -67028.15625, 11766.45703125]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_0", # [-123677.3671875, -167107.46875, 29710.71875]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_1", # [80980.0, -44100.0, 8303.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_10", # [-142000.0, 23970.0, 32660.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_11", # [219146.140625, -199880.15625, 6503.64990234375]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_12", # [236508.34375, -312236.40625, 9971.1552734375]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_2", # [150633.921875, 146698.78125, 7727.5146484375]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_3", # [-146044.0625, -137047.46875, 2357.789306640625]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_4", # [-29068.62890625, -22640.40234375, 17384.154296875]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_5", # [111479.0, -54515.0, 17081.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_6", # [125497.3515625, -34949.3828125, 8220.5615234375]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_7", # [-247303.5625, -142348.265625, 4524.17041015625]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_8", # [64696.55859375, 156038.6875, 14067.2109375]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_9", # [-94708.8515625, 40337.609375, 19832.365234375]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F01FA401_2123550800", # [-190866.0, 66921.0, 23751.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F020A401_1123860977", # [-164591.0, 155611.0, 12383.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F020A401_1502230978", # [-142173.0, 97937.0, 18517.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03B7C01_1559404536", # [115978.0, 21424.0, 15519.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03B7C01_1712034537", # [198418.0, -41186.0, 13786.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03B7C01_1807913538", # [121061.0, 45324.0, 17373.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03C7C01_1131248715", # [188304.0, 17059.0, 12949.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F0486401_1144991453", # [241532.0, 131343.0, 17157.0]
-   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F0FF6301_1123988602", # [182825.0, 93880.0, 17755.0]
-] # CRASH_SITES
+CRASH_SITES = {
+   "Persistent_Level:PersistentLevel.BP_DropPod1": (87739.6796875, -62975.45703125, 13444.25),
+   "Persistent_Level:PersistentLevel.BP_DropPod10": (232138.0, 27191.0, -1629.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod11_2": (-238333.984375, 17321.701171875, 19741.078125),
+   "Persistent_Level:PersistentLevel.BP_DropPod12": (-4706.82080078125, -76301.984375, 13618.501953125),
+   "Persistent_Level:PersistentLevel.BP_DropPod13": (55247.98828125, -51316.34375, 14363.263671875),
+   "Persistent_Level:PersistentLevel.BP_DropPod14_389": (-43144.0, 145820.0, 7472.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod15_821": (-189258.109375, 116331.0, -1764.3046875),
+   "Persistent_Level:PersistentLevel.BP_DropPod16_4595": (30383.755859375, 266975.65625, -987.3851928710938),
+   "Persistent_Level:PersistentLevel.BP_DropPod17_7892": (-108812.875, 214051.125, 3200.816650390625),
+   "Persistent_Level:PersistentLevel.BP_DropPod18": (-259577.125, 105048.828125, -1548.1669921875),
+   "Persistent_Level:PersistentLevel.BP_DropPod19": (8680.0, -41777.97265625, 13053.4443359375),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_0": (-89284.0, -50630.0, 16019.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_1": (293299.28125, 51.7546272277832, 522.8636474609375),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_2": (157249.75, -40206.21875, 13694.84765625),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_22": (-95228.078125, 6970.71826171875, 25142.943359375),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_3": (46951.75, 221859.125, 5917.33154296875),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_4": (303169.40625, -246169.015625, 5487.82373046875),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_8": (176423.359375, 243273.59375, -9780.2314453125),
+   "Persistent_Level:PersistentLevel.BP_DropPod1_9": (-118480.78125, 74929.7578125, 16995.3515625),
+   "Persistent_Level:PersistentLevel.BP_DropPod2": (-26327.44921875, -129047.5, 7780.93212890625),
+   "Persistent_Level:PersistentLevel.BP_DropPod20": (66652.421875, -13642.076171875, 13420.91796875),
+   "Persistent_Level:PersistentLevel.BP_DropPod21_2": (295166.53125, -173139.6875, 8083.01513671875),
+   "Persistent_Level:PersistentLevel.BP_DropPod22": (366637.46875, -303548.8125, -7288.51318359375),
+   "Persistent_Level:PersistentLevel.BP_DropPod23": (360285.0, -217558.578125, 3900.66015625),
+   "Persistent_Level:PersistentLevel.BP_DropPod24_1": (174948.34375, -276436.40625, 21151.328125),
+   "Persistent_Level:PersistentLevel.BP_DropPod25": (159088.34375, -145116.40625, 23164.8515625),
+   "Persistent_Level:PersistentLevel.BP_DropPod26": (-55111.1015625, -204857.859375, 7844.7626953125),
+   "Persistent_Level:PersistentLevel.BP_DropPod27_20823": (163999.0, 61333.0, 21481.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod28_23787": (232515.75, -20519.28515625, 8979.958984375),
+   "Persistent_Level:PersistentLevel.BP_DropPod29_27444": (94267.0, 47237.0, 9435.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_0": (47767.35546875, 195703.109375, 2890.685546875),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_1": (209272.09375, -66916.875, 14011.0107421875),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_10": (-78236.40625, 90857.046875, 20305.7734375),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_11": (187056.4375, 223656.734375, -3215.46728515625),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_1325": (-195756.015625, -59210.41015625, -84.3333740234375),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_2": (232255.375, 79925.5546875, -1275.73828125),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_23": (12249.8037109375, 114177.2265625, 26721.71875),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_5": (46048.18359375, 141933.078125, 13064.6240234375),
+   "Persistent_Level:PersistentLevel.BP_DropPod2_6": (360114.71875, -106614.1328125, 11815.2353515625),
+   "Persistent_Level:PersistentLevel.BP_DropPod3": (-174494.890625, -197134.84375, -1538.0528564453125),
+   "Persistent_Level:PersistentLevel.BP_DropPod30_6998": (170057.671875, -10579.9609375, 18823.9140625),
+   "Persistent_Level:PersistentLevel.BP_DropPod31": (200510.453125, 131912.359375, 6341.11279296875),
+   "Persistent_Level:PersistentLevel.BP_DropPod32_1": (90313.921875, 129583.78125, 9112.5146484375),
+   "Persistent_Level:PersistentLevel.BP_DropPod33": (-78884.0, 292640.0, -4767.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod34": (-152279.0, 229520.0, 1052.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod35": (5302.2138671875, -187090.59375, -1608.4810791015625),
+   "Persistent_Level:PersistentLevel.BP_DropPod36": (-135.6539306640625, -237257.375, -1760.7264404296875),
+   "Persistent_Level:PersistentLevel.BP_DropPod36_UAID_40B076DF2F79496001_1121515405": (-50655.65234375, -259272.375, -1667.7264404296875),
+   "Persistent_Level:PersistentLevel.BP_DropPod37": (44579.46484375, -244343.984375, -874.5206298828125),
+   "Persistent_Level:PersistentLevel.BP_DropPod38": (84256.1328125, -171122.515625, -290.7247009277344),
+   "Persistent_Level:PersistentLevel.BP_DropPod39": (119338.546875, -165710.640625, -171.06915283203125),
+   "Persistent_Level:PersistentLevel.BP_DropPod39_UAID_40B076DF2F79F35F01_1355966267": (52686.546875, -163604.640625, 15413.9306640625),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_1": (17807.6953125, -136922.796875, 13621.9619140625),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_11": (-40194.1171875, 62956.59375, 26261.65625),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_12": (190459.03125, 176105.3125, 11478.5673828125),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_2": (-56144.28125, -72864.0546875, 27668.361328125),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_24": (-3511.89208984375, 62314.76953125, 22109.423828125),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_3": (291821.78125, 74782.0546875, -1574.70361328125),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_4": (94940.0, 105482.9609375, 9860.046875),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_5": (28695.544921875, 193441.09375, 17459.802734375),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_7": (275070.0, -52585.0, 5980.0810546875),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_8": (-56987.55859375, -144927.625, 2202.423828125),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_8348": (-232498.0, -51432.0, -386.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod4": (111212.859375, -113040.625, 12036.1845703125),
+   "Persistent_Level:PersistentLevel.BP_DropPod40_1163": (21373.3828125, 132336.28125, 2510.828125),
+   "Persistent_Level:PersistentLevel.BP_DropPod41_8375": (-9988.3759765625, 227625.5, -1017.2890625),
+   "Persistent_Level:PersistentLevel.BP_DropPod42": (221070.0, 185915.0, 11560.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod42_5": (190785.0, -236810.0, 23130.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod43_2": (176245.0, -243985.0, 7165.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod44_10": (109775.0, -162730.0, 15570.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod45_6": (190865.0, -127670.0, 16020.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_1": (143671.609375, 92573.4765625, 24990.03515625),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_12": (-157077.9375, -6312.6201171875, 25128.533203125),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_13058": (-200203.453125, -17766.8046875, 12193.2958984375),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_25": (-33340.2265625, 5176.29150390625, 23519.095703125),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_4": (191366.203125, 37694.171875, 5676.720703125),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_6": (88323.6953125, 188913.625, 1420.112060546875),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_7": (98306.2890625, -149781.84375, 2552.47119140625),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_8033": (144456.53125, 36294.046875, 17301.25390625),
+   "Persistent_Level:PersistentLevel.BP_DropPod4_9": (118349.953125, 221905.25, -7063.04296875),
+   "Persistent_Level:PersistentLevel.BP_DropPod5": (226418.21875, 98109.5078125, 7339.3720703125),
+   "Persistent_Level:PersistentLevel.BP_DropPod5_10": (156569.671875, 191767.78125, -9312.1083984375),
+   "Persistent_Level:PersistentLevel.BP_DropPod5_13": (-152676.609375, 33864.58984375, 19283.484375),
+   "Persistent_Level:PersistentLevel.BP_DropPod5_26": (35096.1328125, 16492.3359375, 22705.03515625),
+   "Persistent_Level:PersistentLevel.BP_DropPod5_6": (127215.8828125, -116866.953125, -1397.322021484375),
+   "Persistent_Level:PersistentLevel.BP_DropPod5_740": (-151842.0, 72468.0, 9945.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod5_9": (349295.3125, -38831.99609375, -1485.3040771484375),
+   "Persistent_Level:PersistentLevel.BP_DropPod6": (272715.125, 28087.708984375, -1586.1102294921875),
+   "Persistent_Level:PersistentLevel.BP_DropPod6_2102": (-108774.0, 107811.0, 10154.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod6_27": (-35359.9921875, 116594.390625, 21827.935546875),
+   "Persistent_Level:PersistentLevel.BP_DropPod7": (216096.71875, -268.4361877441406, -1592.905517578125),
+   "Persistent_Level:PersistentLevel.BP_DropPod7_5615": (-121994.0, 166916.0, -49.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod8": (261797.5, 124616.828125, -2597.287109375),
+   "Persistent_Level:PersistentLevel.BP_DropPod9": (249919.5, 59534.234375, 2430.315185546875),
+   "Persistent_Level:PersistentLevel.BP_DropPod9_1568": (-129115.0, 60165.0, 4800.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_1145": (-157080.046875, -67028.15625, 11766.45703125),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_0": (-123677.3671875, -167107.46875, 29710.71875),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_1": (80980.0, -44100.0, 8303.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_10": (-142000.0, 23970.0, 32660.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_11": (219146.140625, -199880.15625, 6503.64990234375),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_12": (236508.34375, -312236.40625, 9971.1552734375),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_2": (150633.921875, 146698.78125, 7727.5146484375),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_3": (-146044.0625, -137047.46875, 2357.789306640625),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_4": (-29068.62890625, -22640.40234375, 17384.154296875),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_5": (111479.0, -54515.0, 17081.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_6": (125497.3515625, -34949.3828125, 8220.5615234375),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_7": (-247303.5625, -142348.265625, 4524.17041015625),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_8": (64696.55859375, 156038.6875, 14067.2109375),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_9": (-94708.8515625, 40337.609375, 19832.365234375),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F01FA401_2123550800": (-190866.0, 66921.0, 23751.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F020A401_1123860977": (-164591.0, 155611.0, 12383.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F020A401_1502230978": (-142173.0, 97937.0, 18517.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03B7C01_1559404536": (115978.0, 21424.0, 15519.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03B7C01_1712034537": (198418.0, -41186.0, 13786.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03B7C01_1807913538": (121061.0, 45324.0, 17373.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F03C7C01_1131248715": (188304.0, 17059.0, 12949.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F0486401_1144991453": (241532.0, 131343.0, 17157.0),
+   "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F0FF6301_1123988602": (182825.0, 93880.0, 17755.0),
+} # CRASH_SITES

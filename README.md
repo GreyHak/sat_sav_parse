@@ -180,6 +180,7 @@ Mercer Spheres are dark purple [![](https://placehold.co/15x15/4e1071/4e1071.png
 - [![](https://placehold.co/15x15/0000ff/0000ff.png)](#) blue: unopened
 - [![](https://placehold.co/15x15/00ff00/00ff00.png)](#) green: open with drive
 - [![](https://placehold.co/15x15/ffffff/ffffff.png)](#) white: open and empty
+- [![](https://placehold.co/15x15/00ffff/00ffff.png)](#) cyan: dismantled
 
 ## sav_monitor.py
 

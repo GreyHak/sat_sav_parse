@@ -54,6 +54,7 @@ MAP_COLOR_SLUG_PURPLE = (192,0,192)
 MAP_COLOR_CRASH_SITE_UNOPENED = (0,0,255)
 MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE = (0,255,0)
 MAP_COLOR_CRASH_SITE_OPEN_EMPTY = (255,255,255)
+MAP_COLOR_CRASH_SITE_DISMANTLED = (0,255,255)
 MAP_COLOR_UNCOLLECTED_SOMERSLOOP = (244,56,69)
 MAP_COLOR_UNCOLLECTED_MERCER_SPHERE = (78,16,113)
 MAP_COLOR_POWER_LINE = (22,47,101)
@@ -163,6 +164,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       numCollectedSlugsMk2 = 0
       numCollectedSlugsMk3 = 0
       crashSiteInstances = {}
+      crashSitesDismantled = []
       numCreaturesKilled = 0
       creaturesKilled = []
       gamePhase = "Default"
@@ -302,16 +304,18 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                if collectable.pathName in uncollectedPowerSlugsBlue:
                   numCollectedSlugsMk1 += 1
                   del uncollectedPowerSlugsBlue[collectable.pathName]
-               if collectable.pathName in uncollectedPowerSlugsYellow:
+               elif collectable.pathName in uncollectedPowerSlugsYellow:
                   numCollectedSlugsMk2 += 1
                   del uncollectedPowerSlugsYellow[collectable.pathName]
-               if collectable.pathName in uncollectedPowerSlugsPurple:
+               elif collectable.pathName in uncollectedPowerSlugsPurple:
                   numCollectedSlugsMk3 += 1
                   del uncollectedPowerSlugsPurple[collectable.pathName]
-               if collectable.pathName in uncollectedSomersloops:
+               elif collectable.pathName in uncollectedSomersloops:
                   del uncollectedSomersloops[collectable.pathName]
-               if collectable.pathName in uncollectedMercerSpheres:
+               elif collectable.pathName in uncollectedMercerSpheres:
                   del uncollectedMercerSpheres[collectable.pathName]
+               elif collectable.pathName in sav_data.crashSites.CRASH_SITES:
+                  crashSitesDismantled.append(collectable.pathName)
 
       crashSitesOpenWithDrive = []
       crashSitesUnopenedKeys = list(crashSiteInstances.keys())
@@ -444,7 +448,12 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       lines += "<p>\n"
 
       numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
-      lines += f"Of {len(crashSiteInstances)} crash sites explored, {numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} been looted, {numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, {numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available.\r\n"
+      numCrashSitesDismantled = len(crashSitesDismantled)
+      lines += f"Of {len(sav_data.crashSites.CRASH_SITES)} crash sites total, " +\
+               f"{numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} open and empty, " +\
+               f"{numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, " +\
+               f"{numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available, " +\
+               f"{numCrashSitesDismantled} {('have','has')[numCrashSitesDismantled == 1]} been dismantled.\r\n"
       if creatingMapImagesFlag:
          lines += f'<a href="{MAP_BASENAME_HARD_DRIVES}">Map of hard drives.</a>'
       lines += '<p style="margin-bottom:0px">\n'
@@ -562,6 +571,12 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                posY = adjPos(coord[1], True)
                hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
                smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
+         for key in crashSitesDismantled:
+            coord = sav_data.crashSites.CRASH_SITES[key]
+            posX = adjPos(coord[0], False)
+            posY = adjPos(coord[1], True)
+            hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
+            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
          hdDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Hard drives\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_HARD_DRIVES}"
          hdImage.crop(CROP_SETTINGS).save(imageFilename)

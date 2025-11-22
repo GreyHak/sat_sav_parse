@@ -1658,13 +1658,13 @@ if __name__ == '__main__':
 
          with open(crashSitesOutputFilename, "w") as csOut:
             csOut.write("# Exported from Satisfactory\n")
-            csOut.write("CRASH_SITES = [\n")
+            csOut.write("CRASH_SITES = {\n")
             for level in parsedSave.levels:
                for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                        csOut.write(f'   "{actorOrComponentObjectHeader.instanceName}", # {actorOrComponentObjectHeader.position}\n')
-            csOut.write("] # CRASH_SITES\n")
+                        csOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": {tuple(actorOrComponentObjectHeader.position)},\n')
+            csOut.write("} # CRASH_SITES\n")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")

@@ -629,19 +629,20 @@ if __name__ == '__main__':
                   if "Name" in mod and "Version" in mod:
                      print(f"   {mod['Name']}, {mod['Version']}")
 
-         crashSitesExplored = []
+         crashSitesInSave = []
          for level in parsedSave.levels:
             for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
                   if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                     crashSitesExplored.append(actorOrComponentObjectHeader.instanceName)
-         crashSitesUnopenedKeys = crashSitesExplored.copy()
+                     crashSitesInSave.append(actorOrComponentObjectHeader.instanceName)
+         crashSitesUnopenedKeys = crashSitesInSave.copy()
          numOpenAndEmptyCrashSites = 0
          numOpenAndFullCrashSites = 0
          crashSiteInventoryPathName = {}
+         crashSitesDismantled = []
          for level in parsedSave.levels:
             for object in level.objects:
-               if object.instanceName in crashSitesExplored:
+               if object.instanceName in crashSitesInSave:
                   hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
                   if hasBeenOpened is not None and hasBeenOpened:
                      crashSitesUnopenedKeys.remove(object.instanceName)
@@ -653,6 +654,10 @@ if __name__ == '__main__':
                         numOpenAndEmptyCrashSites += 1
                      else: # This case has not been observed
                         numOpenAndFullCrashSites += 1
+            if level.collectables1 is not None:
+               for collectable in level.collectables1:  # Quantity should match collectables2
+                  if collectable.pathName in sav_data.crashSites.CRASH_SITES:
+                     crashSitesDismantled.append(collectable.pathName)
          for level in parsedSave.levels:
             for object in level.objects:
                if object.instanceName in crashSiteInventoryPathName:
@@ -665,11 +670,13 @@ if __name__ == '__main__':
                               numOpenAndEmptyCrashSites -= 1
                               numOpenAndFullCrashSites += 1
                               # Use inventory object to get droppod object to get location
-         numCrashSitesNotOpened = len(crashSitesExplored) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
-         print(f"{len(crashSitesExplored)}/{len(sav_data.crashSites.CRASH_SITES)} crash sites explored:")
+         numCrashSitesNotOpened = len(crashSitesInSave) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
+         print(f"{len(sav_data.crashSites.CRASH_SITES)} total crash sites on map.")
+         print(f"   {len(crashSitesInSave) + len(crashSitesDismantled)} found in save file.")
          print(f"   {numCrashSitesNotOpened} not opened.")
-         print(f"   {numOpenAndFullCrashSites} opened with hard drive.")
-         print(f"   {numOpenAndEmptyCrashSites} opened and empty.")
+         print(f"   {len(openAndFullCrashSites)} opened with hard drive.")
+         print(f"   {len(openAndEmptyCrashSites)} opened and empty.")
+         print(f"   {len(crashSitesDismantled)} dismantled.")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -2282,20 +2289,21 @@ if __name__ == '__main__':
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         crashSitesExplored = []
+         crashSitesInSave = []
          for level in parsedSave.levels:
             for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
                   if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                     crashSitesExplored.append(actorOrComponentObjectHeader.instanceName)
+                     crashSitesInSave.append(actorOrComponentObjectHeader.instanceName)
          crashSitesOpenWithDrive = []
-         crashSitesUnopenedKeys = crashSitesExplored.copy()
+         crashSitesUnopenedKeys = crashSitesInSave.copy()
          openAndEmptyCrashSites = []
          openAndFullCrashSites = []
          crashSiteInventoryPathName = {} # Maps inventory instance path name to crash site instance path name
+         crashSitesDismantled = []
          for level in parsedSave.levels:
             for object in level.objects:
-               if object.instanceName in crashSitesExplored:
+               if object.instanceName in crashSitesInSave:
                   hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
                   if hasBeenOpened is not None and hasBeenOpened:
                      crashSitesUnopenedKeys.remove(object.instanceName)
@@ -2308,6 +2316,10 @@ if __name__ == '__main__':
                      else: # This case has not been observed
                         openAndFullCrashSites.append(object.instanceName)
                         crashSitesOpenWithDrive.append(object.instanceName)
+            if level.collectables1 is not None:
+               for collectable in level.collectables1:  # Quantity should match collectables2
+                  if collectable.pathName in sav_data.crashSites.CRASH_SITES:
+                     crashSitesDismantled.append(collectable.pathName)
          for level in parsedSave.levels:
             for object in level.objects:
                if object.instanceName in crashSiteInventoryPathName:
@@ -2322,23 +2334,28 @@ if __name__ == '__main__':
                               openAndFullCrashSites.append(crashSiteInstancePathName)
                               # Use inventory object to get droppod object to get location
                               crashSitesOpenWithDrive.append(crashSiteInstancePathName)
-         numCrashSitesNotOpened = len(crashSitesExplored) - len(openAndEmptyCrashSites) - len(openAndFullCrashSites)
-         print(f"{len(crashSitesExplored)}/{len(sav_data.crashSites.CRASH_SITES)} crash sites explored:")
+         numCrashSitesNotOpened = len(crashSitesInSave) - len(openAndEmptyCrashSites) - len(openAndFullCrashSites)
+         print(f"{len(sav_data.crashSites.CRASH_SITES)} total crash sites on map.")
+         print(f"   {len(crashSitesInSave) + len(crashSitesDismantled)} found in save file.")
          print(f"   {numCrashSitesNotOpened} not opened.")
          print(f"   {len(openAndFullCrashSites)} opened with hard drive.")
          print(f"   {len(openAndEmptyCrashSites)} opened and empty.")
+         print(f"   {len(crashSitesDismantled)} dismantled.")
 
          jdata = {}
          for crashSite in openAndEmptyCrashSites:
-            jdata[crashSite] = "EXPLORED_OPEN_EMPTY"
+            jdata[crashSite] = "IN_SAVE_OPEN_EMPTY"
          for crashSite in openAndFullCrashSites:
-            jdata[crashSite] = "EXPLORED_OPEN_FULL"
-         for crashSite in crashSitesExplored:
+            jdata[crashSite] = "IN_SAVE_OPEN_FULL"
+         for crashSite in crashSitesInSave:
             if crashSite not in openAndEmptyCrashSites and crashSite not in openAndFullCrashSites:
-               jdata[crashSite] = "EXPLORED_CLOSED"
+               jdata[crashSite] = "IN_SAVE_CLOSED"
          for crashSite in sav_data.crashSites.CRASH_SITES:
-            if crashSite not in crashSitesExplored:
-               jdata[crashSite] = "UNDISCOVERED"
+            if crashSite not in crashSitesInSave:
+               if crashSite in crashSitesDismantled:
+                  jdata[crashSite] = "DISMANTLED"
+               else:
+                  jdata[crashSite] = "NOT_IN_SAVE"
 
          print(f"Writing {outFilename}")
          with open(outFilename, "w") as fout:
