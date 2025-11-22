@@ -1585,7 +1585,7 @@ if __name__ == '__main__':
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == SOMERSLOOP:
                         # scale=(1.600000023841858, 1.600000023841858, 1.600000023841858)
-                        somersloopOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}),\n')
+                        somersloopOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}),\n')
             somersloopOut.write("} # SOMERSLOOPS\n")
 
          with open(mercerSphereOutputFilename, "w") as mercerSphereOut:
@@ -1596,7 +1596,7 @@ if __name__ == '__main__':
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == MERCER_SPHERE:
                         # scale=(2.700000047683716, 2.6999998092651367, 2.6999998092651367)
-                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}),\n')
+                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}),\n')
             mercerSphereOut.write("} # MERCER_SPHERES\n")
             mercerSphereOut.write("MERCER_SHRINES = {\n")
             for level in parsedSave.levels:
@@ -1604,7 +1604,7 @@ if __name__ == '__main__':
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == MERCER_SHRINE:
                         # scale=(1.0, 1.0, 1.0) or (0.8999999761581421, 0.8999999761581421, 0.8999999761581421)
-                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {actorOrComponentObjectHeader.rotation}, {actorOrComponentObjectHeader.position}, {actorOrComponentObjectHeader.scale[1]}),\n')
+                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}, {actorOrComponentObjectHeader.scale[1]}),\n')
             mercerSphereOut.write("} # MERCER_SHRINES\n")
 
          with open(slugOutputFilename, "w") as slugOut:
@@ -1615,7 +1615,7 @@ if __name__ == '__main__':
                for level in parsedSave.levels:
                   for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                      if isinstance(actorOrComponentObjectHeader, ActorHeader) and actorOrComponentObjectHeader.typePath == POWER_SLUG[slugIdx]:
-                        slugOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": {actorOrComponentObjectHeader.position},\n')
+                        slugOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": {tuple(actorOrComponentObjectHeader.position)},\n')
                         numSlug[slugIdx] += 1
                slugOut.write("}\n")
             slugOut.write(f"# Num slugs: {numSlug} exported from Satisfactory\n")
@@ -1650,10 +1650,10 @@ if __name__ == '__main__':
             dropOut.write("# Exported from Satisfactory\n")
             dropOut.write("FREE_DROPPED_ITEMS = {\n")
             for item in specificItems:
-               dropOut.write(f'   "{item}": [ # {pathNameToReadableName(item)}\n')
+               dropOut.write(f'   "{item}": ( # {pathNameToReadableName(item)}\n')
                for (instanceName, quantity, location) in specificItems[item]:
-                  dropOut.write(f'      ({quantity}, {location}, "{instanceName}"),\n')
-               dropOut.write(f'      ],\n')
+                  dropOut.write(f'      ({quantity}, {tuple(location)}, "{instanceName}"),\n')
+               dropOut.write(f'      ),\n')
             dropOut.write("} # FREE_DROPPED_ITEMS\n")
 
          with open(crashSitesOutputFilename, "w") as csOut:
@@ -1663,7 +1663,11 @@ if __name__ == '__main__':
                for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                        csOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": {tuple(actorOrComponentObjectHeader.position)},\n')
+                        # actorOrComponentObjectHeader.needTransform always False
+                        # actorOrComponentObjectHeader.wasPlacedInLevel always True
+                        # actorOrComponentObjectHeader.scale always [1.0, 1.0, 1.0]
+                        # actorOrComponentObjectHeader.flags always 2621448
+                        csOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}),\n')
             csOut.write("} # CRASH_SITES\n")
 
       except Exception as error:

@@ -572,7 +572,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
                smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
          for key in crashSitesDismantled:
-            coord = sav_data.crashSites.CRASH_SITES[key]
+            coord = sav_data.crashSites.CRASH_SITES[key][2]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
