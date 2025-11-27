@@ -181,12 +181,12 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_FrackingExtractor_C": "Resource Well Extractor",
    "Build_FrackingSmasher_C": "Resource Well Pressurizer",
    "Build_Gate_Automated_8x4_C": "Automated Gate",
-   "Build_GeneratorBiomass_Automated_C": "Biomass Burner",
+   "Build_GeneratorBiomass_Automated_C": "Biomass Burner (with input)",
    "Build_GeneratorBiomass_C": "Biomass Burner (without input)",
    "Build_GeneratorCoal_C": "Coal Generator",
    "Build_GeneratorFuel_C": "Fuel Generator",
    "Build_GeneratorGeoThermal_C": "Geothermal Generator",
-   "Build_GeneratorIntegratedBiomass_C": "Biomass Burner",
+   "Build_GeneratorIntegratedBiomass_C": "Biomass Burner (in HUB)",
    "Build_GeneratorNuclear_C": "Nuclear Power Plant",
    "Build_GlassTank_4Pipes_C": "Industrial Glass Fluid Buffer 4 pipes", # Mod: Glass Fluid Buffer
    "Build_GlassTank_C": "Industrial Glass Fluid Buffer", # Mod: Glass Fluid Buffer
@@ -533,7 +533,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_StorageContainerMk1_C": "Storage Container",
    "Build_StorageContainerMk2_C": "Industrial Storage Container",
    "Build_StorageHazard_C": "Hazard Storage Box",
-   "Build_StorageIntegrated_C": "Personal Storage Box",
+   "Build_StorageIntegrated_C": "Personal Storage Box (in HUB)",
    "Build_StorageMedkit_C": "Medical Storage Box",
    "Build_StoragePlayer_C": "Personal Storage Box",
    "Build_StreetLight_C": "Street Light",
