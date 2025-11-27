@@ -450,7 +450,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
       numCrashSitesDismantled = len(crashSitesDismantled)
       lines += f"Of {len(sav_data.crashSites.CRASH_SITES)} crash sites total, " +\
-               f"{numOpenAndEmptyCrashSites} {('have','has')[numOpenAndEmptyCrashSites == 1]} open and empty, " +\
+               f"{numOpenAndEmptyCrashSites} {('are','is')[numOpenAndEmptyCrashSites == 1]} open and empty, " +\
                f"{numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, " +\
                f"{numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available, " +\
                f"{numCrashSitesDismantled} {('have','has')[numCrashSitesDismantled == 1]} been dismantled.\r\n"
