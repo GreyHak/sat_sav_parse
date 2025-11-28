@@ -107,8 +107,8 @@ def getPlayerName(levels: list, playerCharacter: str) -> str | None:
                return cachedPlayerName
    return None
 
-def characterPlayerMatch(characterPlayer: str, playerId: str) -> bool:
-   return characterPlayer == f"Persistent_Level:PersistentLevel.Char_Player_C_{playerId}"
+def characterPlayerMatch(characterPlayer: str, playerId: str, levels: dict[dict]) -> bool:
+   return characterPlayer == f"Persistent_Level:PersistentLevel.Char_Player_C_{playerId}" or playerId == getPlayerName(levels, characterPlayer)
 
 def orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords) -> None:
    for categoryIdx in range(len(blueprintCategoryRecords)):
@@ -928,7 +928,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if characterPlayerMatch(characterPlayer, playerId):
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
                playerInventory = inventoryPath
 
          if playerInventory is None:
@@ -974,7 +974,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if characterPlayerMatch(characterPlayer, playerId):
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
                playerInventory = inventoryPath
 
          if playerInventory is None:
@@ -1031,7 +1031,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if characterPlayerMatch(characterPlayer, playerId):
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
                playerInventory = inventoryPath
 
          if playerInventory is None:
@@ -1115,7 +1115,7 @@ if __name__ == '__main__':
 
          playerInventory = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if characterPlayerMatch(characterPlayer, playerId):
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
                playerInventory = inventoryPath
 
          if playerInventory is None:
@@ -1275,7 +1275,7 @@ if __name__ == '__main__':
          playerState = None
          playerCharacter = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if characterPlayerMatch(characterPlayer, playerId):
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
                playerState = playerStateInstanceName
                playerCharacter = characterPlayer
 
@@ -1369,7 +1369,7 @@ if __name__ == '__main__':
          playerState = None
          playerCharacter = None
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
-            if characterPlayerMatch(characterPlayer, playerId):
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
                playerState = playerStateInstanceName
                playerCharacter = characterPlayer
 
