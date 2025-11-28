@@ -84,6 +84,7 @@ MAP_COLOR_NODE_TYPE = {
 
 MAP_FONT_SIZE = 760/MAP_DESCALE
 MAP_TEXT_POSITION = (4400/MAP_DESCALE, 4300/MAP_DESCALE)
+MAP_LEGEND_POSITION_HW = (26800/MAP_DESCALE, 32000/MAP_DESCALE)
 CROP_SETTINGS = (4096/MAP_DESCALE, 4096/MAP_DESCALE, 36864/MAP_DESCALE, 36864/MAP_DESCALE)
 def adjPos(pos, yFlag):
    newPos = (pos / 22.887 + (18282.5,20480)[yFlag]) / MAP_DESCALE
@@ -578,6 +579,11 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
             smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
          hdDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Hard drives\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
+         hdDraw.text(MAP_LEGEND_POSITION_HW, "Blue: Unopened\nGreen: Open with drive\nWhite: Open and empty\nCyan: Dismantled", font=imageFont, fill=(255,255,255))
+         hdDraw.text(MAP_LEGEND_POSITION_HW, "Blue", font=imageFont, fill=MAP_COLOR_CRASH_SITE_UNOPENED)
+         hdDraw.text(MAP_LEGEND_POSITION_HW, "\nGreen", font=imageFont, fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
+         hdDraw.text(MAP_LEGEND_POSITION_HW, "\n\nWhite", font=imageFont, fill=MAP_COLOR_CRASH_SITE_OPEN_EMPTY)
+         hdDraw.text(MAP_LEGEND_POSITION_HW, "\n\n\nCyan", font=imageFont, fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
          imageFilename = f"{outputDir}/{MAP_BASENAME_HARD_DRIVES}"
          hdImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
