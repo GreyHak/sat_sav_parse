@@ -1327,17 +1327,22 @@ if __name__ == '__main__':
                      hotbarItem = recipeToActivate.pathName
                      print(f"[{hotbarIdx}][{hotbarItemIdx}] Recipe: {hotbarItem}")
                   else:
-                     emoteToActivate = sav_parse.getPropertyValue(object.properties, "mEmoteToActivate")
-                     if emoteToActivate is not None:
-                        hotbarItem = emoteToActivate.pathName
-                        print(f"[{hotbarIdx}][{hotbarItemIdx}] Emote: {hotbarItem}")
+                     customizationRecipeToActivate = sav_parse.getPropertyValue(object.properties, "mCustomizationRecipeToActivate")
+                     if customizationRecipeToActivate is not None:
+                        hotbarItem = customizationRecipeToActivate.pathName
+                        print(f"[{hotbarIdx}][{hotbarItemIdx}] Customization Recipe: {hotbarItem}")
                      else:
-                        blueprintName = sav_parse.getPropertyValue(object.properties, "mBlueprintName")
-                        if blueprintName is not None:
-                           hotbarItem = blueprintName
-                           print(f"[{hotbarIdx}][{hotbarItemIdx}] Blueprint: {hotbarItem}")
+                        emoteToActivate = sav_parse.getPropertyValue(object.properties, "mEmoteToActivate")
+                        if emoteToActivate is not None:
+                           hotbarItem = emoteToActivate.pathName
+                           print(f"[{hotbarIdx}][{hotbarItemIdx}] Emote: {hotbarItem}")
                         else:
-                           print(f"object={sav_parse.toString(object.properties)}")
+                           blueprintName = sav_parse.getPropertyValue(object.properties, "mBlueprintName")
+                           if blueprintName is not None:
+                              hotbarItem = blueprintName
+                              print(f"[{hotbarIdx}][{hotbarItemIdx}] Blueprint: {hotbarItem}")
+                           else:
+                              print(f"object={sav_parse.toString(object.properties)}")
 
                   if hotbarIdx not in hotbarContents:
                      hotbarContents[hotbarIdx] = {}
@@ -1415,10 +1420,12 @@ if __name__ == '__main__':
                            if hotbarItemIdxStr in hotbarContents_strKeys[hotbarIdxStr]:
                               replacementHotbarItem = hotbarContents_strKeys[hotbarIdxStr][hotbarItemIdxStr]
 
-                              if replacementHotbarItem.startswith("/Game/FactoryGame/Recipes/"):
-                                 replacementHotbarItemNewClassName = "FGRecipeShortcut"
+                              if replacementHotbarItem.startswith("/Game/FactoryGame/Buildable/-Shared/Customization/"):
+                                 replacementHotbarItemNewClassName = "FGFactoryCustomizationShortcut"
                               elif replacementHotbarItem.startswith("/Game/FactoryGame/Emotes/"):
                                  replacementHotbarItemNewClassName = "FGEmoteShortcut"
+                              elif replacementHotbarItem.startswith("/Game/FactoryGame/"):
+                                 replacementHotbarItemNewClassName = "FGRecipeShortcut"
                               else: # Blueprint
                                  replacementHotbarItemNewClassName = "FGBlueprintShortcut"
 
@@ -1451,13 +1458,17 @@ if __name__ == '__main__':
                                     if recipeToActivate is not None:
                                        hotbarItem = recipeToActivate.pathName
                                     else:
-                                       emoteToActivate = sav_parse.getPropertyValue(persistentLevelObject.properties, "mEmoteToActivate")
-                                       if emoteToActivate is not None:
-                                          hotbarItem = emoteToActivate.pathName
+                                       customizationRecipeToActivate = sav_parse.getPropertyValue(persistentLevelObject.properties, "mCustomizationRecipeToActivate")
+                                       if customizationRecipeToActivate is not None:
+                                          hotbarItem = customizationRecipeToActivate.pathName
                                        else:
-                                          blueprintName = sav_parse.getPropertyValue(persistentLevelObject.properties, "mBlueprintName")
-                                          if blueprintName is not None:
-                                             hotbarItem = blueprintName
+                                          emoteToActivate = sav_parse.getPropertyValue(persistentLevelObject.properties, "mEmoteToActivate")
+                                          if emoteToActivate is not None:
+                                             hotbarItem = emoteToActivate.pathName
+                                          else:
+                                             blueprintName = sav_parse.getPropertyValue(persistentLevelObject.properties, "mBlueprintName")
+                                             if blueprintName is not None:
+                                                hotbarItem = blueprintName
 
                               if hotbarItem == replacementHotbarItem:
                                  print(f"[{hotbarIdx}][{hotbarItemIdx}] currently contains {item} representing {hotbarItem} which already matches {replacementHotbarItem}") # No change
@@ -1508,6 +1519,12 @@ if __name__ == '__main__':
                newRecipeObjectReference.pathName = replacementHotbarItem
                newObject.properties    = [("mRecipeToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mRecipeToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
+            elif replacementHotbarItemNewClassName == "FGFactoryCustomizationShortcut":
+               newRecipeObjectReference = sav_parse.ObjectReference()
+               newRecipeObjectReference.levelName = ""
+               newRecipeObjectReference.pathName = replacementHotbarItem
+               newObject.properties    = [("mCustomizationRecipeToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
+               newObject.propertyTypes = [("mCustomizationRecipeToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGEmoteShortcut":
                newRecipeObjectReference = sav_parse.ObjectReference()
                newRecipeObjectReference.levelName = ""
