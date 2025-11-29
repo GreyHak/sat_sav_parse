@@ -284,7 +284,7 @@ def addSomersloop(levels, targetPathName: str) -> bool:
 
             newObject = sav_parse.Object()
             newObject.instanceName = instanceName
-            newObject.objectGameVersion = 46
+            newObject.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             newObject.shouldMigrateObjectRefsToPersistentFlag = False
             nullParentObjectReference = sav_parse.ObjectReference()
             nullParentObjectReference.levelName = ""
@@ -333,7 +333,7 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
 
             newObject = sav_parse.Object()
             newObject.instanceName = instanceName
-            newObject.objectGameVersion = 46
+            newObject.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             newObject.shouldMigrateObjectRefsToPersistentFlag = False
             nullParentObjectReference = sav_parse.ObjectReference()
             nullParentObjectReference.levelName = ""
@@ -390,7 +390,7 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
 
             newObject = sav_parse.Object()
             newObject.instanceName = instanceName
-            newObject.objectGameVersion = 46
+            newObject.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             newObject.shouldMigrateObjectRefsToPersistentFlag = False
             nullParentObjectReference = sav_parse.ObjectReference()
             nullParentObjectReference.levelName = ""
@@ -1509,7 +1509,7 @@ if __name__ == '__main__':
             #<Object: instanceName=Persistent_Level:PersistentLevel.BP_PlayerState_C_2147448362.FGPlayerHotbar_2147448352.FGBlueprintShortcut_2147448316, objectGameVersion=46, flag=0, actorReferenceAssociations=n/a, properties=[[('mBlueprintName', 'Conveyor Poles 05 Hypertube Half'), ('mShortcutIndex', 1)]], actorSpecificInfo=[None]>
             newObject = sav_parse.Object()
             newObject.instanceName = replacementHotbarItemNewInstanceName
-            newObject.objectGameVersion = 46
+            newObject.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             newObject.shouldMigrateObjectRefsToPersistentFlag = False
             newObject.actorReferenceAssociations = None
 
@@ -2035,7 +2035,7 @@ if __name__ == '__main__':
 
          object = sav_parse.Object()
          object.instanceName = newDrivingTargetList
-         object.objectGameVersion = 46
+         object.objectGameVersion = parsedSave.saveFileInfo.saveVersion
          object.shouldMigrateObjectRefsToPersistentFlag = False
          parentObjectReference = sav_parse.ObjectReference()
          parentObjectReference.levelName = "Persistent_Level"
@@ -2078,7 +2078,7 @@ if __name__ == '__main__':
 
             object = sav_parse.Object()
             object.instanceName = newVehicleTargetPoints[idx]
-            object.objectGameVersion = 46
+            object.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             object.shouldMigrateObjectRefsToPersistentFlag = False
             parentObjectReference = sav_parse.ObjectReference()
             parentObjectReference.levelName = "Persistent_Level"
@@ -2114,7 +2114,7 @@ if __name__ == '__main__':
 
          object = sav_parse.Object()
          object.instanceName = newSavedWheeledVehiclePath
-         object.objectGameVersion = 46
+         object.objectGameVersion = parsedSave.saveFileInfo.saveVersion
          object.shouldMigrateObjectRefsToPersistentFlag = False
          parentObjectReference = sav_parse.ObjectReference()
          parentObjectReference.levelName = ""
