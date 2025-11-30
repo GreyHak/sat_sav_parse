@@ -1553,6 +1553,7 @@ if __name__ == '__main__':
          if VERIFY_CREATED_SAVE_FILES:
             parsedSave = sav_parse.readFullSaveFile(outFilename)
             print("Validation successful")
+            print("NOTE: If any recipes are added to your hotbar that have not been unlocked, they will not appear in-game until they are unlocked.  Once unlocked, the recipe(s) will appear on your hotbar instantly.")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
