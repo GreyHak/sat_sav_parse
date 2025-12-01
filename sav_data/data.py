@@ -26,6 +26,10 @@ try:
    import sav_data.crashSites
 except:
    pass
+try:
+   import sav_data.hotbarShortcuts
+except:
+   pass
 
 # New items can be identified for the ITEMS_FOR_PLAYER_INVENTORY tuple by
 # enabling CHECK_ITEMS_FOR_PLAYER_INVENTORY in sav_cli.py and running:
