@@ -674,8 +674,8 @@ if __name__ == '__main__':
          print(f"{len(sav_data.crashSites.CRASH_SITES)} total crash sites on map.")
          print(f"   {len(crashSitesInSave) + len(crashSitesDismantled)} found in save file.")
          print(f"   {numCrashSitesNotOpened} not opened.")
-         print(f"   {len(openAndFullCrashSites)} opened with hard drive.")
-         print(f"   {len(openAndEmptyCrashSites)} opened and empty.")
+         print(f"   {numOpenAndFullCrashSites} opened with hard drive.")
+         print(f"   {numOpenAndEmptyCrashSites} opened and empty.")
          print(f"   {len(crashSitesDismantled)} dismantled.")
 
       except Exception as error:
