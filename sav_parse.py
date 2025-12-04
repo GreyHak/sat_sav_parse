@@ -1116,9 +1116,9 @@ def parseProperties(offset: int, data: list) -> tuple:
             raise ParseError(f"Unsupported ArrayProperty type '{arrayType}'")
          if propertySize != offset - propertyStartOffset:
             if True: # Enable to abort on invalid data
-               raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
+               raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} propertyType={propertyType} arrayType={arrayType} arrayCount={arrayCount} start={propertyStartOffset} propertyName={propertyName} values={values}")
             else: # Skip the error and proceed anyway
-               print(f"ERROR: Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
+               print(f"\nERROR: Unexpected propery size. diff={offset - propertyStartOffset - propertySize} propertyType={propertyType} arrayType={arrayType} arrayCount={arrayCount} start={propertyStartOffset} propertyName={propertyName} values={values}")
                offset = propertyStartOffset + propertySize
          properties.append([propertyName, values])
       elif propertyType == "StructProperty":
