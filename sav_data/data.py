@@ -595,8 +595,8 @@ PROJECT_ASSEMBLY_COSTS = {
       "Smart Plating": 50,
    },
    "/Game/FactoryGame/GamePhases/GP_Project_Assembly_Phase_2.GP_Project_Assembly_Phase_2": {
-      "Smart Plating": 500,
-      "Versatile Framework": 500,
+      "Smart Plating": 1000,
+      "Versatile Framework": 1000,
       "Automated Wiring": 100,
    },
    "/Game/FactoryGame/GamePhases/GP_Project_Assembly_Phase_3.GP_Project_Assembly_Phase_3": {
