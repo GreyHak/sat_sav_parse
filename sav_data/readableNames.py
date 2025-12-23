@@ -499,6 +499,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_SM_RailingRamp_8x4_01_C": "SM_RailingRamp_8x4_01",
    "Build_SmelterMk1_C": "Smelter",
    "Build_SMM_C": "Somersloop Finder", # Mod: Somersloop Finder
+   "Build_SnowCannon_C": "FICSMAS Snow Cannon",
    "Build_SnowDispenser_C": "FICSMAS Snow Dispenser",
    "Build_Snowman_C": "Snowman",
    "Build_SpaceElevator_C": "Space Elevator",
@@ -842,6 +843,10 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Desc_XmasBallCluster_C": "FICSMAS Ornament Bundle",
    "Desc_XmasBow_C": "FICSMAS Bow",
    "Desc_XmasBranch_C": "FICSMAS Tree Branch",
+   "Desc_XmasDataCartridge1_C": "FICSMAS Data Cartridge Day 1",
+   "Desc_XmasDataCartridge2_C": "FICSMAS Data Cartridge Day 4",
+   "Desc_XmasDataCartridge3_C": "FICSMAS Data Cartridge Day 8",
+   "Desc_XmasDataCartridge4_C": "FICSMAS Data Cartridge Day 14",
    "Desc_XmasLights_C": "FICSMAS Lights",
    "Desc_XmasStar_C": "FICSMAS Wonder Star",
    "Desc_XmasWreath_C": "FICSMAS Decoration",
