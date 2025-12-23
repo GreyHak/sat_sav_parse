@@ -2172,7 +2172,7 @@ if __name__ == '__main__':
                      for storedItem in storedItems:
                         itemClass = sav_parse.getPropertyValue(storedItem[0], "ItemClass")
                         if itemClass is not None:
-                           amount = sav_parse.getPropertyValue(storedItem[0], "amount")
+                           amount = sav_parse.getPropertyValue(storedItem[0], "Amount")
                            if amount is not None:
                               itemName = sav_parse.pathNameToReadableName(itemClass.pathName)
                               print(f"{itemName}, {amount}")
@@ -2273,7 +2273,7 @@ if __name__ == '__main__':
                            if itemName == targetItemName:
                               for idx in range(len(storedItem[0])): # setPropertyValue where storedItem[0] is the property list
                                  (haystackPropertyName, propertyValue) = storedItem[0][idx]
-                                 if haystackPropertyName == "amount":
+                                 if haystackPropertyName == "Amount":
                                     if propertyValue == newItemQuantity:
                                        print("{haystackPropertyName} quantity already {propertyValue}")
                                     else:
