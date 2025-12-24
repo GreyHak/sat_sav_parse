@@ -40,7 +40,7 @@ MAP_BASENAME_SLUGS          = "save_slug.png"
 MAP_BASENAME_HARD_DRIVES    = "save_hd.png"
 MAP_BASENAME_SOMERSLOOP     = "save_somersloop.png"
 MAP_BASENAME_MERCER_SPHERE  = "save_mercer_sphere.png"
-MAP_BASENAME_SOME_MERC_SPH  = "save_somersloop_and_mercer_sphere.png"
+MAP_BASENAME_SOME_MERC_HD   = "save_top_collectables.png"
 MAP_BASENAME_COLLECTABLES   = "save_all_collectables.png"
 MAP_BASENAME_POWER          = "save_power.png"
 MAP_BASENAME_RESOURCE_NODES = "save_nodes.png"
@@ -84,7 +84,8 @@ MAP_COLOR_NODE_TYPE = {
 
 MAP_FONT_SIZE = 760/MAP_DESCALE
 MAP_TEXT_POSITION = (4400/MAP_DESCALE, 4300/MAP_DESCALE)
-MAP_LEGEND_POSITION_HW = (26800/MAP_DESCALE, 32000/MAP_DESCALE)
+MAP_LEGEND_POSITION_HD = (26800/MAP_DESCALE, 32000/MAP_DESCALE)
+MAP_LEGEND_POSITION_SMC = (23000/MAP_DESCALE, 32700/MAP_DESCALE)
 CROP_SETTINGS = (4096/MAP_DESCALE, 4096/MAP_DESCALE, 36864/MAP_DESCALE, 36864/MAP_DESCALE)
 def adjPos(pos, yFlag):
    newPos = (pos / 22.887 + (18282.5,20480)[yFlag]) / MAP_DESCALE
@@ -444,7 +445,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          lines += f' <a href="{MAP_BASENAME_MERCER_SPHERE}">map</a>'
 
       if creatingMapImagesFlag:
-         lines += f' (<a href="{MAP_BASENAME_SOME_MERC_SPH}">both</a>)'
+         lines += f' (<a href="{MAP_BASENAME_SOME_MERC_HD}">top collectables</a>)'
          lines += f' (<a href="{MAP_BASENAME_COLLECTABLES}">all collectables</a>)'
       lines += "<p>\n"
 
@@ -565,25 +566,27 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
+            smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
             smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
          for coord in crashSitesOpenWithDrive:
             if coord is not None:
                posX = adjPos(coord[0], False)
                posY = adjPos(coord[1], True)
                hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
+               smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
                smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
          for key in crashSitesDismantled:
             coord = sav_data.crashSites.CRASH_SITES[key][2]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
-            smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
+            #smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
          hdDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Hard drives\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
-         hdDraw.text(MAP_LEGEND_POSITION_HW, "Blue: Unopened\nGreen: Open with drive\nWhite: Open and empty\nCyan: Dismantled", font=imageFont, fill=(255,255,255))
-         hdDraw.text(MAP_LEGEND_POSITION_HW, "Blue", font=imageFont, fill=MAP_COLOR_CRASH_SITE_UNOPENED)
-         hdDraw.text(MAP_LEGEND_POSITION_HW, "\nGreen", font=imageFont, fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
-         hdDraw.text(MAP_LEGEND_POSITION_HW, "\n\nWhite", font=imageFont, fill=MAP_COLOR_CRASH_SITE_OPEN_EMPTY)
-         hdDraw.text(MAP_LEGEND_POSITION_HW, "\n\n\nCyan", font=imageFont, fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
+         hdDraw.text(MAP_LEGEND_POSITION_HD, "Blue: Unopened\nGreen: Open with drive\nWhite: Open and empty\nCyan: Dismantled", font=imageFont, fill=(255,255,255))
+         hdDraw.text(MAP_LEGEND_POSITION_HD, "Blue", font=imageFont, fill=MAP_COLOR_CRASH_SITE_UNOPENED)
+         hdDraw.text(MAP_LEGEND_POSITION_HD, "\nGreen", font=imageFont, fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
+         hdDraw.text(MAP_LEGEND_POSITION_HD, "\n\nWhite", font=imageFont, fill=MAP_COLOR_CRASH_SITE_OPEN_EMPTY)
+         hdDraw.text(MAP_LEGEND_POSITION_HD, "\n\n\nCyan", font=imageFont, fill=MAP_COLOR_CRASH_SITE_DISMANTLED)
          imageFilename = f"{outputDir}/{MAP_BASENAME_HARD_DRIVES}"
          hdImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
@@ -616,8 +619,13 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          msImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
 
-         smDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Uncollected Somersloops & Mercer Spheres\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
-         imageFilename = f"{outputDir}/{MAP_BASENAME_SOME_MERC_SPH}"
+         smDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Uncollected Somersloops &\nMercer Spheres & Crash Sites\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
+         smDraw.text(MAP_LEGEND_POSITION_SMC, "Red: Somersloops\nPurple: Mercer Sphere\nBlue: Unopened Crash Site\nGreen: Open Crash Site with drive", font=imageFont, fill=(255,255,255))
+         smDraw.text(MAP_LEGEND_POSITION_SMC, "Red", font=imageFont, fill=MAP_COLOR_UNCOLLECTED_SOMERSLOOP)
+         smDraw.text(MAP_LEGEND_POSITION_SMC, "\nPurple", font=imageFont, fill=MAP_COLOR_UNCOLLECTED_MERCER_SPHERE)
+         smDraw.text(MAP_LEGEND_POSITION_SMC, "\n\nBlue", font=imageFont, fill=MAP_COLOR_CRASH_SITE_UNOPENED)
+         smDraw.text(MAP_LEGEND_POSITION_SMC, "\n\n\nGreen", font=imageFont, fill=MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE)
+         imageFilename = f"{outputDir}/{MAP_BASENAME_SOME_MERC_HD}"
          smImage.crop(CROP_SETTINGS).save(imageFilename)
          chown(imageFilename)
 
