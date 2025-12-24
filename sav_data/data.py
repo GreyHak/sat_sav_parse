@@ -251,7 +251,9 @@ MINED_RESOURCES = (
    #"/Game/FactoryGame/Resource/BP_ResourceDeposit.BP_ResourceDeposit_C",  # These are manually harvested resource rocks which have the properties mResourceDepositTableIndex, mMineAmount, mResourcesLeft
 )
 
-POWER_LINE = "/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Build_PowerLine_C"
+POWER_LINE = (
+   "/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Build_PowerLine_C",
+   "/Game/FactoryGame/Events/Christmas/Buildings/PowerLineLights/Build_XmassLightsLine.Build_XmassLightsLine_C")
 CRASH_SITE = "/Game/FactoryGame/World/Benefit/DropPod/BP_DropPod.BP_DropPod_C"
 
 SOMERSLOOP = "/Game/FactoryGame/Prototype/WAT/BP_WAT1.BP_WAT1_C"

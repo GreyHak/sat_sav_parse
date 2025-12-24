@@ -202,7 +202,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, resourceType, purity)
                elif typePath == sav_data.data.CRASH_SITE:
                   crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
-               elif typePath == sav_data.data.POWER_LINE:
+               elif typePath in sav_data.data.POWER_LINE:
                   powerLines[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
          for object in level.objects:
             if object.instanceName == "Persistent_Level:PersistentLevel.StatisticsSubsystem":
