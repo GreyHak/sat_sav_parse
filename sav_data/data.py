@@ -568,6 +568,7 @@ UNLOCK_PATHS__HUB_TIERS = (
    "/Game/FactoryGame/Schematics/Progression/Schematic_7-3.Schematic_7-3_C",
    "/Game/FactoryGame/Schematics/Progression/Schematic_7-4.Schematic_7-4_C",
    "/Game/FactoryGame/Schematics/Progression/Schematic_7-4-1.Schematic_7-4-1_C",
+   "/Game/FactoryGame/Schematics/Progression/Schematic_7-5.Schematic_7-5_C",
    "/Game/FactoryGame/Schematics/Progression/Schematic_8-3.Schematic_8-3_C",
    "/Game/FactoryGame/Schematics/Progression/Schematic_8-1.Schematic_8-1_C",
    "/Game/FactoryGame/Schematics/Progression/Schematic_8-2.Schematic_8-2_C",

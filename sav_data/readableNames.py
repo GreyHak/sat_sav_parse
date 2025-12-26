@@ -893,6 +893,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Schematic_7-4_C": "Aeronautical Engineering",
    "Schematic_7-4-1_C": "Aeronautical Engineering 2",
    "Schematic_7-3_C": "Hazmat Suit",
+   "Schematic_7-5_C": "Control System Development",
    "Schematic_8-3_C": "Hover Pack",
    "Schematic_8-1_C": "Nuclear Power",
    "Schematic_8-2_C": "Advanced Aluminum Production",
