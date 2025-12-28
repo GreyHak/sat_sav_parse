@@ -1663,7 +1663,7 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
-   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--export-somersloops" and os.path.isfile(sys.argv[2]):
+   elif len(sys.argv) == 4 and sys.argv[1] == "--export-somersloops" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
       outFilename = sys.argv[3]
 
@@ -1688,7 +1688,7 @@ if __name__ == '__main__':
       with open(outFilename, "w") as fout:
          json.dump(jdata, fout, indent=2)
 
-   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--export-mercer-spheres" and os.path.isfile(sys.argv[2]):
+   elif len(sys.argv) == 4 and sys.argv[1] == "--export-mercer-spheres" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
       outFilename = sys.argv[3]
 
@@ -1758,7 +1758,7 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
-   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--import-mercer-spheres" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--import-mercer-spheres" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[2]
       inFilename = sys.argv[3]
       outFilename = sys.argv[4]
