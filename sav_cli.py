@@ -460,7 +460,7 @@ def removeMercerShrine(levels, targetInstanceName: str) -> bool:
    print(f"Removing Mercer Shrine {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Shrine", rootObject, targetInstanceName, position)
 
-def addMapMarker(levels, markerName: str, markerLocation: list[float, float, float] | tuple[float, float, float], markerIconId_key: str, markerColor: list[float, float, float] | tuple[float, float, float] = (0.6, 0.6, 0.6), markerViewDistance: sav_data.data.ECompassViewDistance = sav_data.data.ECompassViewDistance.CVD_Mid) -> bool:
+def addMapMarker(levels, markerName: str, markerLocation: list[float, float, float] | tuple[float, float, float], markerIconId_key: str, markerColor: list[float, float, float] | tuple[float, float, float] = (0.6, 0.6, 0.6), markerViewDistance: sav_data.data.ECompassViewDistance = sav_data.data.ECompassViewDistance.CVD_Mid, scale: float = 1.0) -> bool:
    if len(markerLocation) != 3:
       print(f"ERROR: Invalid markerLocation passed to addMapMarker: {markerLocation}")
       return False
@@ -478,7 +478,7 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
 
                newMarker = [[["markerGuid", uuid.uuid4().bytes], ["Location", [[["X", markerLocation[0]], ["Y", markerLocation[1]], ["Z", markerLocation[2]]], [["X", "DoubleProperty", 0], ["Y", "DoubleProperty", 0], ["Z", "DoubleProperty", 0]]]],
                              ["Name", markerName], ["CategoryName", ""], ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
-                             ["IconID", sav_data.data.ICON_IDS[markerIconId_key]], ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]], ["Scale", 1.5],
+                             ["IconID", sav_data.data.ICON_IDS[markerIconId_key]], ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]], ["Scale", scale],
                              ["compassViewDistance", ["ECompassViewDistance", f"ECompassViewDistance::{markerViewDistance.name}"]], ["MarkerPlacedByAccountID", markerPlacedByAccountID]], [["markerGuid", ["StructProperty", "Guid"], 0], ["Location", ["StructProperty", "Vector_NetQuantize"], 0], ["Name", "StrProperty", 0], ["CategoryName", "StrProperty", 0], ["MapMarkerType", "EnumProperty", 0], ["IconID", "IntProperty", 0], ["Color", ["StructProperty", "LinearColor"], 0], ["Scale", "FloatProperty", 0], ["compassViewDistance", "EnumProperty", 0], ["MarkerPlacedByAccountID", "StrProperty", 0]]]
                mapMarkers.append(newMarker)
                return True
@@ -2439,6 +2439,8 @@ if __name__ == '__main__':
                            if x is not None and y is not None and z is not None:
                               location = (x, y, z)
 
+                        scale = sav_parse.getPropertyValue(mapMarker[0], "Scale")
+
                         compassViewDistance = sav_parse.getPropertyValue(mapMarker[0], "compassViewDistance")
                         if compassViewDistance is not None:
                            if compassViewDistance[0] == "ECompassViewDistance":
@@ -2452,7 +2454,7 @@ if __name__ == '__main__':
                            if iconID == sav_data.data.ICON_IDS[iconName]:
                               iconID = iconName
 
-                        print(f"{markerGuid} '{name}' at {location} {compassViewDistance} icon={iconID}")
+                        print(f"{markerGuid} '{name}' at {location} scale={scale} distance={compassViewDistance} icon={iconID}")
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -2492,7 +2494,11 @@ if __name__ == '__main__':
                if "compassViewDistance" in newMarker and newMarker["compassViewDistance"] in sav_data.data.COMPASS_VIEW_DISTANCES__NAME_TO_ENUM:
                   markerViewDistance = sav_data.data.COMPASS_VIEW_DISTANCES__NAME_TO_ENUM[newMarker["compassViewDistance"]]
 
-               if addMapMarker(parsedSave.levels, markerName, markerLocation, markerIconId_key, markerColor, markerViewDistance):
+               scale = 1.0
+               if "Scale" in newMarker:
+                  scale = newMarker["Scale"]
+
+               if addMapMarker(parsedSave.levels, markerName, markerLocation, markerIconId_key, markerColor, markerViewDistance, scale):
                   print(f"Added {markerName} at {markerLocation}")
                   modifiedFlag = True
 
@@ -2541,7 +2547,7 @@ if __name__ == '__main__':
             shortName = somersloopName[somersloopName.rfind(".")+1:]
             markerLocation = sav_data.somersloop.SOMERSLOOPS[somersloopName][2]
 
-            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Mid):
+            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2590,7 +2596,7 @@ if __name__ == '__main__':
             shortName = mercerSphereName[mercerSphereName.rfind(".")+1:]
             markerLocation = sav_data.mercerSphere.MERCER_SPHERES[mercerSphereName][2]
 
-            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Mid):
+            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2668,7 +2674,7 @@ if __name__ == '__main__':
             shortName = crashSite[crashSite.rfind(".")+1:]
             markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
-            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorOpenWithDrive, sav_data.data.ECompassViewDistance.CVD_Mid):
+            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorOpenWithDrive, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
                print(f"Added {shortName} at {markerLocation} [Open w/drive]")
                modifiedFlag = True
 
@@ -2678,7 +2684,7 @@ if __name__ == '__main__':
                shortName = crashSite[crashSite.rfind(".")+1:]
                markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
-               if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Mid):
+               if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
                   print(f"Added {shortName} at {markerLocation} [Closed]")
                   modifiedFlag = True
 
