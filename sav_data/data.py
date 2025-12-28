@@ -30,6 +30,7 @@ try:
    import sav_data.hotbarShortcuts
 except:
    pass
+import enum
 
 # New items can be identified for the ITEMS_FOR_PLAYER_INVENTORY tuple by
 # enabling CHECK_ITEMS_FOR_PLAYER_INVENTORY in sav_cli.py and running:
@@ -897,4 +898,79 @@ MILESTONE_COSTS = {
       "Alclad Aluminum Sheet": 5000,
       "Iron Plate": 10000,
    },
+}
+
+class ECompassViewDistance(enum.Enum):
+   CVD_Off = 1
+   CVD_Near = 2
+   CVD_Mid = 3 # "Medium"
+   CVD_Far = 4
+   CVD_Always = 5 # "Infinite"
+
+COMPASS_VIEW_DISTANCES__ENUM_TO_NAME = {
+   ECompassViewDistance.CVD_Off: "Off",
+   ECompassViewDistance.CVD_Near: "Near",
+   ECompassViewDistance.CVD_Mid: "Medium",
+   ECompassViewDistance.CVD_Far: "Far",
+   ECompassViewDistance.CVD_Always: "Infinite"
+}
+
+COMPASS_VIEW_DISTANCES__NAME_TO_ENUM = {
+   "Off": ECompassViewDistance.CVD_Off,
+   "Near": ECompassViewDistance.CVD_Near,
+   "Medium": ECompassViewDistance.CVD_Mid,
+   "Far": ECompassViewDistance.CVD_Far,
+   "Infinite": ECompassViewDistance.CVD_Always
+}
+
+ICON_IDS = {
+   # Stamps
+   "Biomass": 650,
+   "Cave": 651,
+   "Crash": 652,
+   "Crate": 653,
+   "Creature": 654,
+   "Question Mark [Stamp]": 656,
+   "Fluids": 657,
+   "Radiation [Stamp]": 659,
+   "Rock": 660,
+   "Warning [Stamp]": 661,
+   "Fruit": 662,
+   "Slug": 663,
+   # Monochrome
+   "Arrow Down": 329,
+   "Arrow Down Left": 330,
+   "Arrow Down Right": 331,
+   "Arrow Left": 332,
+   "Arrow Up Left": 333,
+   "Arrow Up": 334,
+   "Arrow Up Right": 335,
+   "Arrow Right": 336,
+   "Drop": 337,
+   "Radiation [Monochrome]": 338,
+   "Thumb Up": 339,
+   "Thumb Down": 340,
+   "Stop X": 341,
+   "Road Arrow Down": 342,
+   "Road Arrow Turn Around": 343,
+   "Road Arrow Turn Left": 344,
+   "Road Arrow Turn Right": 345,
+   "Road Arrow Up": 346,
+   "Storage Crate": 347,
+   "Exit Door": 348,
+   "Factory": 349,
+   "Home House": 350,
+   "Player Pioneer": 351,
+   "Power": 352,
+   "Vehicle Tractor": 353,
+   "Vehicle Explorer": 354,
+   "Vehicle Truck": 355,
+   "Vehicle Train": 356,
+   "Vehicle Factory Cart": 357,
+   "Vehicle Drone": 358,
+   "Warning [Monochrome]": 362,
+   "FICSIT Check Mark": 598,
+   "Recycle": 644,
+   "Trash": 645,
+   "Question Mark [Monochrome]": 782,
 }
