@@ -76,6 +76,10 @@ Usage:
   - `py sav_cli.py --adjust-dimensional-depot <original-save-filename> <item-name> <new-quantity> <new-save-filename> [--same-time]`
   - `py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>`
   - `py sav_cli.py --list-map-markers <save-filename>`
+  - `py sav_cli.py --add-map-markers-json <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --add-map-markers-hard-drives <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --show <save-filename>`
   - `py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --export <save-filename> <output-json-filename>`

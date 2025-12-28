@@ -460,6 +460,30 @@ def removeMercerShrine(levels, targetInstanceName: str) -> bool:
    print(f"Removing Mercer Shrine {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Shrine", rootObject, targetInstanceName, position)
 
+def addMapMarker(levels, markerName: str, markerLocation: list[float, float, float] | tuple[float, float, float], markerIconId_key: str, markerColor: list[float, float, float] | tuple[float, float, float] = (0.6, 0.6, 0.6), markerViewDistance: sav_data.data.ECompassViewDistance = sav_data.data.ECompassViewDistance.CVD_Mid) -> bool:
+   if len(markerLocation) != 3:
+      print(f"ERROR: Invalid markerLocation passed to addMapMarker: {markerLocation}")
+      return False
+   if len(markerColor) != 3:
+      print(f"ERROR: Invalid markerColor passed to addMapMarker: {markerColor}")
+      return False
+   for level in levels:
+      for object in level.objects:
+         if object.instanceName == "Persistent_Level:PersistentLevel.MapManager":
+            mapMarkers = sav_parse.getPropertyValue(object.properties, "mMapMarkers")
+            if mapMarkers is not None:
+               markerPlacedByAccountID = "0666C4A20501001001"
+               if len(mapMarkers) > 0:
+                  markerPlacedByAccountID = sav_parse.getPropertyValue(mapMarkers[0][0], "MarkerPlacedByAccountID")
+
+               newMarker = [[["markerGuid", uuid.uuid4().bytes], ["Location", [[["X", markerLocation[0]], ["Y", markerLocation[1]], ["Z", markerLocation[2]]], [["X", "DoubleProperty", 0], ["Y", "DoubleProperty", 0], ["Z", "DoubleProperty", 0]]]],
+                             ["Name", markerName], ["CategoryName", ""], ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
+                             ["IconID", sav_data.data.ICON_IDS[markerIconId_key]], ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]], ["Scale", 1.5],
+                             ["compassViewDistance", ["ECompassViewDistance", f"ECompassViewDistance::{markerViewDistance.name}"]], ["MarkerPlacedByAccountID", markerPlacedByAccountID]], [["markerGuid", ["StructProperty", "Guid"], 0], ["Location", ["StructProperty", "Vector_NetQuantize"], 0], ["Name", "StrProperty", 0], ["CategoryName", "StrProperty", 0], ["MapMarkerType", "EnumProperty", 0], ["IconID", "IntProperty", 0], ["Color", ["StructProperty", "LinearColor"], 0], ["Scale", "FloatProperty", 0], ["compassViewDistance", "EnumProperty", 0], ["MarkerPlacedByAccountID", "StrProperty", 0]]]
+               mapMarkers.append(newMarker)
+               return True
+   return False
+
 def printUsage() -> None:
    print()
    print("USAGE:")
@@ -493,6 +517,10 @@ def printUsage() -> None:
    print("   py sav_cli.py --adjust-dimensional-depot <original-save-filename> <item-name> <new-quantity> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>")
    print("   py sav_cli.py --list-map-markers <save-filename>")
+   print("   py sav_cli.py --add-map-markers-json <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --add-map-markers-hard-drives <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -2428,6 +2456,248 @@ if __name__ == '__main__':
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--add-map-markers-json" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[2]
+      inFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
+         changeTimeFlag = False
+
+      with open(inFilename, "r") as fin:
+         jdata = json.load(fin)
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         for newMarker in jdata:
+            if "Location" in newMarker and len(newMarker["Location"]) == 3:
+               markerLocation = newMarker["Location"]
+
+               markerName = "New Marker"
+               if "Name" in newMarker:
+                  markerName = newMarker["Name"]
+
+               markerColor = (0.6, 0.6, 0.6) # Float RGB (up to 1.0)
+               if "Color" in newMarker:
+                  markerColor = newMarker["Color"]
+
+               markerIconId_key = sav_data.data.ICON_IDS["Home House"]
+               if "IconName" in newMarker and newMarker["IconName"] in sav_data.data.ICON_IDS:
+                  markerIconId_key = newMarker["IconName"]
+
+               markerViewDistance = sav_data.data.ECompassViewDistance.CVD_Mid
+               if "compassViewDistance" in newMarker and newMarker["compassViewDistance"] in sav_data.data.COMPASS_VIEW_DISTANCES__NAME_TO_ENUM:
+                  markerViewDistance = sav_data.data.COMPASS_VIEW_DISTANCES__NAME_TO_ENUM[newMarker["compassViewDistance"]]
+
+               if addMapMarker(parsedSave.levels, markerName, markerLocation, markerIconId_key, markerColor, markerViewDistance):
+                  print(f"Added {markerName} at {markerLocation}")
+                  modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Either no valid marker in json or mMapMarkers not found in save.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--add-map-markers-somersloops" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+      changeTimeFlag = True
+      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         uncollectedSomersloops = {}
+         for pathName in sav_data.somersloop.SOMERSLOOPS:
+            uncollectedSomersloops[pathName] = True
+
+         for level in parsedSave.levels:
+            for collectable in level.collectables2:
+               if collectable.pathName in sav_data.somersloop.SOMERSLOOPS:
+                  del uncollectedSomersloops[collectable.pathName]
+         if len(uncollectedSomersloops) == 0:
+            print("No uncollected somersloops")
+            exit(0)
+
+         markerColor = (sav_to_html.MAP_COLOR_UNCOLLECTED_SOMERSLOOP[0]/255, sav_to_html.MAP_COLOR_UNCOLLECTED_SOMERSLOOP[1]/255, sav_to_html.MAP_COLOR_UNCOLLECTED_SOMERSLOOP[2]/255)
+         for somersloopName in uncollectedSomersloops:
+            shortName = somersloopName[somersloopName.rfind(".")+1:]
+            markerLocation = sav_data.somersloop.SOMERSLOOPS[somersloopName][2]
+
+            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Mid):
+               print(f"Added {shortName} at {markerLocation}")
+               modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find mMapMarkers in save.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--add-map-markers-mercer-spheres" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+      changeTimeFlag = True
+      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         uncollectedMercerSpheres = {}
+         for pathName in sav_data.mercerSphere.MERCER_SPHERES:
+            uncollectedMercerSpheres[pathName] = True
+
+         for level in parsedSave.levels:
+            for collectable in level.collectables2:
+               if collectable.pathName in sav_data.mercerSphere.MERCER_SPHERES:
+                  del uncollectedMercerSpheres[collectable.pathName]
+         if len(uncollectedMercerSpheres) == 0:
+            print("No uncollected mercer spheres")
+            exit(0)
+
+         markerColor = (sav_to_html.MAP_COLOR_UNCOLLECTED_MERCER_SPHERE[0]/255, sav_to_html.MAP_COLOR_UNCOLLECTED_MERCER_SPHERE[1]/255, sav_to_html.MAP_COLOR_UNCOLLECTED_MERCER_SPHERE[2]/255)
+         for mercerSphereName in uncollectedMercerSpheres:
+            shortName = mercerSphereName[mercerSphereName.rfind(".")+1:]
+            markerLocation = sav_data.mercerSphere.MERCER_SPHERES[mercerSphereName][2]
+
+            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Mid):
+               print(f"Added {shortName} at {markerLocation}")
+               modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find mMapMarkers in save.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--add-map-markers-hard-drives" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+      changeTimeFlag = True
+      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         crashSitesInSave = []
+         for level in parsedSave.levels:
+            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
+                  if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
+                     crashSitesInSave.append(actorOrComponentObjectHeader.instanceName)
+         crashSitesOpenWithDrive = []
+         crashSitesUnopenedKeys = crashSitesInSave.copy()
+         openAndEmptyCrashSites = []
+         openAndFullCrashSites = []
+         crashSiteInventoryPathName = {} # Maps inventory instance path name to crash site instance path name
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName in crashSitesInSave:
+                  hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
+                  if hasBeenOpened is not None and hasBeenOpened:
+                     crashSitesUnopenedKeys.remove(object.instanceName)
+                     hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
+                     if hasBeenLooted is None:
+                        crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
+                        hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
+                     if hasBeenLooted:
+                        openAndEmptyCrashSites.append(object.instanceName)
+                     else: # This case has not been observed
+                        openAndFullCrashSites.append(object.instanceName)
+                        crashSitesOpenWithDrive.append(object.instanceName)
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName in crashSiteInventoryPathName:
+                  inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
+                  if inventoryStacks is not None:
+                     item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
+                     if item is not None:
+                        if len(item) == 2 and isinstance(item[0], str):
+                           if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
+                              crashSiteInstancePathName = crashSiteInventoryPathName[object.instanceName]
+                              openAndEmptyCrashSites.remove(crashSiteInstancePathName)
+                              openAndFullCrashSites.append(crashSiteInstancePathName)
+                              # Use inventory object to get droppod object to get location
+                              crashSitesOpenWithDrive.append(crashSiteInstancePathName)
+
+         markerColorOpenWithDrive = (sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[0]/255, sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[1]/255, sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[2]/255)
+         for crashSite in openAndFullCrashSites:
+            shortName = crashSite[crashSite.rfind(".")+1:]
+            markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
+
+            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorOpenWithDrive, sav_data.data.ECompassViewDistance.CVD_Mid):
+               print(f"Added {shortName} at {markerLocation} [Open w/drive]")
+               modifiedFlag = True
+
+         markerColorUnopened = (sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[0]/255, sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[1]/255, sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[2]/255)
+         for crashSite in crashSitesInSave:
+            if crashSite not in openAndEmptyCrashSites and crashSite not in openAndFullCrashSites:
+               shortName = crashSite[crashSite.rfind(".")+1:]
+               markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
+
+               if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Mid):
+                  print(f"Added {shortName} at {markerLocation} [Closed]")
+                  modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find mMapMarkers in save.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--blueprint" and sys.argv[2] == "--show" and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[3]
