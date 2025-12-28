@@ -36,6 +36,7 @@ except ModuleNotFoundError:
 VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
 CHECK_ITEMS_FOR_PLAYER_INVENTORY = False
+UNCOLLECTED_MAP_MARKER_SCALE = 0.5
 
 def getBlankCategory(categoryName: str, iconId: int = -1) -> list:
    return [[['CategoryName', categoryName], ['IconID', iconId], ['MenuPriority', 0.0], ['IsUndefined', False], ['SubCategoryRecords', [[[['SubCategoryName', 'Undefined'], ['MenuPriority', 0.0], ['IsUndefined', 1], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]]]], [['CategoryName', 'StrProperty', 0], ['IconID', 'IntProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'BoolProperty', 0], ['SubCategoryRecords', ['ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'], 0]]]
@@ -2547,7 +2548,7 @@ if __name__ == '__main__':
             shortName = somersloopName[somersloopName.rfind(".")+1:]
             markerLocation = sav_data.somersloop.SOMERSLOOPS[somersloopName][2]
 
-            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
+            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2596,7 +2597,7 @@ if __name__ == '__main__':
             shortName = mercerSphereName[mercerSphereName.rfind(".")+1:]
             markerLocation = sav_data.mercerSphere.MERCER_SPHERES[mercerSphereName][2]
 
-            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
+            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2674,7 +2675,7 @@ if __name__ == '__main__':
             shortName = crashSite[crashSite.rfind(".")+1:]
             markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
-            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorOpenWithDrive, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
+            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorOpenWithDrive, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
                print(f"Added {shortName} at {markerLocation} [Open w/drive]")
                modifiedFlag = True
 
@@ -2684,7 +2685,7 @@ if __name__ == '__main__':
                shortName = crashSite[crashSite.rfind(".")+1:]
                markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
-               if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Near, 1.0):
+               if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
                   print(f"Added {shortName} at {markerLocation} [Closed]")
                   modifiedFlag = True
 
