@@ -940,11 +940,16 @@ if __name__ == '__main__':
          parsedSave = sav_parse.readFullSaveFile(savFilename)
          playerPaths = getPlayerPaths(parsedSave.levels)
          for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
+            characterPosition = None
+            for level in parsedSave.levels:
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+                  if actorOrComponentObjectHeader.instanceName == characterPlayer:
+                     characterPosition = actorOrComponentObjectHeader.position
             playerName = getPlayerName(parsedSave.levels, characterPlayer)
             if playerName is None:
-               print(characterPlayer)
+               print(f"{characterPlayer} at {characterPosition}")
             else:
-               print(f"{characterPlayer} ({playerName})")
+               print(f"{characterPlayer} ({playerName}) at {characterPosition}")
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
