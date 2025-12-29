@@ -37,6 +37,7 @@ VERIFY_CREATED_SAVE_FILES = False
 USERNAME_FILENAME = "sav_cli_usernames.json"
 CHECK_ITEMS_FOR_PLAYER_INVENTORY = False
 UNCOLLECTED_MAP_MARKER_SCALE = 0.5
+ENFORCE_MAP_MARKER_LIMIT = 250 # Critical for servers that will delete all map markers if above the limit.
 
 def getBlankCategory(categoryName: str, iconId: int = -1) -> list:
    return [[['CategoryName', categoryName], ['IconID', iconId], ['MenuPriority', 0.0], ['IsUndefined', False], ['SubCategoryRecords', [[[['SubCategoryName', 'Undefined'], ['MenuPriority', 0.0], ['IsUndefined', 1], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]]]], [['CategoryName', 'StrProperty', 0], ['IconID', 'IntProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'BoolProperty', 0], ['SubCategoryRecords', ['ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'], 0]]]
@@ -473,6 +474,11 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
          if object.instanceName == "Persistent_Level:PersistentLevel.MapManager":
             mapMarkers = sav_parse.getPropertyValue(object.properties, "mMapMarkers")
             if mapMarkers is not None:
+
+               if isinstance(ENFORCE_MAP_MARKER_LIMIT, int) and ENFORCE_MAP_MARKER_LIMIT > 0 and len(mapMarkers) >= ENFORCE_MAP_MARKER_LIMIT:
+                  print(f"Skipping map marker {markerName} at {markerLocation} due to marker limit of {ENFORCE_MAP_MARKER_LIMIT}")
+                  return False
+
                markerPlacedByAccountID = "0666C4A20501001001"
                if len(mapMarkers) > 0:
                   markerPlacedByAccountID = sav_parse.getPropertyValue(mapMarkers[0][0], "MarkerPlacedByAccountID")
