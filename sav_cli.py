@@ -491,7 +491,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --info <save-filename>")
    print("   py sav_cli.py --to-json <save-filename> <output-json-filename>")
    print("   py sav_cli.py --from-json <input-json-filename> <new-save-filename>")
-   print("   py sav_cli.py --set-session-name <new-session-name> <original-save-filename> <new-save-filename>")
+   print("   py sav_cli.py --set-session-name <new-session-name> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
@@ -852,10 +852,13 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While validating save to '{outFilename}': {error}")
 
-   elif len(sys.argv) == 5 and sys.argv[1] == "--set-session-name" and os.path.isfile(sys.argv[3]):
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--set-session-name" and os.path.isfile(sys.argv[3]):
       newSessionName = sys.argv[2]
       savFilename = sys.argv[3]
       outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
 
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
@@ -865,6 +868,8 @@ if __name__ == '__main__':
       parsedSave.saveFileInfo.sessionName = newSessionName
 
       try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
          sav_to_resave.saveFile(parsedSave, outFilename)
          if VERIFY_CREATED_SAVE_FILES:
             parsedSave = sav_parse.readFullSaveFile(outFilename)
