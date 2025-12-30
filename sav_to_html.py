@@ -143,6 +143,7 @@ def getStackSize(itemName: str, itemCount: int) -> int | None:
    return derivedStackSize
 
 def getCrashSiteState(levels):
+   crashSitesNotOpened = list(sav_data.crashSites.CRASH_SITES.keys())
    crashSitesInSave = {}
    crashSitesDismantled = []
    for level in levels:
@@ -154,14 +155,14 @@ def getCrashSiteState(levels):
          for collectable in level.collectables1:  # Quantity should match collectables2
             if collectable.pathName in sav_data.crashSites.CRASH_SITES:
                crashSitesDismantled.append(collectable.pathName)
+               crashSitesNotOpened.remove(collectable.pathName)
 
-   crashSitesNotOpened = list(crashSitesInSave.keys())
    crashSitesOpenAndEmpty = []
    crashSitesOpenWithDrive = []
    crashSiteInventoryPathName = {} # Maps inventory instance path name to crash site instance path name
    for level in levels:
       for object in level.objects:
-         if object.instanceName in crashSitesInSave:
+         if object.instanceName in sav_data.crashSites.CRASH_SITES:
             hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
             if hasBeenOpened is not None and hasBeenOpened:
                crashSitesNotOpened.remove(object.instanceName)
@@ -401,7 +402,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                elif activeSchematicDescription is not None:
                   activeSchematicDescription = f"{activeSchematicDescription}<p>\n"
 
-      crashSitesInSave, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, crashSitesDismantled = getCrashSiteState(parsedSave.levels)
+      _, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, crashSitesDismantled = getCrashSiteState(parsedSave.levels)
 
       creatingMapImagesFlag = pilAvailableFlag and os.path.isfile(MAP_BASENAME_BLANK)
 
@@ -569,19 +570,19 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          hdImage = origImage.copy()
          hdDraw = ImageDraw.Draw(hdImage)
          for key in crashSitesOpenAndEmpty:
-            coord = crashSitesInSave[key]
+            coord = sav_data.crashSites.CRASH_SITES[key][2]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_EMPTY)
          for key in crashSitesNotOpened:
-            coord = crashSitesInSave[key]
+            coord = sav_data.crashSites.CRASH_SITES[key][2]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
             smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
             smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
          for key in crashSitesOpenWithDrive:
-            coord = crashSitesInSave[key]
+            coord = sav_data.crashSites.CRASH_SITES[key][2]
             if coord is not None:
                posX = adjPos(coord[0], False)
                posY = adjPos(coord[1], True)
