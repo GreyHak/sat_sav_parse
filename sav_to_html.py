@@ -142,6 +142,53 @@ def getStackSize(itemName: str, itemCount: int) -> int | None:
       json.dump(itemStackSizes, fout, indent=2)
    return derivedStackSize
 
+def getCrashSiteState(levels):
+   crashSitesInSave = {}
+   crashSitesDismantled = []
+   for level in levels:
+      for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+         if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
+            if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
+               crashSitesInSave[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
+      if level.collectables1 is not None:
+         for collectable in level.collectables1:  # Quantity should match collectables2
+            if collectable.pathName in sav_data.crashSites.CRASH_SITES:
+               crashSitesDismantled.append(collectable.pathName)
+
+   crashSitesNotOpened = list(crashSitesInSave.keys())
+   crashSitesOpenAndEmpty = []
+   crashSitesOpenWithDrive = []
+   crashSiteInventoryPathName = {} # Maps inventory instance path name to crash site instance path name
+   for level in levels:
+      for object in level.objects:
+         if object.instanceName in crashSitesInSave:
+            hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
+            if hasBeenOpened is not None and hasBeenOpened:
+               crashSitesNotOpened.remove(object.instanceName)
+               hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
+               if hasBeenLooted is None:
+                  crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
+                  hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
+               if hasBeenLooted:
+                  crashSitesOpenAndEmpty.append(object.instanceName)
+               else: # This case has not been observed
+                  crashSitesOpenWithDrive.append(object.instanceName)
+
+   for level in levels:
+      for object in level.objects:
+         if object.instanceName in crashSiteInventoryPathName:
+            inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
+            if inventoryStacks is not None:
+               item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
+               if item is not None:
+                  if len(item) == 2 and isinstance(item[0], str):
+                     if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
+                        crashSiteInstancePathName = crashSiteInventoryPathName[object.instanceName]
+                        crashSitesOpenAndEmpty.remove(crashSiteInstancePathName)
+                        crashSitesOpenWithDrive.append(crashSiteInstancePathName)
+
+   return crashSitesInSave, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, crashSitesDismantled
+
 def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBasename: str = DEFAULT_HTML_BASENAME):
    htmlFilename = f"{outputDir}/{htmlBasename}"
    try:
@@ -165,8 +212,6 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
       numCollectedSlugsMk1 = 0
       numCollectedSlugsMk2 = 0
       numCollectedSlugsMk3 = 0
-      crashSiteInstances = {}
-      crashSitesDismantled = []
       numCreaturesKilled = 0
       creaturesKilled = []
       gamePhase = "Default"
@@ -200,8 +245,6 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   if actorOrComponentObjectHeader.instanceName in sav_data.resourcePurity.RESOURCE_PURITY: # Won't be found for BP_FrackingCore_C
                      (resourceType, purity) = sav_data.resourcePurity.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
                   minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, resourceType, purity)
-               elif typePath == sav_data.data.CRASH_SITE:
-                  crashSiteInstances[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
                elif typePath in sav_data.data.POWER_LINE:
                   powerLines[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
          for object in level.objects:
@@ -316,14 +359,6 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   del uncollectedSomersloops[collectable.pathName]
                elif collectable.pathName in uncollectedMercerSpheres:
                   del uncollectedMercerSpheres[collectable.pathName]
-               elif collectable.pathName in sav_data.crashSites.CRASH_SITES:
-                  crashSitesDismantled.append(collectable.pathName)
-
-      crashSitesOpenWithDrive = []
-      crashSitesUnopenedKeys = list(crashSiteInstances.keys())
-      numOpenAndEmptyCrashSites = 0
-      numOpenAndFullCrashSites = 0
-      crashSiteInventoryPathName = {}
 
       numMinedResources = 0
       minedResources = []
@@ -335,19 +370,6 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                   extractableResource = sav_parse.getPropertyValue(object.properties, "mExtractableResource")
                   if extractableResource is not None:
                      minedResources.append(extractableResource.pathName)
-            elif object.instanceName in crashSiteInstances:
-               hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
-               if hasBeenOpened is not None and hasBeenOpened:
-                  crashSitesUnopenedKeys.remove(object.instanceName)
-                  hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
-                  if hasBeenLooted is None:
-                     crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
-                     hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
-                  if hasBeenLooted:
-                     numOpenAndEmptyCrashSites += 1
-                  else: # This case has not been observed
-                     numOpenAndFullCrashSites += 1
-                     crashSitesOpenWithDrive.append(crashSiteInstances[object.instanceName])
             elif object.instanceName == "Persistent_Level:PersistentLevel.schematicManager":
                paidOffSchematics = sav_parse.getPropertyValue(object.properties, "mPaidOffSchematic")
                if paidOffSchematics is not None:
@@ -379,19 +401,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                elif activeSchematicDescription is not None:
                   activeSchematicDescription = f"{activeSchematicDescription}<p>\n"
 
-      for level in parsedSave.levels:
-         for object in level.objects:
-            if object.instanceName in crashSiteInventoryPathName:
-               inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
-               if inventoryStacks is not None:
-                  item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
-                  if item is not None:
-                     if len(item) == 2 and isinstance(item[0], str):
-                        if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
-                           numOpenAndEmptyCrashSites -= 1
-                           numOpenAndFullCrashSites += 1
-                           # Use inventory object to get droppod object to get location
-                           crashSitesOpenWithDrive.append(crashSiteInstances[crashSiteInventoryPathName[object.instanceName]])
+      crashSitesInSave, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, crashSitesDismantled = getCrashSiteState(parsedSave.levels)
 
       creatingMapImagesFlag = pilAvailableFlag and os.path.isfile(MAP_BASENAME_BLANK)
 
@@ -449,12 +459,14 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          lines += f' (<a href="{MAP_BASENAME_COLLECTABLES}">all collectables</a>)'
       lines += "<p>\n"
 
-      numCrashSitesNotOpened = len(crashSiteInstances) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
+      numCrashSitesOpenAndEmpty = len(crashSitesOpenAndEmpty)
+      numCrashSitesOpenWithDrive = len(crashSitesOpenWithDrive)
+      numCrashSitesNotOpened = len(crashSitesNotOpened)
       numCrashSitesDismantled = len(crashSitesDismantled)
       lines += f"Of {len(sav_data.crashSites.CRASH_SITES)} crash sites total, " +\
-               f"{numOpenAndEmptyCrashSites} {('are','is')[numOpenAndEmptyCrashSites == 1]} open and empty, " +\
                f"{numCrashSitesNotOpened} {('have','has')[numCrashSitesNotOpened == 1]} not been opened, " +\
-               f"{numOpenAndFullCrashSites} {('are','is')[numOpenAndFullCrashSites == 1]} open with a drive available, " +\
+               f"{numCrashSitesOpenWithDrive} {('are','is')[numCrashSitesOpenWithDrive == 1]} open with a drive available, " +\
+               f"{numCrashSitesOpenAndEmpty} {('are','is')[numCrashSitesOpenAndEmpty == 1]} open and empty, " +\
                f"{numCrashSitesDismantled} {('have','has')[numCrashSitesDismantled == 1]} been dismantled.\r\n"
       if creatingMapImagesFlag:
          lines += f'<a href="{MAP_BASENAME_HARD_DRIVES}">Map of hard drives.</a>'
@@ -556,19 +568,20 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
          hdImage = origImage.copy()
          hdDraw = ImageDraw.Draw(hdImage)
-         for key in crashSiteInstances:
-            coord = crashSiteInstances[key]
+         for key in crashSitesInSave:
+            coord = crashSitesInSave[key]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_OPEN_EMPTY)
-         for key in crashSitesUnopenedKeys:
-            coord = crashSiteInstances[key]
+         for key in crashSitesNotOpened:
+            coord = crashSitesInSave[key]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
             hdDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
             smDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
             smsDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_CRASH_SITE_UNOPENED)
-         for coord in crashSitesOpenWithDrive:
+         for key in crashSitesOpenWithDrive:
+            coord = crashSitesInSave[key]
             if coord is not None:
                posX = adjPos(coord[0], False)
                posY = adjPos(coord[1], True)

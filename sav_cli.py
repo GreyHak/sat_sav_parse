@@ -665,53 +665,13 @@ if __name__ == '__main__':
                   if "Name" in mod and "Version" in mod:
                      print(f"   {mod['Name']}, {mod['Version']}")
 
-         crashSitesInSave = []
-         for level in parsedSave.levels:
-            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
-               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
-                  if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                     crashSitesInSave.append(actorOrComponentObjectHeader.instanceName)
-         crashSitesUnopenedKeys = crashSitesInSave.copy()
-         numOpenAndEmptyCrashSites = 0
-         numOpenAndFullCrashSites = 0
-         crashSiteInventoryPathName = {}
-         crashSitesDismantled = []
-         for level in parsedSave.levels:
-            for object in level.objects:
-               if object.instanceName in crashSitesInSave:
-                  hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
-                  if hasBeenOpened is not None and hasBeenOpened:
-                     crashSitesUnopenedKeys.remove(object.instanceName)
-                     hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
-                     if hasBeenLooted is None:
-                        crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
-                        hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
-                     if hasBeenLooted:
-                        numOpenAndEmptyCrashSites += 1
-                     else: # This case has not been observed
-                        numOpenAndFullCrashSites += 1
-            if level.collectables1 is not None:
-               for collectable in level.collectables1:  # Quantity should match collectables2
-                  if collectable.pathName in sav_data.crashSites.CRASH_SITES:
-                     crashSitesDismantled.append(collectable.pathName)
-         for level in parsedSave.levels:
-            for object in level.objects:
-               if object.instanceName in crashSiteInventoryPathName:
-                  inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
-                  if inventoryStacks is not None:
-                     item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
-                     if item is not None:
-                        if len(item) == 2 and isinstance(item[0], str):
-                           if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
-                              numOpenAndEmptyCrashSites -= 1
-                              numOpenAndFullCrashSites += 1
-                              # Use inventory object to get droppod object to get location
-         numCrashSitesNotOpened = len(crashSitesInSave) - numOpenAndEmptyCrashSites - numOpenAndFullCrashSites
+         crashSitesInSave, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, crashSitesDismantled = sav_to_html.getCrashSiteState(parsedSave.levels)
+
          print(f"{len(sav_data.crashSites.CRASH_SITES)} total crash sites on map.")
          print(f"   {len(crashSitesInSave) + len(crashSitesDismantled)} found in save file.")
-         print(f"   {numCrashSitesNotOpened} not opened.")
-         print(f"   {numOpenAndFullCrashSites} opened with hard drive.")
-         print(f"   {numOpenAndEmptyCrashSites} opened and empty.")
+         print(f"   {len(crashSitesNotOpened)} not opened.")
+         print(f"   {len(crashSitesOpenWithDrive)} opened with hard drive.")
+         print(f"   {len(crashSitesOpenAndEmpty)} opened and empty.")
          print(f"   {len(crashSitesDismantled)} dismantled.")
 
       except Exception as error:
@@ -2352,66 +2312,22 @@ if __name__ == '__main__':
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         crashSitesInSave = []
-         for level in parsedSave.levels:
-            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
-               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
-                  if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                     crashSitesInSave.append(actorOrComponentObjectHeader.instanceName)
-         crashSitesOpenWithDrive = []
-         crashSitesUnopenedKeys = crashSitesInSave.copy()
-         openAndEmptyCrashSites = []
-         openAndFullCrashSites = []
-         crashSiteInventoryPathName = {} # Maps inventory instance path name to crash site instance path name
-         crashSitesDismantled = []
-         for level in parsedSave.levels:
-            for object in level.objects:
-               if object.instanceName in crashSitesInSave:
-                  hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
-                  if hasBeenOpened is not None and hasBeenOpened:
-                     crashSitesUnopenedKeys.remove(object.instanceName)
-                     hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
-                     if hasBeenLooted is None:
-                        crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
-                        hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
-                     if hasBeenLooted:
-                        openAndEmptyCrashSites.append(object.instanceName)
-                     else: # This case has not been observed
-                        openAndFullCrashSites.append(object.instanceName)
-                        crashSitesOpenWithDrive.append(object.instanceName)
-            if level.collectables1 is not None:
-               for collectable in level.collectables1:  # Quantity should match collectables2
-                  if collectable.pathName in sav_data.crashSites.CRASH_SITES:
-                     crashSitesDismantled.append(collectable.pathName)
-         for level in parsedSave.levels:
-            for object in level.objects:
-               if object.instanceName in crashSiteInventoryPathName:
-                  inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
-                  if inventoryStacks is not None:
-                     item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
-                     if item is not None:
-                        if len(item) == 2 and isinstance(item[0], str):
-                           if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
-                              crashSiteInstancePathName = crashSiteInventoryPathName[object.instanceName]
-                              openAndEmptyCrashSites.remove(crashSiteInstancePathName)
-                              openAndFullCrashSites.append(crashSiteInstancePathName)
-                              # Use inventory object to get droppod object to get location
-                              crashSitesOpenWithDrive.append(crashSiteInstancePathName)
-         numCrashSitesNotOpened = len(crashSitesInSave) - len(openAndEmptyCrashSites) - len(openAndFullCrashSites)
+         crashSitesInSave, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, crashSitesDismantled = sav_to_html.getCrashSiteState(parsedSave.levels)
+
          print(f"{len(sav_data.crashSites.CRASH_SITES)} total crash sites on map.")
          print(f"   {len(crashSitesInSave) + len(crashSitesDismantled)} found in save file.")
-         print(f"   {numCrashSitesNotOpened} not opened.")
-         print(f"   {len(openAndFullCrashSites)} opened with hard drive.")
-         print(f"   {len(openAndEmptyCrashSites)} opened and empty.")
+         print(f"   {len(crashSitesNotOpened)} not opened.")
+         print(f"   {len(crashSitesOpenWithDrive)} opened with hard drive.")
+         print(f"   {len(crashSitesOpenAndEmpty)} opened and empty.")
          print(f"   {len(crashSitesDismantled)} dismantled.")
 
          jdata = {}
-         for crashSite in openAndEmptyCrashSites:
+         for crashSite in crashSitesOpenAndEmpty:
             jdata[crashSite] = "IN_SAVE_OPEN_EMPTY"
-         for crashSite in openAndFullCrashSites:
+         for crashSite in crashSitesOpenWithDrive:
             jdata[crashSite] = "IN_SAVE_OPEN_FULL"
          for crashSite in crashSitesInSave:
-            if crashSite not in openAndEmptyCrashSites and crashSite not in openAndFullCrashSites:
+            if crashSite not in crashSitesOpenAndEmpty and crashSite not in crashSitesOpenWithDrive:
                jdata[crashSite] = "IN_SAVE_CLOSED"
          for crashSite in sav_data.crashSites.CRASH_SITES:
             if crashSite not in crashSitesInSave:
@@ -2645,49 +2561,10 @@ if __name__ == '__main__':
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         crashSitesInSave = []
-         for level in parsedSave.levels:
-            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
-               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
-                  if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
-                     crashSitesInSave.append(actorOrComponentObjectHeader.instanceName)
-         crashSitesOpenWithDrive = []
-         crashSitesUnopenedKeys = crashSitesInSave.copy()
-         openAndEmptyCrashSites = []
-         openAndFullCrashSites = []
-         crashSiteInventoryPathName = {} # Maps inventory instance path name to crash site instance path name
-         for level in parsedSave.levels:
-            for object in level.objects:
-               if object.instanceName in crashSitesInSave:
-                  hasBeenOpened = sav_parse.getPropertyValue(object.properties, "mHasBeenOpened")
-                  if hasBeenOpened is not None and hasBeenOpened:
-                     crashSitesUnopenedKeys.remove(object.instanceName)
-                     hasBeenLooted = sav_parse.getPropertyValue(object.properties, "mHasBeenLooted")
-                     if hasBeenLooted is None:
-                        crashSiteInventoryPathName[f"{object.instanceName}.Inventory2"] = object.instanceName # v1.0 doesn't use the "mInventory" property anymore.  Any open, but unlooted droppods from Update 8 will be empty in v1.0.
-                        hasBeenLooted = True # If inventory isn't found, the droppod has been looted, so assuming that here.
-                     if hasBeenLooted:
-                        openAndEmptyCrashSites.append(object.instanceName)
-                     else: # This case has not been observed
-                        openAndFullCrashSites.append(object.instanceName)
-                        crashSitesOpenWithDrive.append(object.instanceName)
-         for level in parsedSave.levels:
-            for object in level.objects:
-               if object.instanceName in crashSiteInventoryPathName:
-                  inventoryStacks = sav_parse.getPropertyValue(object.properties, "mInventoryStacks")
-                  if inventoryStacks is not None:
-                     item = sav_parse.getPropertyValue(inventoryStacks[0][0], "Item")
-                     if item is not None:
-                        if len(item) == 2 and isinstance(item[0], str):
-                           if item[0] == "/Game/FactoryGame/Resource/Environment/CrashSites/Desc_HardDrive.Desc_HardDrive_C" and item[1] != 0:
-                              crashSiteInstancePathName = crashSiteInventoryPathName[object.instanceName]
-                              openAndEmptyCrashSites.remove(crashSiteInstancePathName)
-                              openAndFullCrashSites.append(crashSiteInstancePathName)
-                              # Use inventory object to get droppod object to get location
-                              crashSitesOpenWithDrive.append(crashSiteInstancePathName)
+         crashSitesInSave, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, _ = sav_to_html.getCrashSiteState(parsedSave.levels)
 
          markerColorOpenWithDrive = (sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[0]/255, sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[1]/255, sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[2]/255)
-         for crashSite in openAndFullCrashSites:
+         for crashSite in crashSitesOpenWithDrive:
             shortName = crashSite[crashSite.rfind(".")+1:]
             markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
@@ -2697,7 +2574,7 @@ if __name__ == '__main__':
 
          markerColorUnopened = (sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[0]/255, sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[1]/255, sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[2]/255)
          for crashSite in crashSitesInSave:
-            if crashSite not in openAndEmptyCrashSites and crashSite not in openAndFullCrashSites:
+            if crashSite not in crashSitesOpenAndEmpty and crashSite not in crashSitesOpenWithDrive:
                shortName = crashSite[crashSite.rfind(".")+1:]
                markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
