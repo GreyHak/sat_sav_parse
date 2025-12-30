@@ -2488,7 +2488,7 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       if not modifiedFlag:
-         print("ERROR: Failed to find mMapMarkers in save.", file=sys.stderr)
+         print("ERROR: No save generated.  (Maybe too many markers or no mMapMarkers in save.)", file=sys.stderr)
          exit(1)
 
       try:
@@ -2537,7 +2537,7 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       if not modifiedFlag:
-         print("ERROR: Failed to find mMapMarkers in save.", file=sys.stderr)
+         print("ERROR: No save generated.  (Maybe too many markers or no mMapMarkers in save.)", file=sys.stderr)
          exit(1)
 
       try:
@@ -2585,7 +2585,7 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       if not modifiedFlag:
-         print("ERROR: Failed to find mMapMarkers in save.", file=sys.stderr)
+         print("ERROR: No save generated.  (Maybe too many markers or no mMapMarkers in save.)", file=sys.stderr)
          exit(1)
 
       try:
