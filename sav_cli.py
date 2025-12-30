@@ -2561,7 +2561,7 @@ if __name__ == '__main__':
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         crashSitesInSave, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, _ = sav_to_html.getCrashSiteState(parsedSave.levels)
+         _, crashSitesNotOpened, crashSitesOpenWithDrive, crashSitesOpenAndEmpty, _ = sav_to_html.getCrashSiteState(parsedSave.levels)
 
          markerColorOpenWithDrive = (sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[0]/255, sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[1]/255, sav_to_html.MAP_COLOR_CRASH_SITE_OPEN_W_DRIVE[2]/255)
          for crashSite in crashSitesOpenWithDrive:
@@ -2573,14 +2573,13 @@ if __name__ == '__main__':
                modifiedFlag = True
 
          markerColorUnopened = (sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[0]/255, sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[1]/255, sav_to_html.MAP_COLOR_CRASH_SITE_UNOPENED[2]/255)
-         for crashSite in crashSitesInSave:
-            if crashSite not in crashSitesOpenAndEmpty and crashSite not in crashSitesOpenWithDrive:
-               shortName = crashSite[crashSite.rfind(".")+1:]
-               markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
+         for crashSite in crashSitesNotOpened:
+            shortName = crashSite[crashSite.rfind(".")+1:]
+            markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
-               if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
-                  print(f"Added {shortName} at {markerLocation} [Closed]")
-                  modifiedFlag = True
+            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
+               print(f"Added {shortName} at {markerLocation} [Closed]")
+               modifiedFlag = True
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
