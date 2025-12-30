@@ -568,7 +568,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
          hdImage = origImage.copy()
          hdDraw = ImageDraw.Draw(hdImage)
-         for key in crashSitesInSave:
+         for key in crashSitesOpenAndEmpty:
             coord = crashSitesInSave[key]
             posX = adjPos(coord[0], False)
             posY = adjPos(coord[1], True)
