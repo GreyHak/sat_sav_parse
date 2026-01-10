@@ -1425,7 +1425,9 @@ if __name__ == '__main__':
                            if hotbarItemIdxStr in hotbarContents_strKeys[hotbarIdxStr]:
                               replacementHotbarItem = hotbarContents_strKeys[hotbarIdxStr][hotbarItemIdxStr]
 
-                              if replacementHotbarItem.startswith("/Game/FactoryGame/Buildable/-Shared/Customization/"):
+                              if replacementHotbarItem is None:
+                                 continue
+                              elif replacementHotbarItem.startswith("/Game/FactoryGame/Buildable/-Shared/Customization/"):
                                  replacementHotbarItemNewClassName = "FGFactoryCustomizationShortcut"
                               elif replacementHotbarItem.startswith("/Game/FactoryGame/Emotes/"):
                                  replacementHotbarItemNewClassName = "FGEmoteShortcut"
