@@ -1450,11 +1450,14 @@ def readFullSaveFile(filename: str, decompressedOutputFilename: str | None = Non
          (offset, dropPodReference) = parseObjectReference(offset, data)
          dropPodObjectReferenceList.append(dropPodReference)
 
-      # Unresolved/destroyed actors
-      (offset, extraObjectReferenceCount) = parseUint32(offset, data)
-      for idx in range(extraObjectReferenceCount):
-         (offset, objectReference) = parseObjectReference(offset, data)
-         extraObjectReferenceList.append(objectReference)
+      if offset == len(data):
+         satisfactoryCalculatorInteractiveMapExtras.append("Premature file end")
+      else:
+         # Unresolved/destroyed actors
+         (offset, extraObjectReferenceCount) = parseUint32(offset, data)
+         for idx in range(extraObjectReferenceCount):
+            (offset, objectReference) = parseObjectReference(offset, data)
+            extraObjectReferenceList.append(objectReference)
 
    if offset != len(data):
       raise ParseError(f"Parsed data {offset} does not match decompressed data {len(data)}.")
