@@ -901,4 +901,9 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Schematic_8-4_C": "Leading-edge Production",
    "Schematic_8-5_C": "Particle Enrichment",
    "Schematic_8-5-1_C": "Particle Enrichment 2",
+   "Schematic_9-1_C": "Matter Conversion",
+   "Schematic_9-2_C": "Quantum Encoding",
+   "Schematic_9-3_C": "FICSIT Blueprints Mk.3",
+   "Schematic_9-4_C": "Spatial Energy Regulation",
+   "Schematic_9-5_C": "Peak Efficiency",
 }

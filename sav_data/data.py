@@ -880,7 +880,7 @@ MILESTONE_COSTS = {
       "Turbo Motor": 200,
       "Supercomputer": 400,
    },
-   "Ficsit Blueprints Mk.3": {
+   "FICSIT Blueprints Mk.3": {
       "Neural-Quantum Processor": 100,
       "Time Crystal": 250,
       "Ficsite Trigon": 500,
