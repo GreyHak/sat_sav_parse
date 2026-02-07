@@ -524,6 +524,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --adjust-dimensional-depot <original-save-filename> <item-name> <new-quantity> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>")
    print("   py sav_cli.py --list-map-markers <save-filename>")
+   print("   py sav_cli.py --export-map-markers <save-filename> <output-json-filename>")
    print("   py sav_cli.py --add-map-markers-json <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
@@ -2346,7 +2347,6 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 3 and sys.argv[1] == "--list-map-markers" and os.path.isfile(sys.argv[2]):
-
       savFilename = sys.argv[2]
 
       try:
@@ -2390,6 +2390,70 @@ if __name__ == '__main__':
                               iconID = iconName
 
                         print(f"{markerGuid} '{name}' at {location} scale={scale} distance={compassViewDistance} icon={iconID}")
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--export-map-markers" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         jdata = []
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.MapManager":
+                  mapMarkers = sav_parse.getPropertyValue(object.properties, "mMapMarkers")
+                  if mapMarkers is not None:
+                     for mapMarker in mapMarkers:
+
+                        markerGuid = sav_parse.getPropertyValue(mapMarker[0], "markerGuid")
+                        if markerGuid is not None:
+                           markerGuid = uuid.UUID(bytes=markerGuid)
+
+                        name = sav_parse.getPropertyValue(mapMarker[0], "Name")
+
+                        location = sav_parse.getPropertyValue(mapMarker[0], "Location")
+                        if location is not None:
+                           x = sav_parse.getPropertyValue(location[0], "X")
+                           y = sav_parse.getPropertyValue(location[0], "Y")
+                           z = sav_parse.getPropertyValue(location[0], "Z")
+                           location = None
+                           if x is not None and y is not None and z is not None:
+                              location = (x, y, z)
+
+                        scale = sav_parse.getPropertyValue(mapMarker[0], "Scale")
+
+                        compassViewDistance = sav_parse.getPropertyValue(mapMarker[0], "compassViewDistance")
+                        if compassViewDistance is not None:
+                           if compassViewDistance[0] == "ECompassViewDistance":
+                              compassViewDistance = compassViewDistance[1][len("ECompassViewDistance::"):]
+                              for cvd in sav_data.data.COMPASS_VIEW_DISTANCES__ENUM_TO_NAME:
+                                 if cvd.name == compassViewDistance:
+                                    compassViewDistance = sav_data.data.COMPASS_VIEW_DISTANCES__ENUM_TO_NAME[cvd]
+
+                        iconID = sav_parse.getPropertyValue(mapMarker[0], "IconID")
+                        for iconName in sav_data.data.ICON_IDS:
+                           if iconID == sav_data.data.ICON_IDS[iconName]:
+                              iconID = iconName
+
+                        color = sav_parse.getPropertyValue(mapMarker[0], "Color")
+
+                        jdata.append({
+                           "guid": str(markerGuid),
+                           "Name": name,
+                           "Location": location,
+                           "Scale": scale,
+                           "compassViewDistance": compassViewDistance,
+                           "IconName": iconID,
+                           "Color": color
+                           })
+
+         print(f"Writing {outFilename}")
+         with open(outFilename, "w") as fout:
+            json.dump(jdata, fout, indent=2)
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
