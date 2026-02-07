@@ -525,6 +525,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>")
    print("   py sav_cli.py --list-map-markers <save-filename>")
    print("   py sav_cli.py --export-map-markers <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --remove-marker <original-save-filename> <marker-guid> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-json <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
@@ -2457,6 +2458,51 @@ if __name__ == '__main__':
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--remove-marker" and os.path.isfile(sys.argv[3]):
+      targetMarkerGuid = uuid.UUID(sys.argv[2])
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         for level in parsedSave.levels:
+            for object in level.objects:
+               if object.instanceName == "Persistent_Level:PersistentLevel.MapManager":
+                  mapMarkers = sav_parse.getPropertyValue(object.properties, "mMapMarkers")
+                  if mapMarkers is not None:
+                     for idx in range(len(mapMarkers)):
+
+                        markerGuid = sav_parse.getPropertyValue(mapMarkers[idx][0], "markerGuid")
+                        if markerGuid is not None and uuid.UUID(bytes=markerGuid) == targetMarkerGuid:
+
+                           name = sav_parse.getPropertyValue(mapMarkers[idx][0], "Name")
+                           del mapMarkers[idx]
+                           print(f"Removed map marker '{name}'")
+                           modifiedFlag = True
+                           break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find marker GUID to remove.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) in (5, 6) and sys.argv[1] == "--add-map-markers-json" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
       savFilename = sys.argv[2]

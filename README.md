@@ -77,6 +77,7 @@ Usage:
   - `py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>`
   - `py sav_cli.py --list-map-markers <save-filename>`
   - `py sav_cli.py --export-map-markers <save-filename> <output-json-filename>`
+  - `py sav_cli.py --remove-marker <original-save-filename> <marker-guid> <new-save-filename> [--same-time]`
   - `py sav_cli.py --add-map-markers-json <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]`
