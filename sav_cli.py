@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2026 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,11 +39,71 @@ CHECK_ITEMS_FOR_PLAYER_INVENTORY = False
 UNCOLLECTED_MAP_MARKER_SCALE = 0.5
 ENFORCE_MAP_MARKER_LIMIT = 250 # Critical for servers that will delete all map markers if above the limit.
 
-def getBlankCategory(categoryName: str, iconId: int = -1) -> list:
-   return [[['CategoryName', categoryName], ['IconID', iconId], ['MenuPriority', 0.0], ['IsUndefined', False], ['SubCategoryRecords', [[[['SubCategoryName', 'Undefined'], ['MenuPriority', 0.0], ['IsUndefined', 1], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]]]], [['CategoryName', 'StrProperty', 0], ['IconID', 'IntProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'BoolProperty', 0], ['SubCategoryRecords', ['ArrayProperty', 'StructProperty', 'BlueprintSubCategoryRecord'], 0]]]
+def getBlankCategory(objectGameVersion: int, categoryName: str, iconId: int = -1) -> list:
+   if objectGameVersion < 53:
+      return [[['CategoryName', categoryName],
+               ['IconID', iconId],
+               ['MenuPriority', 0.0],
+               ['IsUndefined', False],
+               ['SubCategoryRecords',
+                [[[['SubCategoryName', 'Undefined'],
+                   ['MenuPriority', 0.0],
+                   ['IsUndefined', ["None", 1]],
+                   ['BlueprintNames', []]],
+                  [['SubCategoryName', 'StrProperty', 0],
+                   ['MenuPriority', 'FloatProperty', 0],
+                   ['IsUndefined', 'ByteProperty', 0],
+                   ['BlueprintNames', 'ArrayProperty', 0, 'StrProperty', 0]]]]]],
+              [['CategoryName', 'StrProperty', 0],
+               ['IconID', 'IntProperty', 0],
+               ['MenuPriority', 'FloatProperty', 0],
+               ['IsUndefined', 'BoolProperty', 0],
+               ['SubCategoryRecords', 'ArrayProperty', 0, 'StructProperty', 0, 'BlueprintSubCategoryRecord', None]]]
+   else:
+      return [[['CategoryName', categoryName],
+               ['IconID', iconId],
+               ['MenuPriority', 0.0],
+               ['IsUndefined', 16],
+               ['SubCategoryRecords',
+                [[[['SubCategoryName', 'Undefined'],
+                   ['MenuPriority', 0.0],
+                   ['IsUndefined', [None, 1]],
+                   ['BlueprintNames', []],
+                   ['lastEditedBy', b'\x00\x00']],
+                  [['SubCategoryName', 'StrProperty', 0],
+                   ['MenuPriority', 'FloatProperty', 0],
+                   ['IsUndefined', 'ByteProperty', 0],
+                   ['BlueprintNames', 'ArrayProperty', 1, 'StrProperty', 0, 0],
+                   ['lastEditedBy', 'StructProperty', 1, 'PlayerInfoHandle', ['/Script/FactoryGame'], 8]]]]],
+               ['lastEditedBy', b'\x00\x00']],
+              [['CategoryName', 'StrProperty', 0],
+               ['IconID', 'IntProperty', 0],
+               ['MenuPriority', 'FloatProperty', 0],
+               ['IsUndefined', 'BoolProperty', 0],
+               ['SubCategoryRecords', 'ArrayProperty', 1, 'StructProperty', 1, 'BlueprintSubCategoryRecord', ['/Script/FactoryGame'], 0],
+               ['lastEditedBy', 'StructProperty', 1, 'PlayerInfoHandle', ['/Script/FactoryGame'], 8]]]
 
-def getBlankSubcategory(subcategoryName: str) -> list:
-   return [[['SubCategoryName', subcategoryName], ['MenuPriority', 0.0], ['IsUndefined', 0], ['BlueprintNames', []]], [['SubCategoryName', 'StrProperty', 0], ['MenuPriority', 'FloatProperty', 0], ['IsUndefined', 'ByteProperty', 0], ['BlueprintNames', ['ArrayProperty', 'StrProperty'], 0]]]
+def getBlankSubcategory(objectGameVersion: int, subcategoryName: str) -> list:
+   if objectGameVersion < 53:
+      return [[['SubCategoryName', subcategoryName],
+               ['MenuPriority', 0.0],
+               ['IsUndefined', ["None", 1]],
+               ['BlueprintNames', []]],
+              [['SubCategoryName', 'StrProperty', 0],
+               ['MenuPriority', 'FloatProperty', 0],
+               ['IsUndefined', 'ByteProperty', 0],
+               ['BlueprintNames', 'ArrayProperty', 0, 'StrProperty', 0]]]
+   else:
+      return [[['SubCategoryName', subcategoryName],
+               ['MenuPriority', 0.0],
+               ['IsUndefined', [None, 1]],
+               ['BlueprintNames', []],
+               ['lastEditedBy', b'\x00\x00']],
+              [['SubCategoryName', 'StrProperty', 0],
+               ['MenuPriority', 'FloatProperty', 0],
+               ['IsUndefined', 'ByteProperty', 0],
+               ['BlueprintNames', 'ArrayProperty', 1, 'StrProperty', 0, 0],
+               ['lastEditedBy', 'StructProperty', 1, 'PlayerInfoHandle', ['/Script/FactoryGame'], 8]]]
 
 playerUsernames: dict[str, str] = {}
 
@@ -548,7 +608,7 @@ def printUsage() -> None:
 
    # TODO: Add manipulation of cheat flags
    #    mapOptions ends in "?enableAdvancedGameSettings"
-   #    cheatFlag=True
+   #    isCreativeModeEnabled=True
    #    <Object: instanceName=Persistent_Level:PersistentLevel.GameRulesSubsystem
    #       properties=[[('mHasInitialized', True)]]
    #       properties=[[('mHasInitialized', False), ('mUnlockInstantAltRecipes', True), ('mDisableArachnidCreatures', True), ('mNoUnlockCost', True)]]
@@ -586,9 +646,9 @@ if __name__ == '__main__':
          print(f"Is Modded Save: {parsedSave.saveFileInfo.isModdedSave}")
          if not parsedSave.saveFileInfo.isModdedSave and len(parsedSave.saveFileInfo.modMetadata) > 0: # This should never happen
             print(f"Mod Metadata: {parsedSave.saveFileInfo.modMetadata}")
-         print(f"Persistent Save Identifier: {parsedSave.saveFileInfo.persistentSaveIdentifier}")
-         print(f"Random: {parsedSave.saveFileInfo.random}")
-         print(f"Cheat Flag: {parsedSave.saveFileInfo.cheatFlag}")
+         print(f"Save Identifier: {parsedSave.saveFileInfo.saveIdentifier}")
+         print(f"Save Data Hash: {parsedSave.saveFileInfo.saveDataHash}")
+         print(f"Is Creative Mode Enabled: {parsedSave.saveFileInfo.isCreativeModeEnabled}")
 
          playerPaths = getPlayerPaths(parsedSave.levels)
 
@@ -689,8 +749,8 @@ if __name__ == '__main__':
 
          jdata = {}
          jdata["saveFileInfo"] = toJSON(parsedSave.saveFileInfo)
-         jdata["headhex"] = toJSON(parsedSave.headhex)
-         jdata["grids"] = toJSON(parsedSave.grids)
+         jdata["persistentLevelSaveObjectVersionData"] = toJSON(parsedSave.persistentLevelSaveObjectVersionData)
+         jdata["partitions"] = toJSON(parsedSave.partitions)
          ldata = jdata["levels"] = {}
          for level in parsedSave.levels:
             ldata[level.levelName] = {
@@ -699,7 +759,8 @@ if __name__ == '__main__':
                "collectables1": toJSON(level.collectables1),
                "objects": toJSON(level.objects),
                "levelSaveVersion": toJSON(level.levelSaveVersion),
-               "collectables2": toJSON(level.collectables2)}
+               "collectables2": toJSON(level.collectables2),
+               "saveObjectVersionData": toJSON(level.saveObjectVersionData)}
          jdata["aLevelName"] = toJSON(parsedSave.aLevelName)
          jdata["dropPodObjectReferenceList"] = toJSON(parsedSave.dropPodObjectReferenceList)
          jdata["extraObjectReferenceList"] = toJSON(parsedSave.extraObjectReferenceList)
@@ -735,11 +796,11 @@ if __name__ == '__main__':
       saveFileInfo.editorObjectVersion = jdata["saveFileInfo"]["editorObjectVersion"]
       saveFileInfo.modMetadata = jdata["saveFileInfo"]["modMetadata"]
       saveFileInfo.isModdedSave = jdata["saveFileInfo"]["isModdedSave"]
-      saveFileInfo.persistentSaveIdentifier = jdata["saveFileInfo"]["persistentSaveIdentifier"]
-      saveFileInfo.random = jdata["saveFileInfo"]["random"]
-      saveFileInfo.cheatFlag = jdata["saveFileInfo"]["cheatFlag"]
-      headhex = jdata["headhex"]
-      grids = jdata["grids"]
+      saveFileInfo.saveIdentifier = jdata["saveFileInfo"]["saveIdentifier"]
+      saveFileInfo.saveDataHash = jdata["saveFileInfo"]["saveDataHash"]
+      saveFileInfo.isCreativeModeEnabled = jdata["saveFileInfo"]["isCreativeModeEnabled"]
+      persistentLevelSaveObjectVersionData = jdata["persistentLevelSaveObjectVersionData"]
+      partitions = jdata["partitions"]
       aLevelName = jdata["aLevelName"]
 
       dropPodObjectReferenceList = []
@@ -809,11 +870,13 @@ if __name__ == '__main__':
          for objectReference in levelData["collectables2"]:
             collectables2.append(fromJSON(objectReference))
 
-         levels.append(sav_parse.Level(levelName, actorAndComponentObjectHeaders, levelPersistentFlag, collectables1, objects, levelSaveVersion, collectables2))
+         saveObjectVersionData = fromJSON(levelData["saveObjectVersionData"])
+
+         levels.append(sav_parse.Level(levelName, actorAndComponentObjectHeaders, levelPersistentFlag, collectables1, objects, levelSaveVersion, collectables2, saveObjectVersionData))
 
       print("Writing Save")
       try:
-         sav_to_resave.saveFile(sav_parse.ParsedSave(saveFileInfo, headhex, grids, levels, aLevelName, dropPodObjectReferenceList, extraObjectReferenceList), outFilename)
+         sav_to_resave.saveFile(sav_parse.ParsedSave(saveFileInfo, persistentLevelSaveObjectVersionData, partitions, levels, aLevelName, dropPodObjectReferenceList, extraObjectReferenceList), outFilename)
          print("Validating Save")
          parsedSave = sav_parse.readFullSaveFile(outFilename)
          print("Validation successful")
@@ -1199,7 +1262,7 @@ if __name__ == '__main__':
                   for lightweightBuildable in object.actorSpecificInfo:
                      if isinstance(lightweightBuildable, list):
                         (buildItemPathName, lightweightBuildableInstances) = lightweightBuildable
-                        for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath, beamLength) in lightweightBuildableInstances:
+                        for (rotationQuaternion, position, swatchLevelPath, patternLevelPath, (primaryColor, secondaryColor), paintFinishLevelPath, patternRotation, recipeLevelPath, blueprintProxyLevelPath, lightweightDataProperty, serviceProvider, playerInfoTableIndex) in lightweightBuildableInstances:
                            if lcTupleToSrgbHex(primaryColor) == colorPrimary and lcTupleToSrgbHex(secondaryColor) == colorSecondary:
                               euler = quaternionToEuler(rotationQuaternion)
                               oldYaw = euler[2]
@@ -2182,11 +2245,14 @@ if __name__ == '__main__':
                      for storedItem in storedItems:
                         itemClass = sav_parse.getPropertyValue(storedItem[0], "ItemClass")
                         if itemClass is not None:
-                           amount = sav_parse.getPropertyValue(storedItem[0], "Amount")
+                           amount = sav_parse.getPropertyValue(storedItem[0], "amount", True)
                            if amount is not None:
                               itemName = sav_parse.pathNameToReadableName(itemClass.pathName)
                               print(f"{itemName}, {amount}")
                               jdata.append((itemName, amount))
+
+         if len(jdata) == 0:
+            print("No items found in dimensional depot")
 
          print(f"Writing {outFilename}")
          with open(outFilename, "w") as fout:
@@ -2283,7 +2349,7 @@ if __name__ == '__main__':
                            if itemName == targetItemName:
                               for idx in range(len(storedItem[0])): # setPropertyValue where storedItem[0] is the property list
                                  (haystackPropertyName, propertyValue) = storedItem[0][idx]
-                                 if haystackPropertyName == "Amount":
+                                 if haystackPropertyName.casefold() == "amount":
                                     if propertyValue == newItemQuantity:
                                        print("{haystackPropertyName} quantity already {propertyValue}")
                                     else:
@@ -2296,7 +2362,7 @@ if __name__ == '__main__':
 
       if not modifiedFlag:
          print("Nothing adjusted.", file=sys.stderr)
-         exit(1)
+         exit(0)
 
       try:
          if changeTimeFlag:
@@ -2875,7 +2941,7 @@ if __name__ == '__main__':
                            existingCategories.append(categoryName)
                      for categoryName in categoryStructure:
                         if categoryName not in existingCategories:
-                           newCategory = getBlankCategory(categoryName, categoryStructure[categoryName]["Icon"])
+                           newCategory = getBlankCategory(object.objectGameVersion, categoryName, categoryStructure[categoryName]["Icon"])
                            subCategoryRecords = sav_parse.getPropertyValue(newCategory[0], "SubCategoryRecords")
                            del subCategoryRecords[0] # Remove blank categories "Undefined" subcategory
                            blueprintCategoryRecords.append(newCategory)
@@ -2900,7 +2966,7 @@ if __name__ == '__main__':
                                           modifiedFlag = True
                                        del subcategoryStructure[subCategoryName]
                               for subcategoryName in subcategoryStructure:
-                                 newSubcategory = getBlankSubcategory(subcategoryName)
+                                 newSubcategory = getBlankSubcategory(object.objectGameVersion, subcategoryName)
                                  blueprintNames = sav_parse.getPropertyValue(newSubcategory[0], "BlueprintNames")
                                  for blueprintName in subcategoryStructure[subcategoryName]:
                                     blueprintNames.append(blueprintName)
@@ -2945,7 +3011,7 @@ if __name__ == '__main__':
                if object.instanceName == "Persistent_Level:PersistentLevel.BlueprintSubsystem":
                   blueprintCategoryRecords = sav_parse.getPropertyValue(object.properties, "mBlueprintCategoryRecords")
                   if blueprintCategoryRecords is not None:
-                     blueprintCategoryRecords.append(getBlankCategory(categoryToAdd))
+                     blueprintCategoryRecords.append(getBlankCategory(object.objectGameVersion, categoryToAdd))
                      modifiedFlag = True
                      orderBlueprintCategoryMenuPriorities(blueprintCategoryRecords)
                      break
@@ -2990,7 +3056,7 @@ if __name__ == '__main__':
                         if categoryName is not None and categoryName == categoryToAddIn:
                            subCategoryRecords = sav_parse.getPropertyValue(category[0], "SubCategoryRecords")
                            if subCategoryRecords is not None:
-                              subCategoryRecords.append(getBlankSubcategory(subcategoryToAdd))
+                              subCategoryRecords.append(getBlankSubcategory(object.objectGameVersion, subcategoryToAdd))
                               modifiedFlag = True
                            break
 
@@ -3217,7 +3283,7 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       if not modifiedFlag:
-         print("ERROR: Failed to find blueprint '{blueprintToRemove}' to remove.", file=sys.stderr)
+         print(f"ERROR: Failed to find blueprint '{blueprintToRemove}' to remove.", file=sys.stderr)
          exit(1)
 
       try:

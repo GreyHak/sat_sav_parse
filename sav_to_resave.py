@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2026 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@ def addUint8(val):
    else:
       raise Exception(f"ERROR: Unsupported type passed to addUint8 {type(val)}")
 
+def addUint16(val):
+   return struct.pack("<H", val)
+
 def addInt32(val):
    return struct.pack("<i", val)
 
@@ -57,6 +60,28 @@ def addString(val):
       return addInt32(len(val) + 1) + val.encode("ascii") + b"\0"
    except UnicodeEncodeError:
       return addInt32(-len(val)-1) + val.encode("utf-16")[2:] + b"\0\0"
+
+def addSaveObjectVersionData(saveObjectVersionData):
+   saveObjectVersionDataVersion, (packageFileVersion_FileVersionUE4, packageFileVersion_FileVersionUE5), licenseeVersion, (engineVersion_Major, engineVersion_Minor, engineVersion_Patch, engineVersion_Changelist, engineVersion_Branch), customVersionContainer = saveObjectVersionData
+
+   data = bytearray()
+   data.extend(addUint32(saveObjectVersionDataVersion))
+   data.extend(addUint32(packageFileVersion_FileVersionUE4))
+   data.extend(addUint32(packageFileVersion_FileVersionUE5))
+   data.extend(addUint32(licenseeVersion))
+   data.extend(addUint16(engineVersion_Major))
+   data.extend(addUint16(engineVersion_Minor))
+   data.extend(addUint16(engineVersion_Patch))
+   data.extend(addUint32(engineVersion_Changelist))
+   data.extend(addString(engineVersion_Branch))
+
+   data.extend(addUint32(len(customVersionContainer)))
+   for (keyUuidA, keyUuidB, version) in customVersionContainer:
+      data.extend(addUint64(keyUuidA))
+      data.extend(addUint64(keyUuidB))
+      data.extend(addUint32(version))
+
+   return data
 
 def addObjectReference(objectReference):
    return addString(objectReference.levelName) + addString(objectReference.pathName)
@@ -102,13 +127,94 @@ def addTextProperty(textPropertyValue):
       dataTextProp.extend(addString(textKey))
    return dataTextProp
 
-def addProperties(properties, propertyTypes):
+def addPackageName(packageNames):
+   data = bytearray()
+   packageNameFlag1 = len(packageNames) > 0
+   data.extend(addUint32(packageNameFlag1))
+   if packageNameFlag1:
+      data.extend(addString(packageNames[0]))
+
+      packageNameFlag2 = len(packageNames) > 1
+      data.extend(addUint32(packageNameFlag2))
+      if packageNameFlag2:
+         data.extend(addString(packageNames[1]))
+         data.extend(addString(packageNames[2]))
+   return data
+
+def addProperties(currentEntitySaveVersion, properties, propertyTypes):
    data = bytearray()
 
    for propertyIdx in range(len(properties)):
 
       (propertyName, propertyValue) = properties[propertyIdx]
-      (propertyName, propertyType, propertyIndex) = propertyTypes[propertyIdx]
+      data.extend(addString(propertyName))
+
+      retainedPropertyType = list(propertyTypes[propertyIdx]).copy()
+      propertyNameFromType = retainedPropertyType.pop(0)
+      if propertyNameFromType != propertyName:
+         raise Exception(f"ERROR: Mismatch type/value property name: '{propertyNameFromType}' != '{propertyName}'")
+
+      propertyType = retainedPropertyType.pop(0)
+      data.extend(addString(propertyType))
+
+      if currentEntitySaveVersion >= 53:
+         propertyHeaderTypeA = retainedPropertyType.pop(0)
+         data.extend(addUint32(propertyHeaderTypeA))
+         if propertyHeaderTypeA == 1:
+            if propertyType == "ArrayProperty":
+               arrayType = retainedPropertyType.pop(0)
+               data.extend(addString(arrayType))
+               propertyHeaderTypeB = retainedPropertyType.pop(0)
+               data.extend(addUint32(propertyHeaderTypeB))
+               if propertyHeaderTypeB == 1:
+                  structureSubType = retainedPropertyType.pop(0)
+                  data.extend(addString(structureSubType))
+                  data.extend(addPackageName(retainedPropertyType.pop(0)))
+               elif propertyHeaderTypeB == 2:
+                  enumName = retainedPropertyType.pop(0)
+                  data.extend(addString(enumName))
+                  data.extend(addPackageName(retainedPropertyType.pop(0)))
+                  data.extend(addString("ByteProperty"))
+                  data.extend(addUint32(0))
+            elif propertyType == "ByteProperty":
+               enumName = retainedPropertyType.pop(0)
+               data.extend(addString(enumName))
+               data.extend(addPackageName(retainedPropertyType.pop(0)))
+            elif propertyType == "SetProperty":
+               setType = retainedPropertyType.pop(0)
+               data.extend(addString(setType))
+               data.extend(addPackageName(retainedPropertyType.pop(0)))
+            elif propertyType == "StructProperty":
+               structPropertyType = retainedPropertyType.pop(0)
+               data.extend(addString(structPropertyType))
+               data.extend(addPackageName(retainedPropertyType.pop(0)))
+         elif propertyHeaderTypeA == 2:
+            if propertyType == "EnumProperty":
+               enumName = retainedPropertyType.pop(0)
+               data.extend(addString(enumName))
+               data.extend(addPackageName(retainedPropertyType.pop(0)))
+               data.extend(addString("ByteProperty"))
+               data.extend(addUint32(0))
+            elif propertyType == "MapProperty":
+               keyType = retainedPropertyType.pop(0)
+               data.extend(addString(keyType))
+               keyPackageNames = retainedPropertyType.pop(0)
+               hasKeyTypeName = keyPackageNames is not None
+               data.extend(addUint32(hasKeyTypeName))
+               if hasKeyTypeName:
+                  data.extend(addString("IntVector"))
+                  data.extend(addPackageName(keyPackageNames))
+               valueType = retainedPropertyType.pop(0)
+               data.extend(addString(valueType))
+               valueName = retainedPropertyType.pop(0)
+               hasValueTypeName = valueName is not None
+               data.extend(addUint32(hasValueTypeName))
+               if hasValueTypeName:
+                  data.extend(addString(valueName))
+                  data.extend(addPackageName(retainedPropertyType.pop(0)))
+
+      if currentEntitySaveVersion < 53:
+         propertyIndex = retainedPropertyType.pop(0)
 
       dataProp = bytearray()
       propertyStartSize = 0
@@ -116,19 +222,19 @@ def addProperties(properties, propertyTypes):
       match propertyType:
          case "BoolProperty":
             dataProp.extend(addUint8(propertyValue))
-            dataProp.extend(addUint8(0))
+            if currentEntitySaveVersion < 53:
+               dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
          case "ByteProperty":
-            intOrString = "None"
-            if isinstance(propertyValue, list):
-               intOrString = propertyValue[0]
-            dataProp.extend(addString(intOrString))
+            enumName = propertyValue[0]
+            if currentEntitySaveVersion < 53:
+               dataProp.extend(addString(enumName))
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
-            if isinstance(propertyValue, list):
-               dataProp.extend(addString(propertyValue[1]))
+            if enumName is None or enumName == "None":
+               dataProp.extend(addUint8(propertyValue[1]))
             else:
-               dataProp.extend(addUint8(propertyValue))
+               dataProp.extend(addString(propertyValue[1]))
          case "Int8Property":
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
@@ -154,7 +260,8 @@ def addProperties(properties, propertyTypes):
             propertyStartSize = len(dataProp)
             dataProp.extend(addDouble(propertyValue))
          case "EnumProperty":
-            dataProp.extend(addString(propertyValue[0]))
+            if currentEntitySaveVersion < 53:
+               dataProp.extend(addString(propertyValue[0]))
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
             dataProp.extend(addString(propertyValue[1]))
@@ -168,8 +275,10 @@ def addProperties(properties, propertyTypes):
             dataProp.extend(addTextProperty(propertyValue))
          case "SetProperty":
             (setType, values) = propertyValue
-            dataProp.extend(addString(setType))
-            dataProp.extend(addUint8(0))
+            if currentEntitySaveVersion < 53:
+               dataProp.extend(addString(setType))
+            zeroOrEight = retainedPropertyType.pop(0)
+            dataProp.extend(addUint8(zeroOrEight))
             propertyStartSize = len(dataProp)
             dataProp.extend(addUint32(0))
             dataProp.extend(addUint32(len(values)))
@@ -195,320 +304,321 @@ def addProperties(properties, propertyTypes):
             propertyStartSize = len(dataProp)
             dataProp.extend(addObjectReference(levelPathName))
             dataProp.extend(addUint32(value))
-         case _:
-            if isinstance(propertyType, list): # "ArrayProperty", "StructProperty" or "MapProperty"
-               match propertyType[0]:
-                  case "ArrayProperty":
-                     arrayType = propertyType[1]
-                     dataProp.extend(addString(arrayType))
-                     dataProp.extend(addUint8(0))
-                     propertyStartSize = len(dataProp)
-                     dataProp.extend(addUint32(len(propertyValue)))
-                     match arrayType:
-                        case "IntProperty":
-                           for value in propertyValue:
-                              dataProp.extend(addInt32(value))
-                        case "Int64Property":
-                           for value in propertyValue:
-                              dataProp.extend(addInt64(value))
-                        case "ByteProperty":
-                           for value in propertyValue:
-                              dataProp.extend(addUint8(value))
-                        case "FloatProperty":
-                           for value in propertyValue:
-                              dataProp.extend(addFloat(value))
-                        case "DoubleProperty": # Only observed in modded save
-                           for value in propertyValue:
-                              dataProp.extend(addDouble(value))
-                        case arrayType if arrayType in ("StrProperty", "EnumProperty"):
-                           for value in propertyValue:
-                              dataProp.extend(addString(value))
-                        case "SoftObjectProperty":
-                           for (levelPathName, value) in propertyValue:
-                              dataProp.extend(addObjectReference(levelPathName))
-                              dataProp.extend(addUint32(value))
-                        case arrayType if arrayType in ("InterfaceProperty", "ObjectProperty"):
-                           for value in propertyValue:
-                              dataProp.extend(addObjectReference(value))
-                        case "TextProperty": # Only observed in modded save
-                           for value in propertyValue:
-                              dataProp.extend(addTextProperty(value))
-                        case "StructProperty":
-                           dataStruct = bytearray()
-                           structElementType = propertyType[2]
-                           match structElementType:
-                              case "LinearColor":
-                                 for value in propertyValue:
-                                    (r, g, b, a) = value
-                                    dataStruct.extend(addFloat(r))
-                                    dataStruct.extend(addFloat(g))
-                                    dataStruct.extend(addFloat(b))
-                                    dataStruct.extend(addFloat(a))
-                              case "Vector":
-                                 for value in propertyValue:
-                                    (x, y, z) = value
-                                    dataStruct.extend(addDouble(x))
-                                    dataStruct.extend(addDouble(y))
-                                    dataStruct.extend(addDouble(z))
-                              case "SpawnData":
-                                 for value in propertyValue:
-                                    (name, levelPathName, prop, propTypes) = value
-                                    dataSpawn = addObjectReference(levelPathName)
-                                    dataStruct.extend(addString(name))
-                                    dataStruct.extend(addString("ObjectProperty"))
-                                    dataStruct.extend(addUint32(len(dataSpawn)))
-                                    dataStruct.extend(addUint32(0))
-                                    dataStruct.extend(addUint8(0))
-                                    dataStruct.extend(dataSpawn)
-                                    dataStruct.extend(addProperties(prop, propTypes))
-                              case structElementType if structElementType in (
-                                    "ConnectionData",             # Only observed in modded save
-                                    "BuildingConnection",         # Only observed in modded save
-                                    "STRUCT_ProgElevator_Floor",  # Only observed in modded save
-                                    "Struct_InputConfiguration"): # Only observed in modded save
-                                 dataStruct.extend(propertyValue[0])
-                              case "LocalUserNetIdBundle":
-                                 for value in propertyValue:
-                                    (prop, propTypes) = value
-                                    dataStruct.extend(addProperties(prop, propTypes))
-                              case structElementType if structElementType in (
-                                    "BlueprintCategoryRecord",
-                                    "BlueprintSubCategoryRecord",
-                                    "DroneTripInformation",
-                                    "ElevatorFloorStopInfo",
-                                    "FactoryCustomizationColorSlot",
-                                    "FeetOffset",
-                                    "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
-                                    "FGDroneFuelRuntimeData",
-                                    "GCheckmarkUnlockData",
-                                    "GlobalColorPreset",
-                                    "HardDriveData",
-                                    "HighlightedMarkerPair",
-                                    "Hotbar",
-                                    "InventoryStack",
-                                    "ItemAmount",
-                                    "MapMarker",
-                                    "MessageData",
-                                    "MiniGameResult",
-                                    "PhaseCost",
-                                    "PrefabIconElementSaveData",
-                                    "PrefabTextElementSaveData",
-                                    "ProjectAssemblyLaunchSequenceValue",
-                                    "ResearchData",
-                                    "ResearchTime",
-                                    "ResourceSinkHistory",
-                                    "ScannableObjectData",
-                                    "ScannableResourcePair",
-                                    "SchematicCost",
-                                    "ShoppingListBlueprintEntry",
-                                    "ShoppingListClassEntry",
-                                    "ShoppingListRecipeEntry",
-                                    "SplinePointData",
-                                    "SplitterSortRule",
-                                    "SubCategoryMaterialDefault",
-                                    "TimeTableStop",
-                                    "WireInstance",
-                                    "DTConfigStruct",                # Only observed in modded save
-                                    "ManagedSignConnectionSettings", # Only observed in modded save
-                                    "ResourceNodeData",              # Only observed in modded save
-                                    "SignComponentData",             # Only observed in modded save
-                                    "SignComponentVariableData",     # Only observed in modded save
-                                    "SignComponentVariableMetaData", # Only observed in modded save
-                                    "SwatchGroupData",               # Only observed in modded save
-                                    "USSSwatchSaveInfo",             # Only observed in modded save
-                                    ):
-                                 for value in propertyValue:
-                                    (prop, propTypes) = value
-                                    dataStruct.extend(addProperties(prop, propTypes))
-                              case _:
-                                 raise Exception(f"ERROR: Unknown structElementType '{structElementType}'")
+         case "ArrayProperty":
+            if currentEntitySaveVersion < 53:
+               arrayType = retainedPropertyType.pop(0)
+               dataProp.extend(addString(arrayType))
+            zeroOrEight = retainedPropertyType.pop(0)
+            dataProp.extend(addUint8(zeroOrEight))
+            propertyStartSize = len(dataProp)
+            dataProp.extend(addUint32(len(propertyValue)))
+            match arrayType:
+               case "IntProperty":
+                  for value in propertyValue:
+                     dataProp.extend(addInt32(value))
+               case "Int64Property":
+                  for value in propertyValue:
+                     dataProp.extend(addInt64(value))
+               case "ByteProperty":
+                  for value in propertyValue:
+                     dataProp.extend(addUint8(value))
+               case "FloatProperty":
+                  for value in propertyValue:
+                     dataProp.extend(addFloat(value))
+               case "DoubleProperty": # Only observed in modded save
+                  for value in propertyValue:
+                     dataProp.extend(addDouble(value))
+               case arrayType if arrayType in ("StrProperty", "EnumProperty"):
+                  for value in propertyValue:
+                     dataProp.extend(addString(value))
+               case "SoftObjectProperty":
+                  for (levelPathName, value) in propertyValue:
+                     dataProp.extend(addObjectReference(levelPathName))
+                     dataProp.extend(addUint32(value))
+               case arrayType if arrayType in ("InterfaceProperty", "ObjectProperty"):
+                  for value in propertyValue:
+                     dataProp.extend(addObjectReference(value))
+               case "TextProperty": # Only observed in modded save
+                  for value in propertyValue:
+                     dataProp.extend(addTextProperty(value))
+               case "StructProperty":
+                  if currentEntitySaveVersion < 53:
+                     structureSubType = retainedPropertyType.pop(0)
+                  dataStruct = bytearray()
+                  match structureSubType:
+                     case "LinearColor":
+                        for value in propertyValue:
+                           (r, g, b, a) = value
+                           dataStruct.extend(addFloat(r))
+                           dataStruct.extend(addFloat(g))
+                           dataStruct.extend(addFloat(b))
+                           dataStruct.extend(addFloat(a))
+                     case "Vector":
+                        for value in propertyValue:
+                           (x, y, z) = value
+                           dataStruct.extend(addDouble(x))
+                           dataStruct.extend(addDouble(y))
+                           dataStruct.extend(addDouble(z))
+                     case structureSubType if structureSubType in (
+                           "ConnectionData",             # Only observed in modded save
+                           "BuildingConnection",         # Only observed in modded save
+                           "STRUCT_ProgElevator_Floor",  # Only observed in modded save
+                           "Struct_InputConfiguration"): # Only observed in modded save
+                        dataStruct.extend(propertyValue[0])
+                     case "LocalUserNetIdBundle":
+                        for value in propertyValue:
+                           (prop, propTypes) = value
+                           dataStruct.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+                     case structureSubType if structureSubType in (
+                           "BlueprintCategoryRecord",
+                           "BlueprintSubCategoryRecord",
+                           "CachedPlayerInfo",
+                           "CachedPlayerPlatformInfo",
+                           "DroneTripInformation",
+                           "ElevatorFloorStopInfo",
+                           "FactoryCustomizationColorSlot",
+                           "FeetOffset",
+                           "FGCachedConnectedWire", # SatisFaction_20240921-092707.sav
+                           "FGDroneFuelRuntimeData",
+                           "GCheckmarkUnlockData",
+                           "GlobalColorPreset",
+                           "HardDriveData",
+                           "HighlightedMarkerPair",
+                           "Hotbar",
+                           "InventoryStack",
+                           "ItemAmount",
+                           "MapMarker",
+                           "MessageData",
+                           "MiniGameResult",
+                           "PhaseCost",
+                           "PrefabIconElementSaveData",
+                           "PrefabTextElementSaveData",
+                           "ProjectAssemblyLaunchSequenceValue",
+                           "ResearchData",
+                           "ResearchTime",
+                           "ResourceSinkHistory",
+                           "ScannableObjectData",
+                           "ScannableResourcePair",
+                           "SchematicCost",
+                           "ShoppingListBlueprintEntry",
+                           "ShoppingListClassEntry",
+                           "ShoppingListRecipeEntry",
+                           "SpawnData",
+                           "SplinePointData",
+                           "SplitterSortRule",
+                           "SubCategoryMaterialDefault",
+                           "TimeTableStop",
+                           "WireInstance",
+                           "DTConfigStruct",                # Only observed in modded save
+                           "ManagedSignConnectionSettings", # Only observed in modded save
+                           "ResourceNodeData",              # Only observed in modded save
+                           "SignComponentData",             # Only observed in modded save
+                           "SignComponentVariableData",     # Only observed in modded save
+                           "SignComponentVariableMetaData", # Only observed in modded save
+                           "SwatchGroupData",               # Only observed in modded save
+                           "USSSwatchSaveInfo",             # Only observed in modded save
+                           ):
+                        for value in propertyValue:
+                           (prop, propTypes) = value
+                           dataStruct.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+                     case _:
+                        raise Exception(f"ERROR: Unknown structureSubType '{structureSubType}'")
 
-                           dataProp.extend(addString(propertyName))
-                           dataProp.extend(addString("StructProperty"))
-                           dataProp.extend(addUint32(len(dataStruct)))
-                           dataProp.extend(addUint32(0))
-                           dataProp.extend(addString(structElementType))
-                           uuid = bytearray(17)
-                           if len(propertyType) == 4:
-                              uuid = propertyType[3]
-                           dataProp.extend(uuid)
-                           dataProp.extend(dataStruct)
-                        case _:
-                           raise Exception(f"ERROR: Unknown ArrayProperty type '{arrayType}'")
-                  case "StructProperty":
-                     structPropertyType = propertyType[1]
-                     dataProp.extend(addString(structPropertyType))
-                     if len(propertyType) == 2:
-                        structUuid1 = structUuid2 = structUuid3 = structUuid4 = 0
-                     else:
-                        [structUuid1, structUuid2, structUuid3, structUuid4] = propertyType[2]
-                     dataProp.extend(addUint32(structUuid1))
-                     dataProp.extend(addUint32(structUuid2))
-                     dataProp.extend(addUint32(structUuid3))
-                     dataProp.extend(addUint32(structUuid4))
-                     dataProp.extend(addUint8(0))
-                     propertyStartSize = len(dataProp)
-                     match structPropertyType:
-                        case "InventoryItem":
-                           (itemName, itemProperties) = propertyValue
-                           dataProp.extend(addUint32(0))
-                           dataProp.extend(addString(itemName))
-                           if itemProperties == 1:
-                              dataProp.extend(addUint32(0))
-                           elif itemProperties == 2:
-                              dataProp.extend(addUint32(0))
-                              dataProp.extend(addUint32(0))
-                           else:
-                              dataProp.extend(addUint32(1))
-                              (typePath, prop, propTypes) = itemProperties
-                              dataProp.extend(addUint32(0))
-                              dataProp.extend(addString(typePath))
-                              itemProp = bytearray()
-                              itemProp.extend(addProperties(prop, propTypes))
-                              dataProp.extend(addUint32(len(itemProp)))
-                              dataProp.extend(itemProp)
-                        case "LinearColor":
-                           (r, g, b, a) = propertyValue
-                           dataProp.extend(addFloat(r))
-                           dataProp.extend(addFloat(g))
-                           dataProp.extend(addFloat(b))
-                           dataProp.extend(addFloat(a))
-                        case "Vector":
-                           (x, y, z) = propertyValue
-                           dataProp.extend(addDouble(x))
-                           dataProp.extend(addDouble(y))
-                           dataProp.extend(addDouble(z))
-                        case "Quat":
-                           (x, y, z, w) = propertyValue
-                           dataProp.extend(addDouble(x))
-                           dataProp.extend(addDouble(y))
-                           dataProp.extend(addDouble(z))
-                           dataProp.extend(addDouble(w))
-                        case "Box":
-                           (minx, miny, minz, maxx, maxy, maxz, flag) = propertyValue
-                           dataProp.extend(addDouble(minx))
-                           dataProp.extend(addDouble(miny))
-                           dataProp.extend(addDouble(minz))
-                           dataProp.extend(addDouble(maxx))
-                           dataProp.extend(addDouble(maxy))
-                           dataProp.extend(addDouble(maxz))
-                           dataProp.extend(addUint8(flag))
-                        case "FluidBox":
-                           dataProp.extend(addFloat(propertyValue))
-                        case "RailroadTrackPosition":
-                           (levelPathName, rtpOffset, forward) = propertyValue
-                           dataProp.extend(addObjectReference(levelPathName))
-                           dataProp.extend(addFloat(rtpOffset))
-                           dataProp.extend(addFloat(forward))
-                        case "DateTime":
-                           dataProp.extend(addInt64(propertyValue))
-                        case "ClientIdentityInfo":
-                           (clientUuid, identities) = propertyValue
-                           dataProp.extend(addString(clientUuid))
-                           dataProp.extend(addUint32(len(identities)))
-                           for (clientType, clientData) in identities:
-                              dataProp.extend(addUint8(clientType))
-                              dataProp.extend(addUint32(len(clientData)))
-                              dataProp.extend(clientData)
-                        case structPropertyType if structPropertyType in ("Guid", "Rotator", "SignComponentEditorMetadata"): # Only observed in modded save
-                           dataProp.extend(propertyValue)
-                        case structPropertyType if structPropertyType in (
-                              "BlueprintRecord",
-                              "BoomBoxPlayerState",
-                              "DroneDockingStateInfo",
-                              "DroneTripInformation",
-                              "FGPlayerPortalData",
-                              "FGPortalCachedFactoryTickData",
-                              "FactoryCustomizationColorSlot",
-                              "FactoryCustomizationData",
-                              "InventoryStack",
-                              "InventoryToRespawnWith",
-                              "LightSourceControlData",
-                              "MapMarker",
-                              "PersistentGlobalIconId", # 20240915\SatisFaction_20240915-002433.sav
-                              "PlayerCustomizationData",
-                              "PlayerRules",
-                              "ResearchData",
-                              "ShoppingListSettings",
-                              "SwitchData", # OPO_current_111025-175328.sav
-                              "TimerHandle",
-                              "TopLevelAssetPath", # 20240915\SatisFaction_20240915-002433.sav
-                              "TrainDockingRuleSet",
-                              "TrainSimulationData",
-                              "Transform",
-                              "Vector_NetQuantize",
-                              "BuildingConnections", # Only observed in modded save
-                              "DTActiveConfig",      # Only observed in modded save
-                              "LBBalancerData",      # Only observed in modded save
-                              "ManagedSignData",     # Only observed in modded save
-                              "Struct_PC_PartInfo",  # Only observed in modded save
-                              ):
-                           (prop, propTypes) = propertyValue
-                           dataProp.extend(addProperties(prop, propTypes))
-                        case _:
-                           raise Exception(f"ERROR: Unknown structPropertyType '{structPropertyType}'")
-                  case "MapProperty":
-                     keyType = propertyType[1]
-                     valueType = propertyType[2]
-                     dataProp.extend(addString(keyType))
-                     dataProp.extend(addString(valueType))
-                     dataProp.extend(addUint8(0))
-                     propertyStartSize = len(dataProp)
+                  if currentEntitySaveVersion < 53:
+                     dataProp.extend(addString(propertyName))
+                     dataProp.extend(addString("StructProperty"))
+                     dataProp.extend(addUint32(len(dataStruct)))
                      dataProp.extend(addUint32(0))
-                     dataProp.extend(addUint32(len(propertyValue)))
-                     for mapIdx in range(len(propertyValue)):
-                        (mapKey, mapValue) = propertyValue[mapIdx]
-                        match keyType:
-                           case "StructProperty":
-                              (int1, int2, int3) = mapKey
-                              dataProp.extend(addInt32(int1))
-                              dataProp.extend(addInt32(int2))
-                              dataProp.extend(addInt32(int3))
-                           case "ObjectProperty":
-                              dataProp.extend(addObjectReference(mapKey))
-                           case "IntProperty":
-                              dataProp.extend(addInt32(mapKey))
-                           case "NameProperty":
-                              dataProp.extend(addString(mapKey))
-                           case "EnumProperty":
-                              dataProp.extend(addString(mapKey))
-                           case _:
-                              raise Exception(f"ERROR: Unknown MapProperty keyType '{keyType}'")
-
-                        match valueType:
-                           case "StructProperty":
-                              dataProp.extend(addProperties(mapValue, propertyType[3][mapIdx]))
-                           case "IntProperty":
-                              dataProp.extend(addInt32(mapValue))
-                           case "Int64Property":
-                              dataProp.extend(addInt64(mapValue))
-                           case "ByteProperty":
-                              dataProp.extend(addUint8(mapValue))
-                           case "DoubleProperty":
-                              dataProp.extend(addDouble(mapValue)) # Only observed in modded save
-                           case "ObjectProperty":
-                              dataProp.extend(addObjectReference(mapValue))
-                           case _:
-                              raise Exception(f"ERROR: Unknown MapProperty valueType '{valueType}'")
+                     dataProp.extend(addString(structureSubType))
+                     uuid = retainedPropertyType.pop(0)
+                     if uuid is None:
+                        uuid = bytearray(17)
+                     dataProp.extend(uuid)
+                  dataProp.extend(dataStruct)
+               case _:
+                  raise Exception(f"ERROR: Unknown ArrayProperty type '{arrayType}'")
+         case "StructProperty":
+            if currentEntitySaveVersion < 53:
+               structPropertyType = retainedPropertyType.pop(0)
+               dataProp.extend(addString(structPropertyType))
+               structUuid = retainedPropertyType.pop(0)
+               if structUuid is None:
+                  structUuid1 = structUuid2 = 0
+               else:
+                  (structUuid1, structUuid2) = structUuid
+               dataProp.extend(addUint64(structUuid1))
+               dataProp.extend(addUint64(structUuid2))
+            stuctIndex1 = retainedPropertyType.pop(0)
+            dataProp.extend(addUint8(stuctIndex1))
+            if stuctIndex1 == 9:
+               stuctIndex2 = retainedPropertyType.pop(0)
+               dataProp.extend(addUint32(stuctIndex2))
+            propertyStartSize = len(dataProp)
+            match structPropertyType:
+               case "InventoryItem":
+                  (itemName, itemProperties) = propertyValue
+                  dataProp.extend(addUint32(0))
+                  dataProp.extend(addString(itemName))
+                  if itemProperties == 1:
+                     dataProp.extend(addUint32(0))
+                  elif itemProperties == 2:
+                     dataProp.extend(addUint32(0))
+                     dataProp.extend(addUint32(0))
+                  else:
+                     dataProp.extend(addUint32(1))
+                     (typePath, prop, propTypes) = itemProperties
+                     dataProp.extend(addUint32(0))
+                     dataProp.extend(addString(typePath))
+                     itemProp = bytearray()
+                     itemProp.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+                     dataProp.extend(addUint32(len(itemProp)))
+                     dataProp.extend(itemProp)
+               case "LinearColor":
+                  (r, g, b, a) = propertyValue
+                  dataProp.extend(addFloat(r))
+                  dataProp.extend(addFloat(g))
+                  dataProp.extend(addFloat(b))
+                  dataProp.extend(addFloat(a))
+               case "Vector":
+                  (x, y, z) = propertyValue
+                  dataProp.extend(addDouble(x))
+                  dataProp.extend(addDouble(y))
+                  dataProp.extend(addDouble(z))
+               case "Quat":
+                  (x, y, z, w) = propertyValue
+                  dataProp.extend(addDouble(x))
+                  dataProp.extend(addDouble(y))
+                  dataProp.extend(addDouble(z))
+                  dataProp.extend(addDouble(w))
+               case "Box":
+                  (minx, miny, minz, maxx, maxy, maxz, flag) = propertyValue
+                  dataProp.extend(addDouble(minx))
+                  dataProp.extend(addDouble(miny))
+                  dataProp.extend(addDouble(minz))
+                  dataProp.extend(addDouble(maxx))
+                  dataProp.extend(addDouble(maxy))
+                  dataProp.extend(addDouble(maxz))
+                  dataProp.extend(addUint8(flag))
+               case "FluidBox":
+                  dataProp.extend(addFloat(propertyValue))
+               case "RailroadTrackPosition":
+                  (levelPathName, rtpOffset, forward) = propertyValue
+                  dataProp.extend(addObjectReference(levelPathName))
+                  dataProp.extend(addFloat(rtpOffset))
+                  dataProp.extend(addFloat(forward))
+               case "DateTime":
+                  dataProp.extend(addInt64(propertyValue))
+               case "ClientIdentityInfo":
+                  (clientUuid, identities) = propertyValue
+                  dataProp.extend(addString(clientUuid))
+                  dataProp.extend(addUint32(len(identities)))
+                  for (clientType, clientData) in identities:
+                     dataProp.extend(addUint8(clientType))
+                     dataProp.extend(addUint32(len(clientData)))
+                     dataProp.extend(clientData)
+               case structPropertyType if structPropertyType in (
+                     "PlayerInfoHandle",
+                     "UniqueNetIdRepl",
+                     "Guid",                       # Only observed in modded save
+                     "Rotator",                    # Only observed in modded save
+                     "SignComponentEditorMetadata" # Only observed in modded save
+                     ):
+                  dataProp.extend(propertyValue)
+               case structPropertyType if structPropertyType in (
+                     "BlueprintRecord",
+                     "BoomBoxPlayerState",
+                     "DroneDockingStateInfo",
+                     "DroneTripInformation",
+                     "FGPlayerPortalData",
+                     "FGPortalCachedFactoryTickData",
+                     "FactoryCustomizationColorSlot",
+                     "FactoryCustomizationData",
+                     "InventoryStack",
+                     "InventoryToRespawnWith",
+                     "LightSourceControlData",
+                     "MapMarker",
+                     "PersistentGlobalIconId", # 20240915\SatisFaction_20240915-002433.sav
+                     "PlayerCustomizationData",
+                     "PlayerRules",
+                     "ResearchData",
+                     "ShoppingListSettings",
+                     "SwitchData", # OPO_current_111025-175328.sav
+                     "TimerHandle",
+                     "TopLevelAssetPath", # 20240915\SatisFaction_20240915-002433.sav
+                     "TrainDockingRuleSet",
+                     "TrainSimulationData",
+                     "Transform",
+                     "Vector_NetQuantize",
+                     "BuildingConnections", # Only observed in modded save
+                     "DTActiveConfig",      # Only observed in modded save
+                     "LBBalancerData",      # Only observed in modded save
+                     "ManagedSignData",     # Only observed in modded save
+                     "Struct_PC_PartInfo",  # Only observed in modded save
+                     ):
+                  (prop, propTypes) = propertyValue
+                  dataProp.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+               case _:
+                  raise Exception(f"ERROR: Unknown structPropertyType '{structPropertyType}'")
+         case "MapProperty":
+            if currentEntitySaveVersion < 53:
+               keyType = retainedPropertyType.pop(0)
+               valueType = retainedPropertyType.pop(0)
+               dataProp.extend(addString(keyType))
+               dataProp.extend(addString(valueType))
+            zeroOrEight = retainedPropertyType.pop(0)
+            dataProp.extend(addUint8(zeroOrEight))
+            propertyStartSize = len(dataProp)
+            dataProp.extend(addUint32(0))
+            dataProp.extend(addUint32(len(propertyValue)))
+            if valueType == "StructProperty":
+               propTypess = retainedPropertyType.pop(0)
+            for mapIdx in range(len(propertyValue)):
+               (mapKey, mapValue) = propertyValue[mapIdx]
+               match keyType:
+                  case "StructProperty":
+                     (int1, int2, int3) = mapKey
+                     dataProp.extend(addInt32(int1))
+                     dataProp.extend(addInt32(int2))
+                     dataProp.extend(addInt32(int3))
+                  case "ObjectProperty":
+                     dataProp.extend(addObjectReference(mapKey))
+                  case "IntProperty":
+                     dataProp.extend(addInt32(mapKey))
+                  case "NameProperty":
+                     dataProp.extend(addString(mapKey))
+                  case "EnumProperty":
+                     dataProp.extend(addString(mapKey))
                   case _:
-                     raise Exception(f"ERROR: Unknown list propertyType '{propertyType}'")
-            else:
-               raise Exception(f"ERROR: Unknown propertyType '{propertyType}'")
+                     raise Exception(f"ERROR: Unknown MapProperty keyType '{keyType}'")
 
-      data.extend(addString(propertyName))
-      if isinstance(propertyType, list):
-         data.extend(addString(propertyType[0]))
-      else:
-         data.extend(addString(propertyType))
+               match valueType:
+                  case "StructProperty":
+                     dataProp.extend(addProperties(currentEntitySaveVersion, mapValue, propTypess[mapIdx]))
+                  case "IntProperty":
+                     dataProp.extend(addInt32(mapValue))
+                  case "Int64Property":
+                     dataProp.extend(addInt64(mapValue))
+                  case "ByteProperty":
+                     dataProp.extend(addUint8(mapValue))
+                  case "DoubleProperty":
+                     dataProp.extend(addDouble(mapValue)) # Only observed in modded save
+                  case "ObjectProperty":
+                     dataProp.extend(addObjectReference(mapValue))
+                  case _:
+                     raise Exception(f"ERROR: Unknown MapProperty valueType '{valueType}'")
+         case _:
+            raise Exception(f"ERROR: Unknown propertyType '{propertyType}'")
+
       data.extend(addUint32(len(dataProp) - propertyStartSize))
-      data.extend(addUint32(propertyIndex))
+      if currentEntitySaveVersion < 53:
+         data.extend(addUint32(propertyIndex))
       data.extend(dataProp)
 
    data.extend(addString("None"))
 
    return data
 
-def addObject(object, actorOrComponentObjectHeader):
+def addObject(headerSaveVersion, object, actorOrComponentObjectHeader):
    isActorFlag = object.actorReferenceAssociations is not None
 
    dataTrailing = bytearray()
@@ -584,56 +694,51 @@ def addObject(object, actorOrComponentObjectHeader):
                dataTrailing.extend(addUint32(0))
                dataTrailing.extend(addString(buildItemPathName))
                dataTrailing.extend(addUint32(len(lightweightBuildableInstances)))
-               for (rotationQuaternion, position, swatchPathName, patternDescNumber, (primaryColor, secondaryColor), somethingData, maybeIndex, recipePathName, blueprintProxyLevelPath, beamLength) in lightweightBuildableInstances:
+               for (rotationQuaternion, position, swatchLevelPath, patternLevelPath, (primaryColor, secondaryColor), paintFinishLevelPath, patternRotation, recipeLevelPath, blueprintProxyLevelPath, lightweightDataProperty, serviceProvider, playerInfoTableIndex) in lightweightBuildableInstances:
                   for xyzw in rotationQuaternion:
                      dataTrailing.extend(addDouble(xyzw))
                   for xyz in position:
                      dataTrailing.extend(addDouble(xyz))
                   for scale in range(3):
                      dataTrailing.extend(addDouble(1.0))
-                  dataTrailing.extend(addUint32(0))
-                  dataTrailing.extend(addString(swatchPathName))
-                  for idx in range(3):
-                     dataTrailing.extend(addUint32(0))
-                  dataTrailing.extend(addString(patternDescNumber))
-                  dataTrailing.extend(addUint32(0))
-                  dataTrailing.extend(addUint32(0))
+                  dataTrailing.extend(addObjectReference(swatchLevelPath))
+                  dataTrailing.extend(addString(""))
+                  dataTrailing.extend(addString(""))
+                  dataTrailing.extend(addObjectReference(patternLevelPath))
+                  dataTrailing.extend(addString(""))
+                  dataTrailing.extend(addString(""))
                   for component in primaryColor:
                      dataTrailing.extend(addFloat(component))
                   for component in secondaryColor:
                      dataTrailing.extend(addFloat(component))
-                  dataTrailing.extend(addUint32(0))
-                  dataTrailing.extend(addUint32(len(somethingData)))
-                  dataTrailing.extend(somethingData)
-                  dataTrailing.extend(addUint32(maybeIndex))
-                  dataTrailing.extend(addUint8(0))
-                  dataTrailing.extend(addString(recipePathName))
+                  dataTrailing.extend(addObjectReference(paintFinishLevelPath))
+                  dataTrailing.extend(addUint8(patternRotation))
+                  dataTrailing.extend(addObjectReference(recipeLevelPath))
                   dataTrailing.extend(addObjectReference(blueprintProxyLevelPath))
-                  dataFlag = beamLength is not None
-                  dataTrailing.extend(addUint32(dataFlag))
-                  if dataFlag:
-                     dataTrailing.extend(addUint32(0))
-                     dataTrailing.extend(addString("/Script/FactoryGame.BuildableBeamLightweightData"))
-                     dataTrailing.extend(addUint32(55))
-                     dataTrailing.extend(addString("BeamLength"))
-                     dataTrailing.extend(addString("FloatProperty"))
-                     dataTrailing.extend(addUint32(4))
-                     dataTrailing.extend(addUint8(0))
-                     dataTrailing.extend(addUint32(0))
-                     dataTrailing.extend(addFloat(beamLength))
-                     dataTrailing.extend(addString("None"))
+                  if lightweightVersion >= 2:
+                     dataFlag = lightweightDataProperty is not None
+                     dataTrailing.extend(addUint32(dataFlag))
+                     if dataFlag:
+                        dataTrailing.extend(addUint32(0))
+                        dataTrailing.extend(addString("/Script/FactoryGame.BuildableBeamLightweightData"))
+                        dataLightweightDataProperty = addProperties(headerSaveVersion, *lightweightDataProperty)
+                        dataTrailing.extend(addUint32(len(dataLightweightDataProperty)))
+                        dataTrailing.extend(dataLightweightDataProperty)
+                     if lightweightVersion >= 3:
+                        dataTrailing.extend(addUint8(serviceProvider))
+                        dataTrailing.extend(addUint8(playerInfoTableIndex))
       elif actorOrComponentObjectHeader.typePath in (
              "/Script/FactoryGame.FGConveyorChainActor",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeMedium",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeLarge",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeHuge"):
-         (levelPathName_conveyorChainActor, chainBelts, chainItems, cuint32, cint32a, cint32b, cint32c) = object.actorSpecificInfo
+         (levelPathName_conveyorChainActor, chainBelts, chainItems, cuint32, maximumItems, chainLeadItemIndex, chainTailItemIndex) = object.actorSpecificInfo
          dataTrailing.extend(addObjectReference(chainBelts[0][0]))
          dataTrailing.extend(addObjectReference(chainBelts[-1][0]))
          dataTrailing.extend(addUint32(len(chainBelts)))
          for idx in range(len(chainBelts)):
-            (levelPathName_belt, chainBeltElements, buint32a, buint32b, buint32c, bint32a, bint32b) = chainBelts[idx]
+            (levelPathName_belt, chainBeltElements, buint32a, buint32b, buint32c, beltLeadItemIndex, beltTailItemIndex) = chainBelts[idx]
             dataTrailing.extend(addObjectReference(levelPathName_conveyorChainActor))
             dataTrailing.extend(addObjectReference(levelPathName_belt))
             dataTrailing.extend(addUint32(len(chainBeltElements)))
@@ -644,13 +749,13 @@ def addObject(object, actorOrComponentObjectHeader):
             dataTrailing.extend(addUint32(buint32a))
             dataTrailing.extend(addUint32(buint32b))
             dataTrailing.extend(addUint32(buint32c))
-            dataTrailing.extend(addInt32(bint32a))
-            dataTrailing.extend(addInt32(bint32b))
+            dataTrailing.extend(addInt32(beltLeadItemIndex))
+            dataTrailing.extend(addInt32(beltTailItemIndex))
             dataTrailing.extend(addUint32(idx))
          dataTrailing.extend(addUint32(cuint32))
-         dataTrailing.extend(addInt32(cint32a))
-         dataTrailing.extend(addInt32(cint32b))
-         dataTrailing.extend(addInt32(cint32c))
+         dataTrailing.extend(addInt32(maximumItems))
+         dataTrailing.extend(addInt32(chainLeadItemIndex))
+         dataTrailing.extend(addInt32(chainTailItemIndex))
          dataTrailing.extend(addUint32(len(chainItems)))
          for (itemPath, h) in chainItems:
             dataTrailing.extend(addUint32(0))
@@ -699,7 +804,9 @@ def addObject(object, actorOrComponentObjectHeader):
       for actorComponentReference in actorComponentReferences:
          dataEntity.extend(addObjectReference(actorComponentReference))
 
-   dataEntity.extend(addProperties(object.properties, object.propertyTypes))
+   if object.objectGameVersion >= 53:
+      dataEntity.extend(addUint8(0))
+   dataEntity.extend(addProperties(object.objectGameVersion, object.properties, object.propertyTypes))
    dataEntity.extend(addUint32(0))
 
    data = bytearray()
@@ -708,9 +815,11 @@ def addObject(object, actorOrComponentObjectHeader):
    data.extend(addUint32(len(dataEntity)+len(dataTrailing)))
    data.extend(dataEntity)
    data.extend(dataTrailing)
+   if object.objectGameVersion >= 53:
+      data.extend(addUint32(0))
    return data
 
-def addLevel(level):
+def addLevel(headerSaveVersion, level):
    #print(f"Level {level.levelName} with {len(level.actorAndComponentObjectHeaders)} actor/component headers and {len(level.objects)} objects.")
 
    dataOH = bytearray()
@@ -763,7 +872,7 @@ def addLevel(level):
    dataObj = bytearray()
    dataObj.extend(addUint32(len(level.objects)))
    for idx in range(len(level.objects)):
-      dataObj.extend(addObject(level.objects[idx], level.actorAndComponentObjectHeaders[idx]))
+      dataObj.extend(addObject(headerSaveVersion, level.objects[idx], level.actorAndComponentObjectHeaders[idx]))
 
    data = bytearray()
    if level.levelName is not None: # levelName will be None for the last "persistent" level
@@ -781,27 +890,29 @@ def addLevel(level):
       for levelPathName in level.collectables2:
          data.extend(addObjectReference(levelPathName))
 
+      if headerSaveVersion >= 53:
+         hasSaveObjectVersionData = level.saveObjectVersionData is not None
+         data.extend(addUint32(hasSaveObjectVersionData))
+         if hasSaveObjectVersionData:
+            data.extend(addSaveObjectVersionData(level.saveObjectVersionData))
+
    return data
 
 def saveFile(parsedSave: sav_parse.ParsedSave, outFilename: str):
 
    data = bytearray()
-   data.extend(addUint32(6))
-   data.extend(addString("None"))
-   data.extend(addUint32(0))
-   data.extend(addUint32(parsedSave.headhex[0]))
-   data.extend(addUint32(1))
-   data.extend(addString("None"))
-   data.extend(addUint32(parsedSave.headhex[1]))
 
-   for grid in parsedSave.grids:
-      (gridName, i, ghex, gridLevels) = grid
-      #print(f"Grid {gridName}")
-      data.extend(addString(gridName))
+   if parsedSave.persistentLevelSaveObjectVersionData is not None:
+      data.extend(addSaveObjectVersionData(parsedSave.persistentLevelSaveObjectVersionData))
+
+   data.extend(addUint32(len(parsedSave.partitions)))
+   for partition in parsedSave.partitions:
+      (partitionName, i, gridHex, partitionLevels) = partition
+      data.extend(addString(partitionName))
       data.extend(addUint32(i))
-      data.extend(addUint32(ghex))
-      data.extend(addUint32(len(gridLevels)))
-      for element in gridLevels:
+      data.extend(addUint32(gridHex))
+      data.extend(addUint32(len(partitionLevels)))
+      for element in partitionLevels:
          (levelName, lhex) = element
          data.extend(addString(levelName))
          data.extend(addUint32(lhex))
@@ -809,7 +920,7 @@ def saveFile(parsedSave: sav_parse.ParsedSave, outFilename: str):
    data.extend(addUint32(len(parsedSave.levels)-1))
    progressBar = sav_parse.ProgressBar(len(parsedSave.levels), "   Reencoding: ")
    for level in parsedSave.levels:
-      data.extend(addLevel(level))
+      data.extend(addLevel(parsedSave.saveFileInfo.saveVersion, level))
       progressBar.add()
 
    data.extend(addString(parsedSave.aLevelName))
@@ -848,12 +959,12 @@ def saveFile(parsedSave: sav_parse.ParsedSave, outFilename: str):
    sdata.extend(addUint32(parsedSave.saveFileInfo.editorObjectVersion))
    sdata.extend(addString(parsedSave.saveFileInfo.modMetadata))
    sdata.extend(addUint32(parsedSave.saveFileInfo.isModdedSave))
-   sdata.extend(addString(parsedSave.saveFileInfo.persistentSaveIdentifier))
+   sdata.extend(addString(parsedSave.saveFileInfo.saveIdentifier))
    sdata.extend(addUint32(1))
    sdata.extend(addUint32(1))
-   sdata.extend(addUint64(parsedSave.saveFileInfo.random[0]))
-   sdata.extend(addUint64(parsedSave.saveFileInfo.random[1]))
-   sdata.extend(addUint32(parsedSave.saveFileInfo.cheatFlag))
+   sdata.extend(addUint64(parsedSave.saveFileInfo.saveDataHash[0]))
+   sdata.extend(addUint64(parsedSave.saveFileInfo.saveDataHash[1]))
+   sdata.extend(addUint32(parsedSave.saveFileInfo.isCreativeModeEnabled))
 
    dataOffset = 0
    progressBar = sav_parse.ProgressBar(len(rdata), "  Compressing: ")
