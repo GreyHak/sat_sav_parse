@@ -97,6 +97,8 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Beam_Painted_C": "Painted Beam",
    "Build_Beam_Support_C": "Beam Support",
    "Build_BigGarageDoor_16x8_C": "Roll-Up Gate",
+   "Build_BigGarageDoor_16x8_Concrete_C": "Roll-Up Gate, Concrete",
+   "Build_BigGarageDoor_16x8_Steel_C": "Roll-Up Gate, Steel",
    "Build_Blender_C": "Blender",
    "Build_BlueprintDesigner_C": "Blueprint Designer",
    "Build_BlueprintDesigner_MK2_C": "Blueprint Designer Mk.2",
@@ -115,11 +117,16 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Concrete_Barrier_01_C": "Road Barrier",
    "Build_ConstructorMk1_C": "Constructor",
    "Build_Converter_C": "Converter",
-   "Build_ConveyorAttachmentMergerPriority_C": "Priority Merger",
    "Build_ConveyorAttachmentMerger_C": "Conveyor Merger",
-   "Build_ConveyorAttachmentSplitterProgrammable_C": "Programmable Splitter",
-   "Build_ConveyorAttachmentSplitterSmart_C": "Smart Splitter",
+   "Build_ConveyorAttachmentMergerLift_C": "Conveyor Merger on Lift",
+   "Build_ConveyorAttachmentMergerPriority_C": "Priority Merger",
+   "Build_ConveyorAttachmentMergerPriorityLift_C": "Priority Merger on Lift",
    "Build_ConveyorAttachmentSplitter_C": "Conveyor Splitter",
+   "Build_ConveyorAttachmentSplitterLift_C": "Conveyor Splitter on Lift",
+   "Build_ConveyorAttachmentSplitterProgrammable_C": "Programmable Splitter",
+   "Build_ConveyorAttachmentSplitterProgrammableLift_C": "Programmable Splitter on Lift",
+   "Build_ConveyorAttachmentSplitterSmart_C": "Smart Splitter",
+   "Build_ConveyorAttachmentSplitterSmartLift_C": "Smart Splitter on Lift",
    "Build_ConveyorBeltMk1_C": "Conveyor Belt Mk.1",
    "Build_ConveyorBeltMk2_C": "Conveyor Belt Mk.2",
    "Build_ConveyorBeltMk3_C": "Conveyor Belt Mk.3",
@@ -493,7 +500,10 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Roof_Window_OutCorner_02_C": "Outer Corner Roof 2m (Window)",
    "Build_Roof_Window_OutCorner_03_C": "Outer Corner Roof 4m (Window)",
    "Build_SignPole_C": "Sign Pole, Small", # Not a separate item
+   "Build_SignPole_Huge_C": "Sign Pole, Huge", # Not a separate item
+   "Build_SignPole_Large_C": "Sign Pole, Large", # Not a separate item
    "Build_SignPole_Medium_C": "Sign Pole, Medium", # Not a separate item
+   "Build_SignPole_Portrait_C": "Sign Pole, Portrait", # Not a separate item
    "Build_SM_RailingRamp_8x1_01_C": "SM_RailingRamp_8x1_01",
    "Build_SM_RailingRamp_8x2_01_C": "SM_RailingRamp_8x2_01",
    "Build_SM_RailingRamp_8x4_01_C": "SM_RailingRamp_8x4_01",
@@ -505,6 +515,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_SpaceElevator_C": "Space Elevator",
    "Build_Stairs_Left_01_C": "Stairs Left",
    "Build_Stairs_Right_01_C": "Stairs Right",
+   # "Build_Stair_FicsitSet_8x4_01_C": "TODO: UNKNOWN",
    "Build_StandaloneWidgetSign_Huge_C": "Large Billboard",
    "Build_StandaloneWidgetSign_Large_C": "Small Billboard",
    "Build_StandaloneWidgetSign_Medium_C": "Display Sign",
