@@ -599,7 +599,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>")
    print("   py sav_cli.py --list-map-markers <save-filename>")
    print("   py sav_cli.py --export-map-markers <save-filename> <output-json-filename>")
-   print("   py sav_cli.py --remove-marker <original-save-filename> <marker-guid> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --remove-marker <marker-guid> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-json <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
