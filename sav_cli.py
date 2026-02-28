@@ -620,6 +620,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --reorder-dimensional-depot <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --adjust-dimensional-depot <original-save-filename> <item-name> <new-quantity> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-crash-sites <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --dismantle-crash-site <drop-pod-name> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --list-map-markers <save-filename>")
    print("   py sav_cli.py --export-map-markers <save-filename> <output-json-filename>")
    print("   py sav_cli.py --remove-marker <marker-guid> <original-save-filename> <new-save-filename> [--same-time]")
@@ -2449,6 +2450,63 @@ if __name__ == '__main__':
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--dismantle-crash-site" and os.path.isfile(sys.argv[3]):
+      # From states IN_SAVE_CLOSED or IN_SAVE_OPEN_FULL or IN_SAVE_OPEN_EMPTY --> to DISMANTLED
+
+      dropPodShortName = sys.argv[2]
+      dropPodPathName = f"Persistent_Level:PersistentLevel.{dropPodShortName}"
+      if dropPodPathName not in sav_data.crashSites.CRASH_SITES:
+         print(f"ERROR: Invalid crash site name '{dropPodPathName}'")
+         exit(1)
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         for level in parsedSave.levels:
+            for idx in range(len(level.actorAndComponentObjectHeaders)):
+               actorOrComponentObjectHeader = level.actorAndComponentObjectHeaders[idx]
+               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
+                  if actorOrComponentObjectHeader.instanceName == dropPodPathName:
+                     object = level.objects[idx]
+                     if object.instanceName == dropPodPathName:
+                        if level.collectables1 is None:
+                           level.collectables1 = []
+                        if level.collectables2 is None:
+                           level.collectables2 = []
+                        del level.actorAndComponentObjectHeaders[idx]
+                        del level.objects[idx]
+                        objectReference = sav_parse.ObjectReference()
+                        objectReference.levelName = sav_data.crashSites.CRASH_SITES[dropPodPathName][0]
+                        objectReference.pathName = dropPodPathName
+                        level.collectables1.append(objectReference)
+                        level.collectables2.append(objectReference)
+                        print(f"Crash site {dropPodShortName} removed")
+                        modifiedFlag = True
+                        break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print(f"ERROR: Failed to find locked crash site {dropPodShortName} to remove.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) == 3 and sys.argv[1] == "--list-map-markers" and os.path.isfile(sys.argv[2]):
       savFilename = sys.argv[2]
