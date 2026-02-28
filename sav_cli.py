@@ -539,14 +539,28 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
                   print(f"Skipping map marker {markerName} at {markerLocation} due to marker limit of {ENFORCE_MAP_MARKER_LIMIT}")
                   return False
 
-               markerPlacedByAccountID = "0666C4A20501001001"
-               if len(mapMarkers) > 0:
-                  markerPlacedByAccountID = sav_parse.getPropertyValue(mapMarkers[0][0], "MarkerPlacedByAccountID")
-
-               newMarker = [[["markerGuid", uuid.uuid4().bytes], ["Location", [[["X", markerLocation[0]], ["Y", markerLocation[1]], ["Z", markerLocation[2]]], [["X", "DoubleProperty", 0], ["Y", "DoubleProperty", 0], ["Z", "DoubleProperty", 0]]]],
-                             ["Name", markerName], ["CategoryName", ""], ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
-                             ["IconID", sav_data.data.ICON_IDS[markerIconId_key]], ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]], ["Scale", scale],
-                             ["compassViewDistance", ["ECompassViewDistance", f"ECompassViewDistance::{markerViewDistance.name}"]], ["MarkerPlacedByAccountID", markerPlacedByAccountID]], [["markerGuid", ["StructProperty", "Guid"], 0], ["Location", ["StructProperty", "Vector_NetQuantize"], 0], ["Name", "StrProperty", 0], ["CategoryName", "StrProperty", 0], ["MapMarkerType", "EnumProperty", 0], ["IconID", "IntProperty", 0], ["Color", ["StructProperty", "LinearColor"], 0], ["Scale", "FloatProperty", 0], ["compassViewDistance", "EnumProperty", 0], ["MarkerPlacedByAccountID", "StrProperty", 0]]]
+               newMarker = [[["markerGuid", uuid.uuid4().bytes],
+                             ["Location",[
+                              [["X", markerLocation[0]], ["Y", markerLocation[1]], ["Z", markerLocation[2]]],
+                              [["X", "DoubleProperty", 0], ["Y", "DoubleProperty", 0], ["Z", "DoubleProperty", 0]]]],
+                             ["Name", markerName],
+                             ["CategoryName", ""],
+                             ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
+                             ["IconID", sav_data.data.ICON_IDS[markerIconId_key]],
+                             ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]],
+                             ["Scale", scale],
+                             ["compassViewDistance", ["ECompassViewDistance", f"ECompassViewDistance::{markerViewDistance.name}"]],
+                             ["lastEditedBy", b"0000"]],
+                            [["markerGuid", "StructProperty", 1, "Guid", ["/Script/CoreUObject"], 8],
+                             ["Location", "StructProperty", 1, "Vector_NetQuantize", ["/Script/Engine"], 0],
+                             ["Name", "StrProperty", 0],
+                             ["CategoryName", "StrProperty", 0],
+                             ["MapMarkerType", "EnumProperty", 2, "ERepresentationType", ["/Script/FactoryGame"]],
+                             ["IconID", "IntProperty", 0],
+                             ["Color", "StructProperty", 1, "LinearColor", ["/Script/CoreUObject"], 8],
+                             ["Scale", "FloatProperty", 0],
+                             ["compassViewDistance", "EnumProperty", 2, "ECompassViewDistance", ["/Script/FactoryGame"]],
+                             ["lastEditedBy", "StructProperty", 1, "PlayerInfoHandle", ["/Script/FactoryGame"], 8]]]
                mapMarkers.append(newMarker)
                return True
    return False
