@@ -2445,7 +2445,7 @@ if __name__ == '__main__':
 
          print(f"Writing {outFilename}")
          with open(outFilename, "w") as fout:
-            json.dump(jdata, fout, indent=2)
+            json.dump(dict(sorted(jdata.items())), fout, indent=2)
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
