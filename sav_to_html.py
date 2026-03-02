@@ -152,7 +152,7 @@ def getCrashSiteState(levels):
             if actorOrComponentObjectHeader.typePath == sav_data.data.CRASH_SITE:
                crashSitesInSave[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
       if level.collectables1 is not None:
-         for collectable in level.collectables1:  # Quantity should match collectables2
+         for collectable in level.collectables1:  # collectables1 has all dismantled sites.  collectables2 can be a subset of collectables1.
             if collectable.pathName in sav_data.crashSites.CRASH_SITES:
                crashSitesDismantled.append(collectable.pathName)
                crashSitesNotOpened.remove(collectable.pathName)
