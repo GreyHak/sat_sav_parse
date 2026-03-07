@@ -522,7 +522,7 @@ def removeMercerShrine(levels, targetInstanceName: str) -> bool:
    print(f"Removing Mercer Shrine {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Shrine", rootObject, targetInstanceName, position)
 
-def addMapMarker(levels, markerName: str, markerLocation: list[float, float, float] | tuple[float, float, float], markerIconId_key: str, markerColor: list[float, float, float] | tuple[float, float, float] = (0.6, 0.6, 0.6), markerViewDistance: sav_data.data.ECompassViewDistance = sav_data.data.ECompassViewDistance.CVD_Mid, scale: float = 1.0) -> bool:
+def addMapMarker(levels, markerName: str, markerLocation: list[float, float, float] | tuple[float, float, float], markerIconId_key: str, markerColor: list[float, float, float] | tuple[float, float, float] = (0.6, 0.6, 0.6), markerViewDistance: sav_data.data.ECompassViewDistance = sav_data.data.ECompassViewDistance.CVD_Mid, scale: float = 1.0, subcategory: str = "") -> bool:
    if len(markerLocation) != 3:
       print(f"ERROR: Invalid markerLocation passed to addMapMarker: {markerLocation}")
       return False
@@ -545,7 +545,7 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
                                  [["X", markerLocation[0]], ["Y", markerLocation[1]], ["Z", markerLocation[2]]],
                                  [["X", "DoubleProperty", 0], ["Y", "DoubleProperty", 0], ["Z", "DoubleProperty", 0]]]],
                                 ["Name", markerName],
-                                ["CategoryName", ""],
+                                ["CategoryName", subcategory], # This is called "Subcategory" in-game
                                 ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
                                 ["IconID", sav_data.data.ICON_IDS[markerIconId_key]],
                                 ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]],
@@ -567,7 +567,7 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
                                  [["X", markerLocation[0]], ["Y", markerLocation[1]], ["Z", markerLocation[2]]],
                                  [["X", "DoubleProperty", 0], ["Y", "DoubleProperty", 0], ["Z", "DoubleProperty", 0]]]],
                                 ["Name", markerName],
-                                ["CategoryName", ""],
+                                ["CategoryName", subcategory], # This is called "Subcategory" in-game
                                 ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
                                 ["IconID", sav_data.data.ICON_IDS[markerIconId_key]],
                                 ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]],
@@ -2577,6 +2577,8 @@ if __name__ == '__main__':
 
                         name = sav_parse.getPropertyValue(mapMarker[0], "Name")
 
+                        categoryName = sav_parse.getPropertyValue(mapMarker[0], "CategoryName")
+
                         location = sav_parse.getPropertyValue(mapMarker[0], "Location")
                         if location is not None:
                            x = sav_parse.getPropertyValue(location[0], "X")
@@ -2606,6 +2608,7 @@ if __name__ == '__main__':
                         jdata.append({
                            "guid": str(markerGuid),
                            "Name": name,
+                           "Subcategory": categoryName,
                            "Location": location,
                            "Scale": scale,
                            "compassViewDistance": compassViewDistance,
@@ -2688,6 +2691,10 @@ if __name__ == '__main__':
                if "Name" in newMarker:
                   markerName = newMarker["Name"]
 
+               markerSubcategory = ""
+               if "Subcategory" in newMarker:
+                  markerSubcategory = newMarker["Subcategory"]
+
                markerColor = (0.6, 0.6, 0.6) # Float RGB (up to 1.0)
                if "Color" in newMarker:
                   markerColor = newMarker["Color"]
@@ -2704,8 +2711,8 @@ if __name__ == '__main__':
                if "Scale" in newMarker:
                   scale = newMarker["Scale"]
 
-               if addMapMarker(parsedSave.levels, markerName, markerLocation, markerIconId_key, markerColor, markerViewDistance, scale):
-                  print(f"Added {markerName} at {markerLocation}")
+               if addMapMarker(parsedSave.levels, markerName, markerLocation, markerIconId_key, markerColor, markerViewDistance, scale, markerSubcategory):
+                  print(f"Added '{markerName}' at {markerLocation}")
                   modifiedFlag = True
 
       except Exception as error:
@@ -2753,7 +2760,7 @@ if __name__ == '__main__':
             shortName = somersloopName[somersloopName.rfind(".")+1:]
             markerLocation = sav_data.somersloop.SOMERSLOOPS[somersloopName][2]
 
-            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
+            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Sloop"):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2802,7 +2809,7 @@ if __name__ == '__main__':
             shortName = mercerSphereName[mercerSphereName.rfind(".")+1:]
             markerLocation = sav_data.mercerSphere.MERCER_SPHERES[mercerSphereName][2]
 
-            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
+            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Sphere"):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2841,7 +2848,7 @@ if __name__ == '__main__':
             shortName = crashSite[crashSite.rfind(".")+1:]
             markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
-            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorOpenWithDrive, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
+            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorOpenWithDrive, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Crash Site (Open)"):
                print(f"Added {shortName} at {markerLocation} [Open w/drive]")
                modifiedFlag = True
 
@@ -2850,7 +2857,7 @@ if __name__ == '__main__':
             shortName = crashSite[crashSite.rfind(".")+1:]
             markerLocation = sav_data.crashSites.CRASH_SITES[crashSite][2]
 
-            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE):
+            if addMapMarker(parsedSave.levels, f"hd {shortName}", markerLocation, "Road Arrow Down", markerColorUnopened, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Crash Site"):
                print(f"Added {shortName} at {markerLocation} [Closed]")
                modifiedFlag = True
 
