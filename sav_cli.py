@@ -3656,8 +3656,14 @@ if __name__ == '__main__':
             if "sentry" in details:
                sentry = details["sentry"]
                for type in sentry:
+                  if "Small" in type[0] or "Basic" in type[0]:
+                     continue
                   mobQuantity = type[1]
-                  mobName = sav_parse.pathNameToReadableName(type[0])
+                  mobName = sav_parse.pathNameToReadableName(type[0]).\
+                     replace("Alpha Aquatic Spitter", "Alpha Spitter").\
+                     replace("Alpha Desert Spitter", "Alpha Spitter").\
+                     replace("Alpha Forest Spitter", "Alpha Spitter").\
+                     replace("Alpha Red Forest Spitter", "Alpha Spitter")
                   if mobQuantity == 1:
                      if mobName[0] == "A" or mobName[0] == "E":
                         mobQuantity = "an"
