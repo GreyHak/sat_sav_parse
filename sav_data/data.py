@@ -401,12 +401,13 @@ UNLOCK_PATHS__AWESOME_SHOP = (
    "/Game/FactoryGame/Schematics/ResourceSink/ResourceSink_GoldenCart.ResourceSink_GoldenCart_C",
    "/Game/FactoryGame/Schematics/ResourceSink/ResourceSink_GoldenCart_Unlock.ResourceSink_GoldenCart_Unlock_C",
    "/Game/FactoryGame/Schematics/ResourceSink/ResourceSink_GoldenCup.ResourceSink_GoldenCup_C",
-   "/Game/FactoryGame/Schematics/Tapes/Schematic_AbsoluteFicsit.Schematic_AbsoluteFicsit_C",
-   "/Game/FactoryGame/Schematics/Tapes/Schematic_Goat.Schematic_Goat_C",
-   "/Game/FactoryGame/Schematics/Tapes/Schematic_JoelSyntholm.Schematic_JoelSyntholm_C",
-   "/Game/FactoryGame/Schematics/Tapes/Schematic_LeMichael.Schematic_LeMichael_C",
-   "/Game/FactoryGame/Schematics/Tapes/Schematic_Sanctum.Schematic_Sanctum_C",
-   "/Game/FactoryGame/Schematics/Tapes/Schematic_Sanctum2.Schematic_Sanctum2_C",
+   "/Game/FactoryGame/Schematics/Tapes/Schematic_AbsoluteFicsit.Schematic_AbsoluteFicsit_C", # "/Game/FactoryGame/Resource/Tape/AbsoluteFicsit/Tape_AbsoluteFicsit.Tape_AbsoluteFicsit_C", "Absolute FICSIT", "ABSOLUTE FICSIT BOOMBOX TAPE"
+   "/Game/FactoryGame/Schematics/Tapes/Schematic_Ficsday2025.Schematic_Ficsday2025_C",       # "/Game/FactoryGame/Resource/Tape/HappyFicsday/Tape_HappyFicsday.Tape_HappyFicsday_C", "Happy Ficsday", "FICSIT ANNIVERSARY"
+   "/Game/FactoryGame/Schematics/Tapes/Schematic_Goat.Schematic_Goat_C",                     # "/Game/FactoryGame/Resource/Tape/Goat/Tape_WorstOfGoat.Tape_WorstOfGoat_C", "Worst of Goat Simulator", "GOAT MUSIC BOOMBOX TAPE"
+   "/Game/FactoryGame/Schematics/Tapes/Schematic_JoelSyntholm.Schematic_JoelSyntholm_C",     # "/Game/FactoryGame/Resource/Tape/JoelSyntholm/Tape_JoelSyntholm.Tape_JoelSyntholm_C", "Joel Syntholm", "JOEL SYNTHOLM BOOMBOX TAPE"
+   "/Game/FactoryGame/Schematics/Tapes/Schematic_LeMichael.Schematic_LeMichael_C",           # "/Game/FactoryGame/Resource/Tape/LeMichael/Tape_LeMichael.Tape_LeMichael_C", "Le Michael", "LE MICHAEL BOOMBOX TAPE"
+   "/Game/FactoryGame/Schematics/Tapes/Schematic_Sanctum.Schematic_Sanctum_C",               # "/Game/FactoryGame/Resource/Tape/Sanctum/Tape_Sanctum.Tape_Sanctum_C", "Sanctum", "SANCTUM BOOMBOX TAPE"
+   "/Game/FactoryGame/Schematics/Tapes/Schematic_Sanctum2.Schematic_Sanctum2_C",             # "/Game/FactoryGame/Resource/Tape/Sanctum2/Tape_Sanctum2.Tape_Sanctum2_C", "Sanctum 2", "SANCTUM 2 BOOMBOX TAPE"
    "/Game/FactoryGame/Schematics/ResourceSink/ResourceSink_ConveyorCeilingMount.ResourceSink_ConveyorCeilingMount_C",
    "/Game/FactoryGame/Schematics/ResourceSink/ResourceSink_ConveyorLiftHole.ResourceSink_ConveyorLiftHole_C",
    "/Game/FactoryGame/Schematics/ResourceSink/ResourceSink_ConveyorWallMount.ResourceSink_ConveyorWallMount_C",
@@ -592,6 +593,26 @@ UNLOCK_PATHS__SPECIAL = (
    "/Game/FactoryGame/Events/Christmas/Buildings/TreeDecor/Schematic_XMassTree_T2.Schematic_XMassTree_T2_C",
    "/Game/FactoryGame/Events/Christmas/Buildings/TreeDecor/Schematic_XMassTree_T3.Schematic_XMassTree_T3_C",
    "/Game/FactoryGame/Events/Christmas/Buildings/TreeDecor/Schematic_XMassTree_T4.Schematic_XMassTree_T4_C",
+)
+
+UNLOCK_PATHS__COLLECTABLES = (
+   # First path for unlockSubsystem. Second path for schematicManager.
+   # First name is in boombox. Second name is in world.
+   ("/Game/FactoryGame/Resource/Tape/SongsOfConquest/Tape_SongsOfConquest.Tape_SongsOfConquest_C",
+    "/Game/FactoryGame/Schematics/Tapes/Schematic_SongsOfConquest.Schematic_SongsOfConquest_C",
+    ("Songs of Conquest", "Conquest Boombox Tape"), (-37200, -60900)),
+
+   ("/Game/FactoryGame/Resource/Tape/DeepRockGalactic/Tape_DeepRockGalactic.Tape_DeepRockGalactic_C",
+    "/Game/FactoryGame/Schematics/Tapes/Schematic_DeepRockGalactic.Schematic_DeepRockGalactic_C",
+    ("Deep Rock Galactic", "Deep Rock Galactic Boombox Tape"), (-125200, 168500)), # Cave -99200,159000
+
+   ("/Game/FactoryGame/Resource/Tape/Huntdown/Tape_Huntdown.Tape_Huntdown_C",
+    "/Game/FactoryGame/Schematics/Tapes/Schematic_Huntdown.Schematic_Huntdown_C",
+    ("Huntdown", "Huntdown Boombox Tape"), (195000, -187700)),
+
+   ("/Game/FactoryGame/Buildable/Factory/Locker/Helmets/Desc_Helmet_Beta.Desc_Helmet_Beta_C",
+    "/Game/FactoryGame/Schematics/Pioneercosmetics/Helmets/Schematic_Helmet_Beta.Schematic_Helmet_Beta_C",
+    "B-374 Helmet", (-160400, 66400)),
 )
 
 PROJECT_ASSEMBLY_COSTS = {
