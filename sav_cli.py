@@ -628,6 +628,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-hard-drives <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --add-map-markers-free-stuff <item> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -2866,6 +2867,44 @@ if __name__ == '__main__':
 
       if not modifiedFlag:
          print("ERROR: No save generated.  (Maybe too many markers or no mMapMarkers in save.)", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--add-map-markers-free-stuff" and os.path.isfile(sys.argv[3]):
+      itemName = sys.argv[2]
+      savFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         MARKER_COLOR = (0.2, 0.2, 0.2)
+         for item in sav_data.freeStuff.FREE_DROPPED_ITEMS:
+            if sav_parse.pathNameToReadableName(item) == itemName:
+               for idx in range(len(sav_data.freeStuff.FREE_DROPPED_ITEMS[item])):
+                  (quantity, position, _) = sav_data.freeStuff.FREE_DROPPED_ITEMS[item][idx]
+                  if addMapMarker(parsedSave.levels, f"{itemName} x{quantity}", position, "Road Arrow Down", MARKER_COLOR, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Free Stuff"):
+                     print(f"Added {quantity}x {itemName} at {position}")
+                     modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print(f"ERROR: Item {itemName} not found.", file=sys.stderr)
          exit(1)
 
       try:
