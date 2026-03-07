@@ -643,6 +643,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --blueprint --reset <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --resave-only <original-save-filename> <new-save-filename>")
    print("   py sav_cli.py --add-missing-items-to-sav_stack_sizes")
+   print("   py sav_cli.py --list-crash-site-guards")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -3636,6 +3637,46 @@ if __name__ == '__main__':
          #    py sav_parse.py <save>
          # Use the partial path name found for the readable names above in readableNames.py
          # and review <save>-dump.txt
+
+   elif len(sys.argv) == 2 and sys.argv[1] == "--list-crash-site-guards":
+
+      # This is the order of the crash sites in https://satisfactory.wiki.gg/wiki/Crash_Site
+      print("\nThis information was gathered empirically.  It is being printed in the order of the Wiki to enhance the Wiki, not because it was derived from the Wiki.\n")
+      for shortName in ("BP_DropPod1_4", "BP_DropPod5_6", "BP_DropPod21_2", "BP_DropPod22", "BP_DropPod23", "BP_DropPod43_2", "BP_DropPod_C_12", "BP_DropPod_C_8", "BP_DropPod1_8", "BP_DropPod4_6", "BP_DropPod40_1163", "BP_DropPod2_5", "BP_DropPod1_3", "BP_DropPod3_5", "BP_DropPod16_4595", "BP_DropPod41_8375", "BP_DropPod33", "BP_DropPod17_7892", "BP_DropPod34", "BP_DropPod7_5615", "BP_DropPod15_821", "BP_DropPod18", "BP_DropPod6_2102", "BP_DropPod5_740", "BP_DropPod_C_UAID_04421A9713F020A401_1123860977", "BP_DropPod_C_UAID_04421A9713F020A401_1502230978", "BP_DropPod_C_UAID_04421A9713F01FA401_2123550800", "BP_DropPod9_1568", "BP_DropPod3_8348", "BP_DropPod2_1325", "BP_DropPod4_13058", "BP_DropPod_1145", "BP_DropPod_C_7", "BP_DropPod3", "BP_DropPod_C_3", "BP_DropPod_C_0", "BP_DropPod26", "BP_DropPod36_UAID_40B076DF2F79496001_1121515405", "BP_DropPod36", "BP_DropPod37", "BP_DropPod38", "BP_DropPod39", "BP_DropPod39_UAID_40B076DF2F79F35F01_1355966267", "BP_DropPod35", "BP_DropPod4_7", "BP_DropPod44_10", "BP_DropPod25", "BP_DropPod3_8", "BP_DropPod2", "BP_DropPod3_1", "BP_DropPod12", "BP_DropPod1_0", "BP_DropPod_C_4", "BP_DropPod3_2", "BP_DropPod11_2", "BP_DropPod_C_10", "BP_DropPod5_13", "BP_DropPod4_12", "BP_DropPod1_22", "BP_DropPod_C_9", "BP_DropPod2_10", "BP_DropPod6_27", "BP_DropPod3_11", "BP_DropPod3_24", "BP_DropPod5_26", "BP_DropPod2_23", "BP_DropPod1", "BP_DropPod1_1", "BP_DropPod1_2", "BP_DropPod1_9", "BP_DropPod2_0", "BP_DropPod2_1", "BP_DropPod2_2", "BP_DropPod2_6", "BP_DropPod2_11", "BP_DropPod3_12", "BP_DropPod3_3", "BP_DropPod3_4", "BP_DropPod3_7", "BP_DropPod4", "BP_DropPod4_1", "BP_DropPod4_4", "BP_DropPod4_9", "BP_DropPod4_25", "BP_DropPod4_8033", "BP_DropPod5", "BP_DropPod5_9", "BP_DropPod5_10", "BP_DropPod6", "BP_DropPod7", "BP_DropPod8", "BP_DropPod9", "BP_DropPod10", "BP_DropPod13", "BP_DropPod14_389", "BP_DropPod19", "BP_DropPod20", "BP_DropPod24_1", "BP_DropPod27_20823", "BP_DropPod28_23787", "BP_DropPod29_27444", "BP_DropPod30_6998", "BP_DropPod31", "BP_DropPod32_1", "BP_DropPod42", "BP_DropPod42_5", "BP_DropPod45_6", "BP_DropPod_C_1", "BP_DropPod_C_2", "BP_DropPod_C_5", "BP_DropPod_C_6", "BP_DropPod_C_11", "BP_DropPod_C_UAID_04421A9713F03B7C01_1559404536", "BP_DropPod_C_UAID_04421A9713F03B7C01_1712034537", "BP_DropPod_C_UAID_04421A9713F03B7C01_1807913538", "BP_DropPod_C_UAID_04421A9713F03C7C01_1131248715", "BP_DropPod_C_UAID_04421A9713F0486401_1144991453", "BP_DropPod_C_UAID_04421A9713F0FF6301_1123988602"):
+         longName = f"Persistent_Level:PersistentLevel.{shortName}"
+         if longName in sav_data.crashSites.CRASH_SITES:
+            crashSite = sav_data.crashSites.CRASH_SITES[longName]
+            details = sav_data.crashSites.CRASH_SITES[longName][3]
+
+            guards = ""
+            if "gas" in details:
+               if details["gas"] != "Desc_StingerElite_C":
+                  sourceName = sav_parse.pathNameToReadableName(details["gas"])
+                  guards += f", {sourceName}s"
+            if "sentry" in details:
+               sentry = details["sentry"]
+               for type in sentry:
+                  mobQuantity = type[1]
+                  mobName = sav_parse.pathNameToReadableName(type[0])
+                  if mobQuantity == 1:
+                     if mobName[0] == "A" or mobName[0] == "E":
+                        mobQuantity = "an"
+                     else:
+                        mobQuantity = "a"
+                  else:
+                     mobName += "s"
+                  guards += f", {mobQuantity} {mobName}"
+
+            if len(guards) == 0:
+               print(f"{shortName}")
+            else:
+               guards = guards[2:]
+               loc = guards.rfind(",")
+               if loc != -1:
+                  guards = guards[:loc] + " and" + guards[loc+1:]
+               print(f"{shortName}  Guarded by {guards}")
+         else:
+            print(f"Unknown crash site {shortName}")
 
    else:
       print(f"ERROR: Did not understand {len(sys.argv)} arguments: {sys.argv}", file=sys.stderr)
