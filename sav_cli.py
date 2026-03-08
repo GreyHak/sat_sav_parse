@@ -628,7 +628,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --add-map-markers-hard-drives <original-save-filename> <new-save-filename> [--same-time]")
-   print("   py sav_cli.py --add-map-markers-free-stuff <item> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --add-map-markers-collectable <item> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --show <save-filename>")
    print("   py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --blueprint --export <save-filename> <output-json-filename>")
@@ -2761,7 +2761,7 @@ if __name__ == '__main__':
             shortName = somersloopName[somersloopName.rfind(".")+1:]
             markerLocation = sav_data.somersloop.SOMERSLOOPS[somersloopName][2]
 
-            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Sloop"):
+            if addMapMarker(parsedSave.levels, f"sloop {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Somersloops"):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2810,7 +2810,7 @@ if __name__ == '__main__':
             shortName = mercerSphereName[mercerSphereName.rfind(".")+1:]
             markerLocation = sav_data.mercerSphere.MERCER_SPHERES[mercerSphereName][2]
 
-            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Sphere"):
+            if addMapMarker(parsedSave.levels, f"sphere {shortName}", markerLocation, "Road Arrow Down", markerColor, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Mercer Spheres"):
                print(f"Added {shortName} at {markerLocation}")
                modifiedFlag = True
 
@@ -2879,7 +2879,7 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
-   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--add-map-markers-free-stuff" and os.path.isfile(sys.argv[3]):
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--add-map-markers-collectable" and os.path.isfile(sys.argv[3]):
       itemName = sys.argv[2]
       savFilename = sys.argv[3]
       outFilename = sys.argv[4]
@@ -2892,13 +2892,37 @@ if __name__ == '__main__':
          parsedSave = sav_parse.readFullSaveFile(savFilename)
 
          MARKER_COLOR = (0.2, 0.2, 0.2)
-         for item in sav_data.freeStuff.FREE_DROPPED_ITEMS:
-            if sav_parse.pathNameToReadableName(item) == itemName:
-               for idx in range(len(sav_data.freeStuff.FREE_DROPPED_ITEMS[item])):
-                  (quantity, position, _) = sav_data.freeStuff.FREE_DROPPED_ITEMS[item][idx]
-                  if addMapMarker(parsedSave.levels, f"{itemName} x{quantity}", position, "Road Arrow Down", MARKER_COLOR, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Free Stuff"):
-                     print(f"Added {quantity}x {itemName} at {position}")
-                     modifiedFlag = True
+         possibleCollectableName = f"Persistent_Level:PersistentLevel.{itemName}"
+
+         if possibleCollectableName in sav_data.crashSites.CRASH_SITES:
+            crashSite = sav_data.crashSites.CRASH_SITES[possibleCollectableName]
+            position = crashSite[2]
+            if addMapMarker(parsedSave.levels, f"hd {itemName}", position, "Road Arrow Down", MARKER_COLOR, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Crash Site"):
+               print(f"Added Crash Site {itemName} at {position}")
+               modifiedFlag = True
+
+         elif possibleCollectableName in sav_data.somersloop.SOMERSLOOPS:
+            somersloop = sav_data.somersloop.SOMERSLOOPS[possibleCollectableName]
+            position = somersloop[2]
+            if addMapMarker(parsedSave.levels, f"sloop {itemName}", position, "Road Arrow Down", MARKER_COLOR, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Somersloops"):
+               print(f"Added Somersloop {itemName} at {position}")
+               modifiedFlag = True
+
+         elif possibleCollectableName in sav_data.mercerSphere.MERCER_SPHERES:
+            mercerSphere = sav_data.mercerSphere.MERCER_SPHERES[possibleCollectableName]
+            position = mercerSphere[2]
+            if addMapMarker(parsedSave.levels, f"sphere {itemName}", position, "Road Arrow Down", MARKER_COLOR, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Mercer Spheres"):
+               print(f"Added Mercer Sphere {itemName} at {position}")
+               modifiedFlag = True
+
+         else:
+            for item in sav_data.freeStuff.FREE_DROPPED_ITEMS:
+               if sav_parse.pathNameToReadableName(item) == itemName:
+                  for idx in range(len(sav_data.freeStuff.FREE_DROPPED_ITEMS[item])):
+                     (quantity, position, _) = sav_data.freeStuff.FREE_DROPPED_ITEMS[item][idx]
+                     if addMapMarker(parsedSave.levels, f"{itemName} x{quantity}", position, "Road Arrow Down", MARKER_COLOR, sav_data.data.ECompassViewDistance.CVD_Near, UNCOLLECTED_MAP_MARKER_SCALE, "Free Stuff"):
+                        print(f"Added {quantity}x {itemName} at {position}")
+                        modifiedFlag = True
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")

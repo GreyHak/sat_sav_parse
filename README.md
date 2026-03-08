@@ -84,7 +84,7 @@ Usage:
   - `py sav_cli.py --add-map-markers-somersloops <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --add-map-markers-mercer-spheres <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --add-map-markers-hard-drives <original-save-filename> <new-save-filename> [--same-time]`
-  - `py sav_cli.py --add-map-markers-free-stuff <item> <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --add-map-markers-collectable <item> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --show <save-filename>`
   - `py sav_cli.py --blueprint --sort <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --blueprint --export <save-filename> <output-json-filename>`
