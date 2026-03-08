@@ -330,7 +330,7 @@ def addSomersloop(levels, targetPathName: str) -> bool:
             level.collectables2.remove(collectable)
 
             instanceName = collectable.pathName
-            (rootObject, rotation, position) = sav_data.somersloop.SOMERSLOOPS[collectable.pathName]
+            (rootObject, rotation, position, details) = sav_data.somersloop.SOMERSLOOPS[collectable.pathName]
 
             newActor = sav_parse.ActorHeader()
             newActor.typePath = sav_parse.SOMERSLOOP
@@ -379,7 +379,7 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
             level.collectables2.remove(collectable)
 
             instanceName = collectable.pathName
-            (rootObject, rotation, position) = sav_data.mercerSphere.MERCER_SPHERES[collectable.pathName]
+            (rootObject, rotation, position, details) = sav_data.mercerSphere.MERCER_SPHERES[collectable.pathName]
 
             newActor = sav_parse.ActorHeader()
             newActor.typePath = sav_parse.MERCER_SPHERE
@@ -508,12 +508,12 @@ def removeInstance(levels: list, humanReadableName: str, rootObject, targetInsta
    return False
 
 def removeSomersloop(levels, targetInstanceName: str) -> bool:
-   (rootObject, rotation, position) = sav_data.somersloop.SOMERSLOOPS[targetInstanceName]
+   (rootObject, rotation, position, details) = sav_data.somersloop.SOMERSLOOPS[targetInstanceName]
    print(f"Removing Somersloop {targetInstanceName} at {position}")
    return removeInstance(levels, "Somersloops", rootObject, targetInstanceName, position)
 
 def removeMercerSphere(levels, targetInstanceName: str) -> bool:
-   (rootObject, rotation, position) = sav_data.mercerSphere.MERCER_SPHERES[targetInstanceName]
+   (rootObject, rotation, position, details) = sav_data.mercerSphere.MERCER_SPHERES[targetInstanceName]
    print(f"Removing Mercer Sphere {targetInstanceName} at {position}")
    return removeInstance(levels, "Mercer Sphere", rootObject, targetInstanceName, position)
 

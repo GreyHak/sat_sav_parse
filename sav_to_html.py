@@ -608,7 +608,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          ssImage = origImage.copy()
          ssDraw = ImageDraw.Draw(ssImage)
          for instanceName in uncollectedSomersloops:
-            (rootObject, rotation, position) = uncollectedSomersloops[instanceName]
+            (rootObject, rotation, position, details) = uncollectedSomersloops[instanceName]
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
             ssDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_SOMERSLOOP)
@@ -622,7 +622,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          msImage = origImage.copy()
          msDraw = ImageDraw.Draw(msImage)
          for instanceName in uncollectedMercerSpheres:
-            (rootObject, rotation, position) = uncollectedMercerSpheres[instanceName]
+            (rootObject, rotation, position, details) = uncollectedMercerSpheres[instanceName]
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
             msDraw.ellipse((posX-2, posY-2, posX+2, posY+2), fill=MAP_COLOR_UNCOLLECTED_MERCER_SPHERE)
