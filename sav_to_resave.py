@@ -141,7 +141,7 @@ def addPackageName(packageNames):
          data.extend(addString(packageNames[2]))
    return data
 
-def addProperties(currentEntitySaveVersion, properties, propertyTypes):
+def addProperties(currentEntitySaveVersion, objectUE5Version, properties, propertyTypes):
    data = bytearray()
 
    for propertyIdx in range(len(properties)):
@@ -157,7 +157,8 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
       propertyType = retainedPropertyType.pop(0)
       data.extend(addString(propertyType))
 
-      if currentEntitySaveVersion >= 53:
+      propertyHeaderFlag = objectUE5Version >= 1012
+      if propertyHeaderFlag:
          propertyHeaderTypeA = retainedPropertyType.pop(0)
          data.extend(addUint32(propertyHeaderTypeA))
          if propertyHeaderTypeA == 1:
@@ -213,7 +214,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                   data.extend(addString(valueName))
                   data.extend(addPackageName(retainedPropertyType.pop(0)))
 
-      if currentEntitySaveVersion < 53:
+      if not propertyHeaderFlag:
          propertyIndex = retainedPropertyType.pop(0)
 
       dataProp = bytearray()
@@ -222,12 +223,12 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
       match propertyType:
          case "BoolProperty":
             dataProp.extend(addUint8(propertyValue))
-            if currentEntitySaveVersion < 53:
+            if not propertyHeaderFlag:
                dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
          case "ByteProperty":
             enumName = propertyValue[0]
-            if currentEntitySaveVersion < 53:
+            if not propertyHeaderFlag:
                dataProp.extend(addString(enumName))
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
@@ -260,7 +261,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
             propertyStartSize = len(dataProp)
             dataProp.extend(addDouble(propertyValue))
          case "EnumProperty":
-            if currentEntitySaveVersion < 53:
+            if not propertyHeaderFlag:
                dataProp.extend(addString(propertyValue[0]))
             dataProp.extend(addUint8(0))
             propertyStartSize = len(dataProp)
@@ -275,7 +276,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
             dataProp.extend(addTextProperty(propertyValue))
          case "SetProperty":
             (setType, values) = propertyValue
-            if currentEntitySaveVersion < 53:
+            if not propertyHeaderFlag:
                dataProp.extend(addString(setType))
             zeroOrEight = retainedPropertyType.pop(0)
             dataProp.extend(addUint8(zeroOrEight))
@@ -305,7 +306,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
             dataProp.extend(addObjectReference(levelPathName))
             dataProp.extend(addUint32(value))
          case "ArrayProperty":
-            if currentEntitySaveVersion < 53:
+            if not propertyHeaderFlag:
                arrayType = retainedPropertyType.pop(0)
                dataProp.extend(addString(arrayType))
             zeroOrEight = retainedPropertyType.pop(0)
@@ -342,7 +343,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                   for value in propertyValue:
                      dataProp.extend(addTextProperty(value))
                case "StructProperty":
-                  if currentEntitySaveVersion < 53:
+                  if not propertyHeaderFlag:
                      structureSubType = retainedPropertyType.pop(0)
                   dataStruct = bytearray()
                   match structureSubType:
@@ -359,6 +360,11 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                            dataStruct.extend(addDouble(x))
                            dataStruct.extend(addDouble(y))
                            dataStruct.extend(addDouble(z))
+                     case "Guid":
+                        for value in propertyValue:
+                           (guid1, guid2) = value
+                           dataStruct.extend(addUint64(guid1))
+                           dataStruct.extend(addUint64(guid2))
                      case structureSubType if structureSubType in (
                            "ConnectionData",             # Only observed in modded save
                            "BuildingConnection",         # Only observed in modded save
@@ -368,12 +374,13 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                      case "LocalUserNetIdBundle":
                         for value in propertyValue:
                            (prop, propTypes) = value
-                           dataStruct.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+                           dataStruct.extend(addProperties(currentEntitySaveVersion, objectUE5Version, prop, propTypes))
                      case structureSubType if structureSubType in (
                            "BlueprintCategoryRecord",
                            "BlueprintSubCategoryRecord",
                            "CachedPlayerInfo",
                            "CachedPlayerPlatformInfo",
+                           "DockingStationVehicleTracking",
                            "DroneTripInformation",
                            "ElevatorFloorStopInfo",
                            "FactoryCustomizationColorSlot",
@@ -408,6 +415,9 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                            "SplitterSortRule",
                            "SubCategoryMaterialDefault",
                            "TimeTableStop",
+                           "VehiclePathBlock",
+                           "VehiclePathBlockReference",
+                           "VehiclePathSegmentValidationData",
                            "WireInstance",
                            "DTConfigStruct",                # Only observed in modded save
                            "ManagedSignConnectionSettings", # Only observed in modded save
@@ -420,11 +430,11 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                            ):
                         for value in propertyValue:
                            (prop, propTypes) = value
-                           dataStruct.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+                           dataStruct.extend(addProperties(currentEntitySaveVersion, objectUE5Version, prop, propTypes))
                      case _:
                         raise Exception(f"ERROR: Unknown structureSubType '{structureSubType}'")
 
-                  if currentEntitySaveVersion < 53:
+                  if not propertyHeaderFlag:
                      dataProp.extend(addString(propertyName))
                      dataProp.extend(addString("StructProperty"))
                      dataProp.extend(addUint32(len(dataStruct)))
@@ -438,7 +448,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                case _:
                   raise Exception(f"ERROR: Unknown ArrayProperty type '{arrayType}'")
          case "StructProperty":
-            if currentEntitySaveVersion < 53:
+            if not propertyHeaderFlag:
                structPropertyType = retainedPropertyType.pop(0)
                dataProp.extend(addString(structPropertyType))
                structUuid = retainedPropertyType.pop(0)
@@ -470,7 +480,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                      dataProp.extend(addUint32(0))
                      dataProp.extend(addString(typePath))
                      itemProp = bytearray()
-                     itemProp.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+                     itemProp.extend(addProperties(currentEntitySaveVersion, objectUE5Version, prop, propTypes))
                      dataProp.extend(addUint32(len(itemProp)))
                      dataProp.extend(itemProp)
                case "LinearColor":
@@ -479,6 +489,10 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                   dataProp.extend(addFloat(g))
                   dataProp.extend(addFloat(b))
                   dataProp.extend(addFloat(a))
+               case "Vector2D":
+                  (x, y) = propertyValue
+                  dataProp.extend(addDouble(x))
+                  dataProp.extend(addDouble(y))
                case "Vector":
                   (x, y, z) = propertyValue
                   dataProp.extend(addDouble(x))
@@ -549,6 +563,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                      "TrainSimulationData",
                      "Transform",
                      "Vector_NetQuantize",
+                     "VehiclePathValidationInfo",
                      "BuildingConnections", # Only observed in modded save
                      "DTActiveConfig",      # Only observed in modded save
                      "LBBalancerData",      # Only observed in modded save
@@ -556,11 +571,11 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
                      "Struct_PC_PartInfo",  # Only observed in modded save
                      ):
                   (prop, propTypes) = propertyValue
-                  dataProp.extend(addProperties(currentEntitySaveVersion, prop, propTypes))
+                  dataProp.extend(addProperties(currentEntitySaveVersion, objectUE5Version, prop, propTypes))
                case _:
                   raise Exception(f"ERROR: Unknown structPropertyType '{structPropertyType}'")
          case "MapProperty":
-            if currentEntitySaveVersion < 53:
+            if not propertyHeaderFlag:
                keyType = retainedPropertyType.pop(0)
                valueType = retainedPropertyType.pop(0)
                dataProp.extend(addString(keyType))
@@ -593,7 +608,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
 
                match valueType:
                   case "StructProperty":
-                     dataProp.extend(addProperties(currentEntitySaveVersion, mapValue, propTypess[mapIdx]))
+                     dataProp.extend(addProperties(currentEntitySaveVersion, objectUE5Version, mapValue, propTypess[mapIdx]))
                   case "IntProperty":
                      dataProp.extend(addInt32(mapValue))
                   case "Int64Property":
@@ -610,7 +625,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
             raise Exception(f"ERROR: Unknown propertyType '{propertyType}'")
 
       data.extend(addUint32(len(dataProp) - propertyStartSize))
-      if currentEntitySaveVersion < 53:
+      if not propertyHeaderFlag:
          data.extend(addUint32(propertyIndex))
       data.extend(dataProp)
 
@@ -618,7 +633,7 @@ def addProperties(currentEntitySaveVersion, properties, propertyTypes):
 
    return data
 
-def addObject(headerSaveVersion, object, actorOrComponentObjectHeader):
+def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjectHeader):
    isActorFlag = object.actorReferenceAssociations is not None
 
    dataTrailing = bytearray()
@@ -679,7 +694,8 @@ def addObject(headerSaveVersion, object, actorOrComponentObjectHeader):
             "/Game/FactoryGame/Buildable/Vehicle/Explorer/BP_Explorer.BP_Explorer_C",
             "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_Golfcart.BP_Golfcart_C",
             "/Game/FactoryGame/Buildable/Vehicle/Tractor/BP_Tractor.BP_Tractor_C",
-            "/Game/FactoryGame/Buildable/Vehicle/Truck/BP_Truck.BP_Truck_C"):
+            "/Game/FactoryGame/Buildable/Vehicle/Truck/BP_Truck.BP_Truck_C",
+            "/Game/FactoryGame/Buildable/Vehicle/Truck/BP_FluidTruck.BP_FluidTruck_C"):
          dataTrailing.extend(addUint32(len(object.actorSpecificInfo)))
          for vehicle in object.actorSpecificInfo:
             dataTrailing.extend(addString(vehicle[0]))
@@ -721,12 +737,15 @@ def addObject(headerSaveVersion, object, actorOrComponentObjectHeader):
                      if dataFlag:
                         dataTrailing.extend(addUint32(0))
                         dataTrailing.extend(addString("/Script/FactoryGame.BuildableBeamLightweightData"))
-                        dataLightweightDataProperty = addProperties(headerSaveVersion, *lightweightDataProperty)
+                        dataLightweightDataProperty = addProperties(headerSaveVersion, objectUE5Version, *lightweightDataProperty)
                         dataTrailing.extend(addUint32(len(dataLightweightDataProperty)))
                         dataTrailing.extend(dataLightweightDataProperty)
                      if lightweightVersion >= 3:
                         dataTrailing.extend(addUint8(serviceProvider))
-                        dataTrailing.extend(addUint8(playerInfoTableIndex))
+                        if headerSaveVersion >= 57:
+                           dataTrailing.extend(addInt32(playerInfoTableIndex))
+                        else:
+                           dataTrailing.extend(addUint8(playerInfoTableIndex))
       elif actorOrComponentObjectHeader.typePath in (
              "/Script/FactoryGame.FGConveyorChainActor",
              "/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull",
@@ -789,6 +808,7 @@ def addObject(headerSaveVersion, object, actorOrComponentObjectHeader):
             "/Script/FactoryGame.FGRailroadTrackConnectionComponent",
             "/Script/FactoryGame.FGShoppingListComponent",
             "/Script/FactoryGame.FGTrainPlatformConnection",
+            "/Script/FactoryGame.FGVehicleAutopilotComponent",
             "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
             "/EditSwatchNames/DataHolder.DataHolder_C",         # Only observed in modded save
             ):
@@ -805,8 +825,12 @@ def addObject(headerSaveVersion, object, actorOrComponentObjectHeader):
          dataEntity.extend(addObjectReference(actorComponentReference))
 
    if object.objectGameVersion >= 53:
+      shouldSerializePerObjectVersionData = object.perObjectVersionData is not None
+      if shouldSerializePerObjectVersionData:
+         objectUE5Version = getUE5VersionFromObjectVersionData(object.perObjectVersionData)
+   if objectUE5Version >= 1011:
       dataEntity.extend(addUint8(0))
-   dataEntity.extend(addProperties(object.objectGameVersion, object.properties, object.propertyTypes))
+   dataEntity.extend(addProperties(object.objectGameVersion, objectUE5Version, object.properties, object.propertyTypes))
    dataEntity.extend(addUint32(0))
 
    data = bytearray()
@@ -816,10 +840,12 @@ def addObject(headerSaveVersion, object, actorOrComponentObjectHeader):
    data.extend(dataEntity)
    data.extend(dataTrailing)
    if object.objectGameVersion >= 53:
-      data.extend(addUint32(0))
+      data.extend(addUint32(shouldSerializePerObjectVersionData))
+      if shouldSerializePerObjectVersionData:
+         data.extend(addSaveObjectVersionData(object.perObjectVersionData))
    return data
 
-def addLevel(headerSaveVersion, level):
+def addLevel(headerSaveVersion, persistentLevelUE5Version, level):
    #print(f"Level {level.levelName} with {len(level.actorAndComponentObjectHeaders)} actor/component headers and {len(level.objects)} objects.")
 
    dataOH = bytearray()
@@ -869,10 +895,17 @@ def addLevel(headerSaveVersion, level):
       for levelPathName in level.collectables1:
          dataOH.extend(addObjectReference(levelPathName))
 
+   objectUE5Version = -1
+   if headerSaveVersion >= 53:
+      if level.levelPersistentFlag:
+         objectUE5Version = persistentLevelUE5Version
+      elif level.saveObjectVersionData is not None:
+         objectUE5Version = sav_parse.getUE5VersionFromObjectVersionData(level.saveObjectVersionData)
+
    dataObj = bytearray()
    dataObj.extend(addUint32(len(level.objects)))
    for idx in range(len(level.objects)):
-      dataObj.extend(addObject(headerSaveVersion, level.objects[idx], level.actorAndComponentObjectHeaders[idx]))
+      dataObj.extend(addObject(headerSaveVersion, objectUE5Version, level.objects[idx], level.actorAndComponentObjectHeaders[idx]))
 
    data = bytearray()
    if level.levelName is not None: # levelName will be None for the last "persistent" level
@@ -902,8 +935,10 @@ def saveFile(parsedSave: sav_parse.ParsedSave, outFilename: str):
 
    data = bytearray()
 
+   persistentLevelUE5Version = -1
    if parsedSave.persistentLevelSaveObjectVersionData is not None:
       data.extend(addSaveObjectVersionData(parsedSave.persistentLevelSaveObjectVersionData))
+      persistentLevelUE5Version = sav_parse.getUE5VersionFromObjectVersionData(parsedSave.persistentLevelSaveObjectVersionData)
 
    data.extend(addUint32(len(parsedSave.partitions)))
    for partition in parsedSave.partitions:
@@ -920,7 +955,7 @@ def saveFile(parsedSave: sav_parse.ParsedSave, outFilename: str):
    data.extend(addUint32(len(parsedSave.levels)-1))
    progressBar = sav_parse.ProgressBar(len(parsedSave.levels), "   Reencoding: ")
    for level in parsedSave.levels:
-      data.extend(addLevel(parsedSave.saveFileInfo.saveVersion, level))
+      data.extend(addLevel(parsedSave.saveFileInfo.saveVersion, persistentLevelUE5Version, level))
       progressBar.add()
 
    data.extend(addString(parsedSave.aLevelName))

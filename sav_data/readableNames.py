@@ -13,6 +13,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "BP_StartingPod_C": "Starting Pod",
    "BP_DroneTransport_C": "Drone",
    "BP_Explorer_C": "Explorer",
+   "BP_FluidTruck_C": "Fluid Truck",
    "BP_FreightWagon_C": "Freight Car",
    "BP_Golfcart_C": "Factory Cart (TM)",
    "BP_GolfcartGold_C": "Factory Cart (Gold)",
@@ -58,7 +59,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Desc_HogBasic_C": "Fluffy-tailed Hog",                                      "Char_Hog_C": "Fluffy-tailed Hog",
    "Desc_HogCliff_C": "Cliff Hog",                                              "Char_CliffHog_C": "Cliff Hog",
    "Desc_HogNuclear_C": "Nuclear Hog",                                          "Char_NuclearHog_C": "Nuclear Hog",
-   "Desc_NonflyingBird_C": "Non-flying Bird",  # Technically "Non-flying Birb"  "Char_NonFlyingBird_C": "Non-flying Bird",  # Technically "Non-flying Birb"
+   "Desc_NonflyingBird_C": "Non-flying Bird",                                   "Char_NonFlyingBird_C": "Non-flying Bird",  # Technically "Non-flying Birb"
    "Desc_SpaceGiraffe_C": "Space Giraffe-Tick-Penguin-Whale Thing",             "Char_SpaceGiraffe_C": "Space Giraffe-Tick-Penguin-Whale Thing",
    "Desc_SpaceRabbit_C": "Lizard Doggo",                                        "Char_SpaceRabbit_C": "Lizard Doggo",
    "Desc_SpitterAquatic_Alpha_C": "Alpha Aquatic Spitter",                      "Char_SpitterAquaticAlpha_C": "Alpha Aquatic Spitter",
@@ -287,6 +288,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_Pipeline_C": "Pipeline Mk.1",
    "Build_Pipeline_NoIndicator_C": "Pipeline Mk.1 (No Indicator)",
    "Build_Portal_C": "Main Portal",
+   "Build_PortalPotty_C": "SPWN",
    "Build_PortalSatellite_C": "Satellite Portal",
    "BUILD_Potty_mk1_C": "The HUB Toilet",
    "Build_PowerLine_C": "Power Line",
@@ -550,6 +552,13 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_TruckStation_C": "Truck Station",
    "Build_TubeCannon_C": "Hypertube Entrance Mk.3", # Mod: BetterHypertybes
    "Build_Valve_C": "Valve",
+   "Build_VehiclePath_Explorer_C": "Explorer Vehicle Path",
+   "Build_VehiclePath_FactoryCart_C": "Factory Cart Vehicle Path",
+   "Build_VehiclePath_Tractor_C": "Tractor Vehicle Path",
+   "Build_VehiclePath_Truck_C": "Truck Vehicle Path",
+   "Build_VehiclePath_Universal_C": "Universal Vehicle Path",
+   "Build_VehiclePathNode_Default_C": "Vehicle Path Node, Default",
+   "Build_VehiclePathNode_DockingStation_C": "Vehicle Path Node, Docking Station",
    "Build_WalkwayCross_C": "Walkway Crossing",
    "Build_WalkwayRamp_C": "Walkway Ramp",
    "Build_WalkwayStraight_C": "Walkway Straight",

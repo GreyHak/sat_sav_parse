@@ -4,7 +4,7 @@ Copyright (c) 2024-2026 [GreyHak](https://github.com/GreyHak)
 
 A set of Python tools for parsing Satisfactory save files, and then displaying
 and manipulating the contents.  Supports Satisfactory releases v1.1.1.6,
-v1.1.1.7, v1.1.2.0, v1.1.2.1, v1.1.2.2, v1.1.3.0 and v1.1.3.1.
+v1.1.1.7, v1.1.2.0, v1.1.2.1, v1.1.2.2, v1.1.3.0, v1.1.3.1 and v1.2.0.0.
 
 [Satisfactory](https://www.satisfactorygame.com/) is a non-competitive,
 first-person, open-world, factory-building and exploration game produced by
@@ -238,6 +238,9 @@ v0.6.1.3 version of the save file format at
 [Satisfactory GG Wiki Save Files](https://satisfactory.wiki.gg/wiki/Save_files#Save_file_format).
 I updated the Satisfactory GG Wiki for v1.0.0.4 based on the information I
 gained during creation of this tools.
+
+Huge thanks to [Moritz](https://github.com/moritz-h/satisfactory-3d-map) for
+explaining how the UE5 versioning impacted the 1.2.0.0 (58) save file format.
 
 Thanks to
 [robison4th](https://github.com/robison4th),

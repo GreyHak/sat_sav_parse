@@ -280,6 +280,9 @@ def parseSaveObjectVersionData(offset, data):
       customVersionContainer.append([keyUuidA, keyUuidB, version])
    return offset, [saveObjectVersionDataVersion, [packageFileVersion_FileVersionUE4, packageFileVersion_FileVersionUE5], licenseeVersion, [engineVersion_Major, engineVersion_Minor, engineVersion_Patch, engineVersion_Changelist, engineVersion_Branch], customVersionContainer]
 
+def getUE5VersionFromObjectVersionData(objectVersionData):
+   return objectVersionData[1][1]
+
 TICKS_IN_SECOND = 10 * 1000 * 1000
 EPOCH_1_TO_1970 = 719162 * 24 * 60 * 60
 class SaveFileInfo:
@@ -289,7 +292,7 @@ class SaveFileInfo:
       if self.saveHeaderType != 14: # 13=(v0.8.3.3 thru v1.0.0.4)  14=(v1.1.0.0 thru v1.1.3.0)
          raise ParseError(f"Unsupported save header version number {self.saveHeaderType}.")
       (offset, self.saveVersion) = parseUint32(offset, data) # line 1491
-      if self.saveVersion != 52 and self.saveVersion != 53:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1-v1.0.0.4  51=v1.1.0.0-v1.1.0.3  52=v1.1.0.4-v1.1.2.2  53=v1.1.3.0
+      if self.saveVersion != 52 and self.saveVersion != 53 and self.saveVersion != 58:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1-v1.0.0.4  51=v1.1.0.0-v1.1.0.3  52=v1.1.0.4-v1.1.2.2  53=v1.1.3.0  58=v1.2.0.0
          raise ParseError(f"Unsupported save version number {self.saveVersion}.")
       (offset, self.buildVersion) = parseUint32(offset, data)
       if self.saveVersion >= 14:
@@ -443,16 +446,24 @@ def getPropertyValue(properties, needlePropertyName: str, caseInsensitiveFlag: b
 
 class Object: # Both ActorObject and ComponentObject
 
-   def parse(self, headerSaveVersion: int, offset: int, data, actorOrComponentObjectHeader): # readEntity, line 1736
+   def parse(self, headerSaveVersion: int, objectUE5Version: int, offset: int, data, actorOrComponentObjectHeader): # readEntity, line 1736/1739
       self.instanceName = actorOrComponentObjectHeader.instanceName
       (offset, self.objectGameVersion) = parseUint32(offset, data) # (line 1738) 42=v0.8.3.3  46=v1.0.0.1 & v1.0.0.3  52=v1.1.0.4-v1.1.2.2  53=v1.1.3.0
-      (offset, self.shouldMigrateObjectRefsToPersistentFlag) = parseBool(offset, data, parseUint32, "Object.shouldMigrateObjectRefsToPersistentFlag") # lines 1740-1741
-      (offset, objectSize) = parseUint32(offset, data) # 1743
+      (offset, self.shouldMigrateObjectRefsToPersistentFlag) = parseBool(offset, data, parseUint32, "Object.shouldMigrateObjectRefsToPersistentFlag") # lines 1740-1741/1743-1744/1747-1748
+      (offset, objectSize) = parseUint32(offset, data) # 1743/1746/1750
       offsetStartThis = offset
 
+      self.perObjectVersionData = None
+      if self.objectGameVersion >= 53:
+         jumpOffset = offset + objectSize
+         (jumpOffset, shouldSerializePerObjectVersionData) = parseBool(jumpOffset, data, parseUint32, "Object.shouldSerializePerObjectVersionData") # line //1753
+         if shouldSerializePerObjectVersionData:
+            (jumpOffset, self.perObjectVersionData) = parseSaveObjectVersionData(jumpOffset, data) # line //1754
+            objectUE5Version = getUE5VersionFromObjectVersionData(self.perObjectVersionData)
+
       self.actorReferenceAssociations: list | None = None
-      if isinstance(actorOrComponentObjectHeader, ActorHeader): # line 1745
-         (offset, parentObjectReference) = parseObjectReference(offset, data) # readObjectProperty on line 1746
+      if isinstance(actorOrComponentObjectHeader, ActorHeader): # line 1745/1748/1759
+         (offset, parentObjectReference) = parseObjectReference(offset, data) # readObjectProperty on line 1746/1749/1760
          (offset, actorComponentReferenceCount) = parseUint32(offset, data) # line 1747
          actorComponentReferences: list[ObjectReference] = []
          for jdx in range(actorComponentReferenceCount):
@@ -460,9 +471,10 @@ class Object: # Both ActorObject and ComponentObject
             actorComponentReferences.append(actorComponentReference)
          self.actorReferenceAssociations = [parentObjectReference, actorComponentReferences]
 
-      if self.objectGameVersion >= 53: # line 1754
-         offset = confirmBasicType(offset, data, parseUint8, 0)
-      (offset, self.properties, self.propertyTypes) = parseProperties(self.objectGameVersion, offset, data)
+      if objectUE5Version >= 1011: # line 1754/1758 -- Proper version check thanks to Moritz
+         offset = confirmBasicType(offset, data, parseUint8, 0) # = serializationControl
+
+      (offset, self.properties, self.propertyTypes) = parseProperties(self.objectGameVersion, offset, data, objectUE5Version) # line 1755/1763
 
       offset = confirmBasicType(offset, data, parseUint32, 0)
 
@@ -537,7 +549,8 @@ class Object: # Both ActorObject and ComponentObject
                "/Game/FactoryGame/Buildable/Vehicle/Explorer/BP_Explorer.BP_Explorer_C",
                "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_Golfcart.BP_Golfcart_C",
                "/Game/FactoryGame/Buildable/Vehicle/Tractor/BP_Tractor.BP_Tractor_C",
-               "/Game/FactoryGame/Buildable/Vehicle/Truck/BP_Truck.BP_Truck_C"):
+               "/Game/FactoryGame/Buildable/Vehicle/Truck/BP_Truck.BP_Truck_C",
+               "/Game/FactoryGame/Buildable/Vehicle/Truck/BP_FluidTruck.BP_FluidTruck_C"):
             (offset, numVehicles) = parseUint32(offset, data)
             self.actorSpecificInfo = []
             for idx in range(numVehicles):
@@ -592,30 +605,37 @@ class Object: # Both ActorObject and ComponentObject
 
                   (offset, paintFinishLevelPath) = parseObjectReference(offset, data)
 
-                  (offset, patternRotation) = parseUint8(offset, data) # line 1980
+                  (offset, patternRotation) = parseUint8(offset, data) # line 1980/1987
 
                   (offset, recipeLevelPath) = parseObjectReference(offset, data)
 
-                  (offset, blueprintProxyLevelPath) = parseObjectReference(offset, data)
+                  (offset, blueprintProxyLevelPath) = parseObjectReference(offset, data) # line 1987/1994
 
                   lightweightDataProperty = None
                   serviceProvider = None
                   playerInfoTableIndex = None
-                  if lightweightVersion >= 2:
-                     (offset, dataFlag) = parseUint32(offset, data) # line 1992
+                  if lightweightVersion >= 2: # line 1991/1998
+                     (offset, dataFlag) = parseUint32(offset, data) # line 1992/1999
                      if dataFlag:
                         offset = confirmBasicType(offset, data, parseUint32, 0) # ObjectReference.Level
                         offset = confirmBasicType(offset, data, parseString, "/Script/FactoryGame.BuildableBeamLightweightData")
                         (offset, lightweightDataPropertySize) = parseUint32(offset, data) # line 1993
                         lightweightDataPropertyStart = offset
-                        (offset, prop, propTypes) = parseProperties(headerSaveVersion, offset, data) # line 1994
+                        (offset, prop, propTypes) = parseProperties(headerSaveVersion, offset, data, objectUE5Version) # line 1994
                         if offset != lightweightDataPropertyStart + lightweightDataPropertySize:
                            raise ParseError(f"Unexpected LightweightBuildableSubsystem lightweightDataPropertySize: offset={offset} != {lightweightDataPropertyStart + lightweightDataPropertySize} = start={lightweightDataPropertyStart} + size={lightweightDataPropertySize}.")
                         lightweightDataProperty = (prop, propTypes)
 
-                     if lightweightVersion >= 3: # line 1999
+                     if lightweightVersion >= 3: # line 1999/2006
+                        if headerSaveVersion == 57:
+                           # Accounts for a bug in the game in an unreleased version caused by a merge conflict.
+                           (offset, _) = parseUint8(offset, data)
+                           (offset, _) = parseInt32(offset, data)
                         (offset, serviceProvider) = parseUint8(offset, data)
-                        (offset, playerInfoTableIndex) = parseUint8(offset, data)
+                        if headerSaveVersion >= 57:
+                           (offset, playerInfoTableIndex) = parseInt32(offset, data)
+                        else:
+                           (offset, playerInfoTableIndex) = parseUint8(offset, data)
 
                   lightweightBuildableInstances.append([rotationQuaternion, position, swatchLevelPath, patternLevelPath, [primaryColor, secondaryColor], paintFinishLevelPath, patternRotation, recipeLevelPath, blueprintProxyLevelPath, lightweightDataProperty, serviceProvider, playerInfoTableIndex])
 
@@ -703,6 +723,7 @@ class Object: # Both ActorObject and ComponentObject
                "/Script/FactoryGame.FGRailroadTrackConnectionComponent",
                "/Script/FactoryGame.FGShoppingListComponent",
                "/Script/FactoryGame.FGTrainPlatformConnection",
+               "/Script/FactoryGame.FGVehicleAutopilotComponent",
                "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
                "/EditSwatchNames/DataHolder.DataHolder_C",         # Only observed in modded save
                ):
@@ -757,9 +778,9 @@ class Object: # Both ActorObject and ComponentObject
          offset = offsetStartThis + objectSize
 
       if self.objectGameVersion >= 53:
-         offset = confirmBasicType(offset, data, parseUint32, 0)
-
-      return offset
+         return jumpOffset
+      else:
+         return offset
 
    def __str__(self) -> str:
       actorReferenceAssociationsStr = "n/a"
@@ -855,25 +876,25 @@ class ProgressBar():
       if sys.stdout.isatty():
          print(f"{self.prefix}[{self.fillChar*self.width}] {self.completedChar} {self.total}/{self.total}", flush=True)
 
-def parseLevel(headerSaveVersion, offset: int, data, persistentLevelFlag: bool = False, progressBar = ProgressBar):
+def parseLevel(headerSaveVersion, persistentLevelUE5Version: int, offset: int, data, persistentLevelFlag: bool = False, progressBar = ProgressBar):
    if persistentLevelFlag:
       levelName = None
    else:
       (offset, levelName) = parseString(offset, data)
 
-   (offset, objectHeaderAndCollectable1Size) = parseUint64(offset, data)
+   (offset, objectHeaderAndCollectable1Size) = parseUint64(offset, data) # line 1594/1596
    objectHeaderAndCollectable1StartOffset = offset
-   (offset, actorAndComponentCount) = parseUint32(offset, data)
+   (offset, actorAndComponentCount) = parseUint32(offset, data) # line 1603/1605/1608
 
    # ActorHeaders and ComponentHeaders
    actorAndComponentObjectHeaders = []
    for idx in range(actorAndComponentCount):
-      (offset, headerType) = parseUint32(offset, data)
+      (offset, headerType) = parseUint32(offset, data) # line 1606/1608/1611
 
       objectHeader: ActorHeader | ComponentHeader
-      if headerType == 1:
+      if headerType == 1: # line 1612/1614
          objectHeader = ActorHeader()
-      elif headerType == 0:
+      elif headerType == 0: # line 1608/1610
          objectHeader = ComponentHeader()
       else:
          raise ParseError(f"Invalid headerType {headerType}")
@@ -886,15 +907,15 @@ def parseLevel(headerSaveVersion, offset: int, data, persistentLevelFlag: bool =
    if persistentLevelFlag:
       (offset, levelPersistentFlag) = parseBool(offset, data, parseUint32, "Level Persistent Flag")
       if levelPersistentFlag:
-         offset = confirmBasicType(offset, data, parseString, "Persistent_Level", "Level Persistent String")
+         offset = confirmBasicType(offset, data, parseString, "Persistent_Level", "Level Persistent String") # line ?/1636
 
    # Collectables #1
    collectables1: list[ObjectReference] | None = None
    if objectHeaderAndCollectable1Size != offset - objectHeaderAndCollectable1StartOffset:
       collectables1 = []
-      (offset, collectedCount1) = parseUint32(offset, data)
+      (offset, collectedCount1) = parseUint32(offset, data) # line 1635/1637
       for idx in range(collectedCount1):
-         (offset, objectReference) = parseObjectReference(offset, data)
+         (offset, objectReference) = parseObjectReference(offset, data) # line 1639/1640
          collectables1.append(objectReference)
 
    if objectHeaderAndCollectable1Size != offset - objectHeaderAndCollectable1StartOffset:
@@ -902,35 +923,43 @@ def parseLevel(headerSaveVersion, offset: int, data, persistentLevelFlag: bool =
 
    # Objects
    objects = []
-   (offset, allObjectsSize) = parseUint64(offset, data) # line 1644
-   objectStartOffset = offset
-   (offset, objectCount) = parseUint32(offset, data) # line 1645
-   if objectCount != actorAndComponentCount:
-      raise ParseError(f"Object count mismatch: objectCount={objectCount} != actorAndComponentCount={actorAndComponentCount}")
-   for idx in range(actorAndComponentCount):
-      object = Object()
-      offset = object.parse(headerSaveVersion, offset, data, actorAndComponentObjectHeaders[idx]) # SCIM readEntity
-      objects.append(object)
-      if progressBar is not None:
-         progressBar.add()
-   if offset - objectStartOffset != allObjectsSize:
-      raise ParseError(f"Object size mismatch: expect={allObjectsSize} != actual={offset - objectStartOffset}")
+   (offset, allObjectsSize) = parseUint64(offset, data) # line 1644/1645
 
-   offset, levelSaveVersion = parseUint32(offset, data)
+   objectStartOffset = objectDataOffset = offset
+   offset += allObjectsSize
 
-   # Collectables #2 (DestroyedActors)
+   offset, levelSaveVersion = parseUint32(offset, data) # line 1682/1686
+
    collectables2 = []
    saveObjectVersionData = None
    if not persistentLevelFlag:
-      (offset, collectedCount2) = parseUint32(offset, data)
+      objectUE5Version = -1
+
+      # Collectables #2 (DestroyedActors)
+      (offset, collectedCount2) = parseUint32(offset, data) # line 1683/1687
       for count in range(collectedCount2): # line 1686
          (offset, objectReference) = parseObjectReference(offset, data) # readObjectProperty
          collectables2.append(objectReference)
 
       if headerSaveVersion >= 53: # line 1692
-         (offset, hasSaveObjectVersionData) = parseBool(offset, data, parseUint32, "hasSaveObjectVersionData")
+         (offset, hasSaveObjectVersionData) = parseBool(offset, data, parseUint32, "hasSaveObjectVersionData") # line 1693/1694
          if hasSaveObjectVersionData:
-            (offset, saveObjectVersionData) = parseSaveObjectVersionData(offset, data)
+            (offset, saveObjectVersionData) = parseSaveObjectVersionData(offset, data) # line 1693/1694
+            objectUE5Version = getUE5VersionFromObjectVersionData(saveObjectVersionData)
+   else:
+      objectUE5Version = persistentLevelUE5Version
+
+   (objectDataOffset, objectCount) = parseUint32(objectDataOffset, data) # line 1645/1646
+   if objectCount != actorAndComponentCount:
+      raise ParseError(f"Object count mismatch: objectCount={objectCount} != actorAndComponentCount={actorAndComponentCount}")
+   for idx in range(actorAndComponentCount):
+      object = Object()
+      objectDataOffset = object.parse(headerSaveVersion, objectUE5Version, objectDataOffset, data, actorAndComponentObjectHeaders[idx]) # SCIM readEntity
+      objects.append(object)
+      if progressBar is not None:
+         progressBar.add()
+   if objectDataOffset - objectStartOffset != allObjectsSize:
+      raise ParseError(f"Object size mismatch: expect={allObjectsSize} != actual={objectDataOffset - objectStartOffset}")
 
    return (offset, Level(levelName, actorAndComponentObjectHeaders, levelPersistentFlag, collectables1, objects, levelSaveVersion, collectables2, saveObjectVersionData))
 
@@ -948,7 +977,7 @@ def parsePackageName(offset, data):
          packageNames.extend((packageName2, packageName3))
    return offset, packageNames
 
-def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> tuple:
+def parseProperties(currentEntitySaveVersion: int, offset: int, data: list, objectUE5Version = 0) -> tuple:
    properties = []
    propertyTypes = []
    while True:
@@ -959,7 +988,8 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
       (offset, propertyType) = parseString(offset, data) # line 2030
       retainedPropertyType = [propertyName, propertyType]
 
-      if currentEntitySaveVersion >= 53:
+      propertyHeaderFlag = objectUE5Version >= 1012
+      if propertyHeaderFlag:
          (offset, propertyHeaderTypeA) = parseUint32(offset, data) # line 2031
          retainedPropertyType.append(propertyHeaderTypeA)
          if propertyHeaderTypeA == 0:
@@ -1018,23 +1048,23 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                else:
                   retainedPropertyType.append(None)
                
-      (offset, propertySize) = parseUint32(offset, data) # line 2069 (currentPropertyLength)
+      (offset, propertySize) = parseUint32(offset, data) # line 2069/2083 (currentPropertyLength)
 
-      if currentEntitySaveVersion < 53:
-         (offset, propertyIndex) = parseUint32(offset, data)  # (line 2070) Doesn't appear to be an actual 'index'.  Can be non-zero for propertyType=StructProperty.
+      if not propertyHeaderFlag:
+         (offset, propertyIndex) = parseUint32(offset, data)  # (line 2070/2084) Doesn't appear to be an actual 'index'.  Can be non-zero for propertyType=StructProperty.
          retainedPropertyType.append(propertyIndex)
 
       propertyStartOffset = 0
       if propertyType == "BoolProperty":
          (offset, value) = parseUint8(offset, data) # Not using parseBool because have seen b'\x10' = 16
          properties.append([propertyName, value])
-         if currentEntitySaveVersion < 53:
+         if not propertyHeaderFlag:
             offset = confirmBasicType(offset, data, parseUint8, 0) # Meaning don't read GUID
          propertyStartOffset = offset
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "ByteProperty":
-         if currentEntitySaveVersion < 53:
+         if not propertyHeaderFlag:
             (offset, enumName) = parseString(offset, data)
          offset = confirmBasicType(offset, data, parseUint8, 0) # = no GUID
          propertyStartOffset = offset
@@ -1073,13 +1103,13 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
          properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
-      elif propertyType == "FloatProperty":
+      elif propertyType == "FloatProperty": # line 2090
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
          (offset, value) = parseFloat(offset, data)
          properties.append([propertyName, value])
          if propertySize != offset - propertyStartOffset:
-            raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
+            raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset} {propertyName}={value}")
       elif propertyType == "DoubleProperty":
          offset = confirmBasicType(offset, data, parseUint8, 0)
          propertyStartOffset = offset
@@ -1088,7 +1118,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "EnumProperty":
-         if currentEntitySaveVersion < 53:
+         if not propertyHeaderFlag:
             (offset, enumName) = parseString(offset, data)
          offset = confirmBasicType(offset, data, parseUint8, 0) # = no GUID
          propertyStartOffset = offset
@@ -1111,7 +1141,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "SetProperty":
-         if currentEntitySaveVersion < 53: # line 2421
+         if not propertyHeaderFlag: # line 2421
             (offset, setType) = parseString(offset, data)
          (offset, zeroOrEight) = parseUint8(offset, data)
          retainedPropertyType.append(zeroOrEight)
@@ -1153,7 +1183,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
          if propertySize != offset - propertyStartOffset:
             raise ParseError(f"Unexpected propery size. diff={offset - propertyStartOffset - propertySize} type={propertyType} start={propertyStartOffset}")
       elif propertyType == "ArrayProperty":
-         if currentEntitySaveVersion < 53:
+         if not propertyHeaderFlag:
             (offset, arrayType) = parseString(offset, data) # line 2162
             retainedPropertyType.append(arrayType)
          (offset, zeroOrEight) = parseUint8(offset, data) # skip on line 2163
@@ -1201,7 +1231,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                (offset, textProperty) = parseTextProperty(offset, data)
                values.append(textProperty)
          elif arrayType == "StructProperty":
-            if currentEntitySaveVersion < 53: # line 2209
+            if not propertyHeaderFlag: # line 2209
                (offset, name) = parseString(offset, data)
                if name != propertyName:
                   raise ParseError(f"Unexpected StructProperty name '{name}' != propertyName '{propertyName}'")
@@ -1229,6 +1259,11 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                   (offset, y) = parseDouble(offset, data)
                   (offset, z) = parseDouble(offset, data)
                   values.append([x, y, z])
+            elif structureSubType == "Guid":
+               for jdx in range(arrayCount):
+                  (offset, guid1) = parseUint64(offset, data)
+                  (offset, guid2) = parseUint64(offset, data)
+                  values.append([guid1, guid2])
             elif structureSubType in (
                   "ConnectionData",             # Only observed in modded save
                   "BuildingConnection",         # Only observed in modded save
@@ -1240,13 +1275,14 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                   values.append(None)
             elif structureSubType == "LocalUserNetIdBundle":
                for _ in range(arrayCount):
-                  (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data)
+                  (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data, objectUE5Version)
                   values.append([prop, propTypes])
             elif structureSubType in (
                   "BlueprintCategoryRecord",
                   "BlueprintSubCategoryRecord",
                   "CachedPlayerInfo",
                   "CachedPlayerPlatformInfo",
+                  "DockingStationVehicleTracking",
                   "DroneTripInformation",
                   "ElevatorFloorStopInfo",
                   "FactoryCustomizationColorSlot",
@@ -1281,6 +1317,9 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                   "SplitterSortRule",
                   "SubCategoryMaterialDefault",
                   "TimeTableStop",
+                  "VehiclePathBlock",
+                  "VehiclePathBlockReference",
+                  "VehiclePathSegmentValidationData",
                   "WireInstance",
                   "DTConfigStruct",                # Only observed in modded save
                   "ManagedSignConnectionSettings", # Only observed in modded save
@@ -1292,11 +1331,11 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                   "USSSwatchSaveInfo",             # Only observed in modded save
                   ):
                for jdx in range(arrayCount):
-                  (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data)
+                  (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data, objectUE5Version)
                   values.append([prop, propTypes])
             else:
                raise ParseError(f"Unsupported StructProperty structureSubType '{structureSubType}'")
-            if currentEntitySaveVersion < 53 and structSize != offset - structStartOffset:
+            if not propertyHeaderFlag and structSize != offset - structStartOffset:
                raise ParseError(f"Unexpected StructProperty size. diff={offset - structStartOffset - structSize} type={propertyType}")
          else:
             raise ParseError(f"Unsupported ArrayProperty type '{arrayType}'")
@@ -1308,7 +1347,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                offset = propertyStartOffset + propertySize
          properties.append([propertyName, values])
       elif propertyType == "StructProperty":
-         if currentEntitySaveVersion < 53: # line 2472
+         if not propertyHeaderFlag: # line 2472
             (offset, structPropertyType) = parseString(offset, data)
             retainedPropertyType.append(structPropertyType)
             (offset, structUuid1) = parseUint64(offset, data)
@@ -1333,7 +1372,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                (offset, typePath) = parseString(offset, data)
                (offset, itemPropertySize) = parseUint32(offset, data)
                itemPropertyStart = offset
-               (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data)
+               (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data, objectUE5Version)
                itemProperties = [typePath, prop, propTypes]
                if itemPropertySize != offset - itemPropertyStart:
                   raise ParseError(f"Unexpected InventoryItem size. diff={offset - itemPropertyStart - itemPropertySize}")
@@ -1347,6 +1386,10 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
             (offset, b) = parseFloat(offset, data)
             (offset, a) = parseFloat(offset, data)
             properties.append([propertyName, [r, g, b, a]])
+         elif structPropertyType == "Vector2D":
+            (offset, x) = parseDouble(offset, data)
+            (offset, y) = parseDouble(offset, data)
+            properties.append([propertyName, [x, y]])
          elif structPropertyType == "Vector":
             (offset, x) = parseDouble(offset, data)
             (offset, y) = parseDouble(offset, data)
@@ -1412,7 +1455,6 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                "MapMarker",
                "PersistentGlobalIconId", # 20240915\SatisFaction_20240915-002433.sav
                "PlayerCustomizationData",
-               "",
                "PlayerRules",
                "ResearchData",
                "ShoppingListSettings",
@@ -1423,13 +1465,14 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                "TrainSimulationData",
                "Transform",
                "Vector_NetQuantize",
+               "VehiclePathValidationInfo",
                "BuildingConnections", # Only observed in modded save
                "DTActiveConfig",      # Only observed in modded save
                "LBBalancerData",      # Only observed in modded save
                "ManagedSignData",     # Only observed in modded save
                "Struct_PC_PartInfo",  # Only observed in modded save
                ):
-            (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data)
+            (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data, objectUE5Version)
             properties.append([propertyName, [prop, propTypes]])
          else:
             if True:
@@ -1443,7 +1486,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
             print(f"DEBUG: Successfully parsed StructProperty '{structPropertyType}'.")
 
       elif propertyType == "MapProperty":
-         if currentEntitySaveVersion < 53: # line 2286
+         if not propertyHeaderFlag: # line 2286
             (offset, keyType) = parseString(offset, data)
             (offset, valueType) = parseString(offset, data)
             retainedPropertyType.extend((keyType, valueType))
@@ -1475,7 +1518,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list) -> t
                raise ParseError(f"Unsupported map keyType {keyType}")
 
             if valueType == "StructProperty":
-               (offset, mapValue, propTypes) = parseProperties(currentEntitySaveVersion, offset, data)
+               (offset, mapValue, propTypes) = parseProperties(currentEntitySaveVersion, offset, data, objectUE5Version)
                propTypess.append(propTypes)
             elif valueType == "IntProperty":
                (offset, mapValue) = parseInt32(offset, data)
@@ -1591,8 +1634,10 @@ def readFullSaveFile(filename: str, decompressedOutputFilename: str | None = Non
 
    startOffsetX = offset
    persistentLevelSaveObjectVersionData = None
+   persistentLevelUE5Version = -1
    if saveFileInfo.saveVersion >= 53:
       (offset, persistentLevelSaveObjectVersionData) = parseSaveObjectVersionData(offset, data)
+      persistentLevelUE5Version = getUE5VersionFromObjectVersionData(persistentLevelSaveObjectVersionData)
 
    # Partitions/Grids: Lists of Level Information
    partitions = []
@@ -1630,9 +1675,9 @@ def readFullSaveFile(filename: str, decompressedOutputFilename: str | None = Non
       progressBar = None
 
    for idx in range(levelCount):
-      (offset, level) = parseLevel(saveFileInfo.saveVersion, offset, data, False, progressBar)
+      (offset, level) = parseLevel(saveFileInfo.saveVersion, -1, offset, data, False, progressBar)
       levels.append(level)
-   (offset, level) = parseLevel(saveFileInfo.saveVersion, offset, data, True, progressBar) # Potentially sets the global satisfactoryCalculatorInteractiveMapExtras
+   (offset, level) = parseLevel(saveFileInfo.saveVersion, persistentLevelUE5Version, offset, data, True, progressBar) # Potentially sets the global satisfactoryCalculatorInteractiveMapExtras
    levels.append(level)
 
    if offset == len(data):

@@ -285,7 +285,8 @@ def toJSON(object):
               "actorReferenceAssociations": araData,
               "properties": toJSON(object.properties),
               "propertyTypes": toJSON(object.propertyTypes),
-              "actorSpecificInfo": toJSON(object.actorSpecificInfo)}
+              "actorSpecificInfo": toJSON(object.actorSpecificInfo),
+              "perObjectVersionData": toJSON(object.perObjectVersionData)}
 
    jdata = {}
    for element in object.__dict__:
@@ -355,6 +356,7 @@ def addSomersloop(levels, targetPathName: str) -> bool:
             newObject.properties    = []
             newObject.propertyTypes = []
             newObject.actorSpecificInfo = None
+            newObject.perObjectVersionData = None
             level.objects.append(newObject)
 
             print(f"Restored Somersloop {instanceName} at {position}")
@@ -404,6 +406,7 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
             newObject.properties    = []
             newObject.propertyTypes = []
             newObject.actorSpecificInfo = None
+            newObject.perObjectVersionData = None
             level.objects.append(newObject)
 
             print(f"Restored Mercer Sphere {instanceName} at {position}")
@@ -461,6 +464,7 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
             newObject.properties    = []
             newObject.propertyTypes = []
             newObject.actorSpecificInfo = None
+            newObject.perObjectVersionData = None
             level.objects.append(newObject)
 
             print(f"Restored Mercer Shrine {instanceName} at {position}")
@@ -902,6 +906,7 @@ if __name__ == '__main__':
             objectCopy.properties = fromJSON(objectJson["properties"])
             objectCopy.propertyTypes = fromJSON(objectJson["propertyTypes"])
             objectCopy.actorSpecificInfo = fromJSON(objectJson["actorSpecificInfo"])
+            objectCopy.perObjectVersionData = fromJSON(objectJson["perObjectVersionData"])
             objects.append(objectCopy)
 
          levelSaveVersion = levelData["levelSaveVersion"]
@@ -1648,6 +1653,7 @@ if __name__ == '__main__':
                newObject.propertyTypes = [("mBlueprintName", "StrProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
 
             newObject.actorSpecificInfo = None
+            newObject.perObjectVersionData = None
             level.objects.append(newObject)
             print(f"Created new object {newObject.instanceName} containing {replacementHotbarItem}")
 
@@ -2174,6 +2180,7 @@ if __name__ == '__main__':
             ["mVehicleType", "ObjectProperty", 0],
             ["mPathFuelConsumption", "FloatProperty", 0]]
          object.actorSpecificInfo = None
+         object.perObjectVersionData = None
          level.objects.append(object)
 
          for idx in range(len(newVehicleTargetPoints)):
@@ -2211,6 +2218,7 @@ if __name__ == '__main__':
             object.properties.append(["mTargetSpeed", jdata["mTargetList"][idx][2]])
             object.propertyTypes.append(["mTargetSpeed", "IntProperty", 0])
             object.actorSpecificInfo = None
+            object.perObjectVersionData = None
             level.objects.append(object)
 
          actorHeader = sav_parse.ActorHeader()
@@ -2249,6 +2257,7 @@ if __name__ == '__main__':
             ["mPathName", "StrProperty", 0],
             ["mTargetList", "ObjectProperty", 0]]
          object.actorSpecificInfo = None
+         object.perObjectVersionData = None
          level.objects.append(object)
 
       except Exception as error:
