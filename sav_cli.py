@@ -350,8 +350,6 @@ def addSomersloop(levels, targetPathName: str) -> bool:
             newObject.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             newObject.shouldMigrateObjectRefsToPersistentFlag = False
             nullParentObjectReference = sav_parse.ObjectReference()
-            nullParentObjectReference.levelName = ""
-            nullParentObjectReference.pathName = ""
             newObject.actorReferenceAssociations = [nullParentObjectReference, []]
             newObject.properties    = []
             newObject.propertyTypes = []
@@ -400,8 +398,6 @@ def addMercerSphere(levels, targetPathName: str) -> bool:
             newObject.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             newObject.shouldMigrateObjectRefsToPersistentFlag = False
             nullParentObjectReference = sav_parse.ObjectReference()
-            nullParentObjectReference.levelName = ""
-            nullParentObjectReference.pathName = ""
             newObject.actorReferenceAssociations = [nullParentObjectReference, []]
             newObject.properties    = []
             newObject.propertyTypes = []
@@ -458,8 +454,6 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
             newObject.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             newObject.shouldMigrateObjectRefsToPersistentFlag = False
             nullParentObjectReference = sav_parse.ObjectReference()
-            nullParentObjectReference.levelName = ""
-            nullParentObjectReference.pathName = ""
             newObject.actorReferenceAssociations = [nullParentObjectReference, []]
             newObject.properties    = []
             newObject.propertyTypes = []
@@ -1632,19 +1626,16 @@ if __name__ == '__main__':
 
             if replacementHotbarItemNewClassName == "FGRecipeShortcut":
                newRecipeObjectReference = sav_parse.ObjectReference()
-               newRecipeObjectReference.levelName = ""
                newRecipeObjectReference.pathName = replacementHotbarItem
                newObject.properties    = [("mRecipeToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mRecipeToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGFactoryCustomizationShortcut":
                newRecipeObjectReference = sav_parse.ObjectReference()
-               newRecipeObjectReference.levelName = ""
                newRecipeObjectReference.pathName = replacementHotbarItem
                newObject.properties    = [("mCustomizationRecipeToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mCustomizationRecipeToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGEmoteShortcut":
                newRecipeObjectReference = sav_parse.ObjectReference()
-               newRecipeObjectReference.levelName = ""
                newRecipeObjectReference.pathName = replacementHotbarItem
                newObject.properties    = [("mEmoteToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mEmoteToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
@@ -2167,7 +2158,6 @@ if __name__ == '__main__':
          lastObjectReference.levelName = "Persistent_Level"
          lastObjectReference.pathName = newVehicleTargetPoints[-1]
          vehicleObjectReference = sav_parse.ObjectReference()
-         vehicleObjectReference.levelName = ""
          vehicleObjectReference.pathName = jdata["mVehicleType"]
          object.properties = [
             ["mFirst", firstObjectReference],
@@ -2238,8 +2228,6 @@ if __name__ == '__main__':
          object.objectGameVersion = parsedSave.saveFileInfo.saveVersion
          object.shouldMigrateObjectRefsToPersistentFlag = False
          parentObjectReference = sav_parse.ObjectReference()
-         parentObjectReference.levelName = ""
-         parentObjectReference.pathName = ""
          object.actorReferenceAssociations = [parentObjectReference, []]
          firstObjectReference = sav_parse.ObjectReference()
          firstObjectReference.levelName = "Persistent_Level"
