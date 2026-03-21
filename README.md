@@ -3,8 +3,7 @@
 Copyright (c) 2024-2026 [GreyHak](https://github.com/GreyHak)
 
 A set of Python tools for parsing Satisfactory save files, and then displaying
-and manipulating the contents.  Supports Satisfactory releases v1.1.1.6,
-v1.1.1.7, v1.1.2.0, v1.1.2.1, v1.1.2.2, v1.1.3.0, v1.1.3.1 and v1.2.0.0.
+and manipulating the contents.  Supports Satisfactory release v1.2.0.0.
 
 [Satisfactory](https://www.satisfactorygame.com/) is a non-competitive,
 first-person, open-world, factory-building and exploration game produced by
@@ -18,6 +17,7 @@ Table of Contents:
 - [sav_cli.py](#sav_clipy) - Save editor CLI
 - [sav_to_html.py](#sav_to_htmlpy) - HTML and Map generator
 - [sav_monitor.py](#sav_monitorpy) - Automation for sav_to_html.py
+- [Support for older save files](#Support_for_older_save_files)
 - [Credits](#credits) and Thanks
 - [License](#license)
 
@@ -216,6 +216,23 @@ The default `[monitor-period]` is 1.0 second.  Settings between 0.2 and 120.0
 would be completely reasonable.
 
 Archiving is only performed if the `[archive-directory]` is provided and exists.
+
+## Support for older save files
+
+The main branch and latest release supports Satisfactory release v1.2.0.0.
+
+The main branch and latest release of `sav_parse.py` and `save_to_resave.py`
+scripts also support releases v1.1.1.6, v1.1.1.7, v1.1.2.0, v1.1.2.1,
+v1.1.2.2, v1.1.3.0, and v1.1.3.1, but the supporting `sav_data`, and therefore
+the tools `sav_cli.py`, `sav_to_html.py` and `sav_monitor.py` are not
+supported.  If you want `sav_cli.py` or `sav_to_html.py` for these, please use
+[release v1.14](https://github.com/GreyHak/sat_sav_parse/releases/tag/v1.14).
+
+For v1.0.0.7, please use [release v1.6](https://github.com/GreyHak/sat_sav_parse/releases/tag/v1.6).
+
+For v1.0.0.4, please use [release v1.5](https://github.com/GreyHak/sat_sav_parse/releases/tag/v1.5).
+
+For v1.0.0.3, please use [release v1.1](https://github.com/GreyHak/sat_sav_parse/releases/tag/v1.1).
 
 ## Credits
 
