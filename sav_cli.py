@@ -736,6 +736,26 @@ if __name__ == '__main__':
                   if mCheatNoCost is not None:
                      print(f"Game State, mCheatNoCost: {mCheatNoCost}")
 
+                  # Game Modes
+                  mEnergyCostMultiplier = sav_parse.getPropertyValue(object.properties, "mEnergyCostMultiplier")
+                  if mEnergyCostMultiplier is not None:
+                     print(f"Game State, mEnergyCostMultiplier: {mEnergyCostMultiplier}")
+                  mPartsCostMultiplier = sav_parse.getPropertyValue(object.properties, "mPartsCostMultiplier")
+                  if mPartsCostMultiplier is not None:
+                     print(f"Game State, mPartsCostMultiplier: {mPartsCostMultiplier}")
+                  mSpacePartsCostMultiplier = sav_parse.getPropertyValue(object.properties, "mSpacePartsCostMultiplier")
+                  if mSpacePartsCostMultiplier is not None:
+                     print(f"Game State, mSpacePartsCostMultiplier: {mSpacePartsCostMultiplier}")
+                  mNodeRandomization = sav_parse.getPropertyValue(object.properties, "mNodeRandomization")
+                  if mNodeRandomization is not None:
+                     print(f"Game State, mNodeRandomization: {mNodeRandomization[1].lstrip('ENodeRandomizationMode::NRM_')}")
+                  mNodePuritySettings = sav_parse.getPropertyValue(object.properties, "mNodePuritySettings")
+                  if mNodePuritySettings is not None:
+                     print(f"Game State, mNodePuritySettings: {mNodePuritySettings[1].lstrip('ENodePuritySettings::NPS_')}")
+                  mNodeRandomizationSeed = sav_parse.getPropertyValue(object.properties, "mNodeRandomizationSeed")
+                  if mNodeRandomizationSeed is not None:
+                     print(f"Game State, mNodeRandomizationSeed: {mNodeRandomizationSeed}")
+
          print("Players:")
          for level in parsedSave.levels:
             for object in level.objects:
