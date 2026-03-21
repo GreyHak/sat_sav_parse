@@ -596,6 +596,9 @@ def printUsage() -> None:
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
+   print("   py sav_cli.py --find-node <x> <y>")
+   print("   py sav_cli.py --set-node <name> <type> <purity> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --export-node-types <save-filename> <output-json-filename>")
    print("   py sav_cli.py --export-player-inventory <player-num> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-player-inventory <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --tweak-player-inventory <player-num> <slot-index> <item> <quantity> <original-save-filename> <new-save-filename> [--same-time]")
@@ -1071,6 +1074,170 @@ if __name__ == '__main__':
                               print(f"[{str(idx).rjust(2)}] {str(itemQuantity).rjust(3)} x {itemName}{extraInformationStr}")
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--find-node":
+      targetX = float(sys.argv[2])
+      targetY = float(sys.argv[3])
+
+      # Nodes are roughly +/- 4 wide
+      OFFSET = 5
+      for nodeName in sav_data.resourcePurity.RESOURCE_PURITY:
+         nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[nodeName]
+         (x, y, z) = nodePosition
+         x /= 100
+         y /= 100
+         if x < targetX + OFFSET and x > targetX - OFFSET and y < targetY + OFFSET and y > targetY - OFFSET:
+            print(f"{nodeName[33:]} is as {nodePosition}")
+
+   elif len(sys.argv) in (7, 8) and sys.argv[1] == "--set-node" and os.path.isfile(sys.argv[5]):
+      originalNodeName = sys.argv[2]
+      nodeType = sys.argv[3]
+      nodePurity = sys.argv[4]
+      savFilename = sys.argv[5]
+      outFilename = sys.argv[6]
+      changeTimeFlag = True
+      if len(sys.argv) == 8 and sys.argv[7] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         NODE_TYPES = {
+            "Coal": "/Game/FactoryGame/Resource/RawResources/Coal/Desc_Coal.Desc_Coal_C",
+            "Crude Oil": "/Game/FactoryGame/Resource/RawResources/CrudeOil/Desc_LiquidOil.Desc_LiquidOil_C",
+            "Nitrogen Gas": "/Game/FactoryGame/Resource/RawResources/NitrogenGas/Desc_NitrogenGas.Desc_NitrogenGas_C",
+            "Bauxite": "/Game/FactoryGame/Resource/RawResources/OreBauxite/Desc_OreBauxite.Desc_OreBauxite_C",
+            "Copper Ore": "/Game/FactoryGame/Resource/RawResources/OreCopper/Desc_OreCopper.Desc_OreCopper_C",
+            "Caterium Ore": "/Game/FactoryGame/Resource/RawResources/OreGold/Desc_OreGold.Desc_OreGold_C",
+            "Iron Ore": "/Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C",
+            "Uranium": "/Game/FactoryGame/Resource/RawResources/OreUranium/Desc_OreUranium.Desc_OreUranium_C",
+            "Raw Quartz": "/Game/FactoryGame/Resource/RawResources/RawQuartz/Desc_RawQuartz.Desc_RawQuartz_C",
+            "SAM Ore": "/Game/FactoryGame/Resource/RawResources/SAM/Desc_SAM.Desc_SAM_C",
+            "Limestone": "/Game/FactoryGame/Resource/RawResources/Stone/Desc_Stone.Desc_Stone_C",
+            "Sulfur": "/Game/FactoryGame/Resource/RawResources/Sulfur/Desc_Sulfur.Desc_Sulfur_C",
+            "Water": "/Game/FactoryGame/Resource/RawResources/Water/Desc_Water.Desc_Water_C"}
+         NODE_PURITIES = {"Impure": "RP_Impure", "Normal": "RP_Normal", "Pure": "RP_Pure"}
+
+         if nodeType not in NODE_TYPES:
+            print(f"ERROR: Invalid node type '{nodeType}'")
+            exit(1)
+         if nodePurity not in NODE_PURITIES:
+            print(f"ERROR: Invalid node purity '{nodePurity}'")
+            exit(1)
+
+         nodeType = NODE_TYPES[nodeType]
+         nodePurity = NODE_PURITIES[nodePurity]
+         nodeName = f"Persistent_Level:PersistentLevel.{originalNodeName}"
+
+         if nodeName not in sav_data.resourcePurity.RESOURCE_PURITY:
+            print(f"ERROR: Invalid node name '{originalNodeName}'")
+            exit(1)
+
+         level = parsedSave.levels[-1]
+         for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+            if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and \
+                  actorOrComponentObjectHeader.typePath in ("/Game/FactoryGame/Resource/BP_ResourceNode.BP_ResourceNode_C",
+                                                            "/Game/FactoryGame/Resource/BP_FrackingCore.BP_FrackingCore_C",
+                                                            "/Game/FactoryGame/Resource/BP_FrackingSatellite.BP_FrackingSatellite_C") and \
+                  actorOrComponentObjectHeader.instanceName == nodeName:
+               # Note is confirmed to be the correct typePath, so continue
+               for object in level.objects:
+                  if object.instanceName == nodeName:
+                     purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
+                     if purityOverride:
+                        purityOverride[1] = nodePurity
+                     elif actorOrComponentObjectHeader.typePath != "/Game/FactoryGame/Resource/BP_FrackingCore.BP_FrackingCore_C":
+                        object.properties.append(["mPurityOverride", ["EResourcePurity", nodePurity]])
+                        object.propertyTypes.append(["mPurityOverride", "ByteProperty", 1, "EResourcePurity", ["/Script/FactoryGame"]])
+
+                     resourceClassOverride = sav_parse.getPropertyValue(object.properties, "mResourceClassOverride")
+                     if resourceClassOverride:
+                        resourceClassOverride.pathName = nodeType
+                        print(f"Changed {object.instanceName} to a {purityOverride[1]} {resourceClassOverride.pathName}")
+                     else:
+                        resourceClassOverride = sav_parse.ObjectReference()
+                        resourceClassOverride.pathName = nodeType
+                        object.properties.append(["mResourceClassOverride", resourceClassOverride])
+                        object.propertyTypes.append(["mResourceClassOverride", "ObjectProperty", 0])
+                        print(f"Setting {object.instanceName} to a {nodePurity} {resourceClassOverride.pathName}")
+                     modifiedFlag = True
+                     break
+               break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: Failed to find node '{originalNodeName}' to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--export-node-types" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         # Note: Fracking Cores have mResourceClassOverride, but don't have mPurityOverride
+
+         nodeListing = {}
+
+         PURITY_TRANSLATION = {
+            sav_data.resourcePurity.Purity.IMPURE: "Impure",
+            sav_data.resourcePurity.Purity.NORMAL: "Normal",
+            sav_data.resourcePurity.Purity.PURE: "Pure"}
+         cores = []
+         for nodeName in sav_data.resourcePurity.RESOURCE_PURITY:
+            nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[nodeName]
+            if nodeType != "Desc_Geyser_C":
+               nodeListing[nodeName] = (sav_parse.pathNameToReadableName(nodeType), PURITY_TRANSLATION[nodePurity], "Absent")
+               if nodeCore is not None:
+                  if nodeCore in cores:
+                     nodeListing[nodeName] = (sav_parse.pathNameToReadableName(nodeType), None, "Absent")
+                  else:
+                     cores.append(nodeCore)
+
+         nodes = []
+         level = parsedSave.levels[-1]
+         for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+            if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and \
+                  actorOrComponentObjectHeader.typePath in ("/Game/FactoryGame/Resource/BP_ResourceNode.BP_ResourceNode_C",
+                                                            "/Game/FactoryGame/Resource/BP_FrackingCore.BP_FrackingCore_C",
+                                                            "/Game/FactoryGame/Resource/BP_FrackingSatellite.BP_FrackingSatellite_C"):
+               nodes.append(actorOrComponentObjectHeader.instanceName)
+         for object in level.objects:
+            if object.instanceName in nodes:
+               nodeType = None
+               resourceClassOverride = sav_parse.getPropertyValue(object.properties, "mResourceClassOverride")
+               if resourceClassOverride:
+                  nodeType = sav_parse.pathNameToReadableName(resourceClassOverride.pathName)
+               nodePurity = None
+               purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
+               if purityOverride:
+                  nodePurity = purityOverride[1][3:]
+               nodeListing[object.instanceName] = (nodeType, nodePurity, "Present")
+
+         jdata = {}
+         for nodePathName in sorted(nodeListing.keys()):
+            jdata[nodePathName[33:]] = nodeListing[nodePathName]
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      print(f"Writing {outFilename}")
+      with open(outFilename, "w") as fout:
+         json.dump(jdata, fout, indent=2)
 
    elif len(sys.argv) == 5 and sys.argv[1] == "--export-player-inventory" and os.path.isfile(sys.argv[3]):
       playerId = sys.argv[2]
