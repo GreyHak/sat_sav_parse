@@ -1836,7 +1836,10 @@ if __name__ == '__main__':
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == SOMERSLOOP:
                         # scale=(1.600000023841858, 1.600000023841858, 1.600000023841858)
-                        somersloopOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}),\n')
+                        extras = None
+                        #if actorOrComponentObjectHeader.instanceName in sav_data.somersloop.SOMERSLOOPS:
+                        #   extras = sav_data.somersloop.SOMERSLOOPS[actorOrComponentObjectHeader.instanceName][3]
+                        somersloopOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}, {extras}),\n')
             somersloopOut.write("} # SOMERSLOOPS\n")
 
          with open(mercerSphereOutputFilename, "w") as mercerSphereOut:
@@ -1847,7 +1850,10 @@ if __name__ == '__main__':
                   if isinstance(actorOrComponentObjectHeader, ActorHeader):
                      if actorOrComponentObjectHeader.typePath == MERCER_SPHERE:
                         # scale=(2.700000047683716, 2.6999998092651367, 2.6999998092651367)
-                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}),\n')
+                        extras = None
+                        #if actorOrComponentObjectHeader.instanceName in sav_data.mercerSphere.MERCER_SPHERES:
+                        #   extras = sav_data.mercerSphere.MERCER_SPHERES[actorOrComponentObjectHeader.instanceName][3]
+                        mercerSphereOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}, {extras}),\n')
             mercerSphereOut.write("} # MERCER_SPHERES\n")
             mercerSphereOut.write("MERCER_SHRINES = {\n")
             for level in parsedSave.levels:
@@ -1898,6 +1904,7 @@ if __name__ == '__main__':
                               if item not in specificItems:
                                  specificItems[item] = []
                               specificItems[item].append([object.instanceName, numItems, items[object.instanceName]])
+            specificItems = dict(sorted(specificItems.items()))
             dropOut.write("# Exported from Satisfactory\n")
             dropOut.write("FREE_DROPPED_ITEMS = {\n")
             for item in specificItems:
@@ -1918,7 +1925,10 @@ if __name__ == '__main__':
                         # actorOrComponentObjectHeader.wasPlacedInLevel always True
                         # actorOrComponentObjectHeader.scale always [1.0, 1.0, 1.0]
                         # actorOrComponentObjectHeader.flags always 2621448
-                        csOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}),\n')
+                        extras = None
+                        #if actorOrComponentObjectHeader.instanceName in sav_data.crashSites.CRASH_SITES:
+                        #   extras = sav_data.crashSites.CRASH_SITES[actorOrComponentObjectHeader.instanceName][3]
+                        csOut.write(f'   "{actorOrComponentObjectHeader.instanceName}": ("{actorOrComponentObjectHeader.rootObject}", {tuple(actorOrComponentObjectHeader.rotation)}, {tuple(actorOrComponentObjectHeader.position)}, {extras}),\n')
             csOut.write("} # CRASH_SITES\n")
 
       except Exception as error:

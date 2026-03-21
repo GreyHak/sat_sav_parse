@@ -1,4 +1,4 @@
-# Exported from Satisfactory v1.1.1.6
+# Exported from Satisfactory v1.2.0.0 (same as v1.1.1.6)
 # "cost"  from https://satisfactory.wiki.gg/wiki/Crash_Site
 # "power" from https://satisfactory.wiki.gg/wiki/Crash_Site
 # "access": "foundations", "flight suggested", or "flight recommended"
@@ -62,7 +62,7 @@ CRASH_SITES = {
    "Persistent_Level:PersistentLevel.BP_DropPod3_11": ("0L3U6CJKG4MQPRI2EOOXU0CBK", (-0.7320746183395386, -0.2716725468635559, 0.12093357741832733, 0.6128913760185242), (-40194.1171875, 62956.59375, 26261.65625), {"cost": ("Aluminum Casing", 5), "access": "flight recommended", "sentry": [("Desc_HogNuclear_C", 2)]}),
    "Persistent_Level:PersistentLevel.BP_DropPod3_12": ("27U1EWROJ3R69KNVM1DYRUYLL", (0.010814026929438114, 0.07272276282310486, 0.49785104393959045, 0.864140510559082), (190459.03125, 176105.3125, 11478.5673828125), {"cost": ("Plastic", 20), "access": "foundations"}),
    "Persistent_Level:PersistentLevel.BP_DropPod3_2": ("DU5G5MM6ATHZG5C03HBSN73BY", (-0.09654461592435837, 0.22426027059555054, 0.05292529985308647, 0.9682899117469788), (-56144.28125, -72864.0546875, 27668.361328125), {"cost": ("Quartz Crystal", 2), "access": "flight suggested", "sentry": [("Desc_HogAlpha_C", 1), ("Desc_HogBasic_C", 2)]}),
-   "Persistent_Level:PersistentLevel.BP_DropPod3_24": ("85K5L1F77NVGN8OYET0M9D08H", (-0.14380566775798798, -0.11783089488744736, -0.9748280048370361, 0.12306981533765793), (-3511.89208984375, 62314.76953125, 22109.423828125), {"cost": ("Turbo Motor", 1), }),
+   "Persistent_Level:PersistentLevel.BP_DropPod3_24": ("85K5L1F77NVGN8OYET0M9D08H", (-0.14380566775798798, -0.11783089488744736, -0.9748280048370361, 0.12306981533765793), (-3511.89208984375, 62314.76953125, 22109.423828125), {"cost": ("Turbo Motor", 1)}),
    "Persistent_Level:PersistentLevel.BP_DropPod3_3": ("2IOAY27OEM8AMOD40TE15D5UU", (-0.32104745507240295, -0.41726598143577576, 0.5842580795288086, 0.6176245808601379), (291821.78125, 74782.0546875, -1574.70361328125), {"cost": ("Heavy Modular Frame", 10), "sentry": [("Char_BigCrabHatcher_C", 1), ("Desc_SpitterForest_Alpha_C", 1)]}),
    "Persistent_Level:PersistentLevel.BP_DropPod3_4": ("1KTQFD9Q9EJR3XATZG3BO1POH", (-0.04357928782701492, 0.0435778871178627, -0.0019026738591492176, 0.99809730052948), (94940.0, 105482.9609375, 9860.046875), {"radiation": True, "sentry": [("Desc_HogNuclear_C", 1), ("Desc_StingerAlpha_C", 1), ("Desc_SpitterForest_Alpha_C", 1), ("Desc_HogBasic_C", 2)]}),
    "Persistent_Level:PersistentLevel.BP_DropPod3_5": ("6T513FUPX9OFNEQSO7GAJONY3", (-0.25609827041625977, -0.14459657669067383, 0.6402779817581177, 0.7096123099327087), (28695.544921875, 193441.09375, 17459.802734375), {"cost": ("Steel Beam", 130), "sentry": [("Desc_HogCliff_C", 1), ("Desc_SpitterForest_Small_C", 1)]}),
@@ -126,6 +126,6 @@ CRASH_SITES = {
    "Persistent_Level:PersistentLevel.BP_DropPod_C_UAID_04421A9713F0FF6301_1123988602": ("4SB9TE4PJA5D3B0GHWPFUUULG", (0.0, 0.0, 0.0, 1.0), (182825.0, 93880.0, 17755.0), {"cost": ("Aluminum Casing", 10), "access": "flight recommended", "gas": "BP_VolumeGas_01_C"}),
 } # CRASH_SITES
 
-if __name__ == '__main__':
+if __name__ == "__main__":
    for name in CRASH_SITES:
       print(CRASH_SITES[name])
