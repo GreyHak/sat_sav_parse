@@ -1195,18 +1195,22 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--find-node":
-      targetX = float(sys.argv[2])
-      targetY = float(sys.argv[3])
+      target = (float(sys.argv[2]), float(sys.argv[3]))
 
-      # Nodes are roughly +/- 4 wide
-      OFFSET = 5
+      closestNodeName = None
+      closestNodeDistance = None
+      closestNodePosition = None
+
       for nodeName in sav_data.resourcePurity.RESOURCE_PURITY:
          nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[nodeName]
-         (x, y, z) = nodePosition
-         x /= 100
-         y /= 100
-         if x < targetX + OFFSET and x > targetX - OFFSET and y < targetY + OFFSET and y > targetY - OFFSET:
-            print(f"{nodeName[33:]} is as {nodePosition}")
+         (x, y, _) = nodePosition
+         distance = math.dist(target, (x / 100, y / 100))
+         if closestNodeName is None or distance < closestNodeDistance:
+            closestNodeName = nodeName
+            closestNodeDistance = distance
+            closestNodePosition = nodePosition
+
+      print(f"{closestNodeName[33:]} is at {closestNodePosition} at a distance of {closestNodeDistance} meters.")
 
    elif len(sys.argv) in (7, 8) and sys.argv[1] == "--set-node" and os.path.isfile(sys.argv[5]):
       nodeName = sys.argv[2]
