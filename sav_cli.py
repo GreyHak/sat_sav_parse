@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import enum
 import datetime
 import json
 import math
@@ -586,6 +587,103 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
                return True
    return False
 
+class ChangeResultEnum(enum.Enum):
+   NO_CHANGE = 0
+   CHANGE = 1
+   ERROR = 2
+
+def setNodeType(originalNodeName, nodeType, nodePurity):
+
+   LIQUID_OIL = "/Game/FactoryGame/Resource/RawResources/CrudeOil/Desc_LiquidOil.Desc_LiquidOil_C"
+   ITEM_NODE_TYPES = {
+      "Coal": "/Game/FactoryGame/Resource/RawResources/Coal/Desc_Coal.Desc_Coal_C",
+      "Bauxite": "/Game/FactoryGame/Resource/RawResources/OreBauxite/Desc_OreBauxite.Desc_OreBauxite_C",
+      "Copper Ore": "/Game/FactoryGame/Resource/RawResources/OreCopper/Desc_OreCopper.Desc_OreCopper_C",
+      "Caterium Ore": "/Game/FactoryGame/Resource/RawResources/OreGold/Desc_OreGold.Desc_OreGold_C",
+      "Crude Oil": LIQUID_OIL,
+      "Iron Ore": "/Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C",
+      "Uranium": "/Game/FactoryGame/Resource/RawResources/OreUranium/Desc_OreUranium.Desc_OreUranium_C",
+      "Raw Quartz": "/Game/FactoryGame/Resource/RawResources/RawQuartz/Desc_RawQuartz.Desc_RawQuartz_C",
+      "SAM Ore": "/Game/FactoryGame/Resource/RawResources/SAM/Desc_SAM.Desc_SAM_C",
+      "Limestone": "/Game/FactoryGame/Resource/RawResources/Stone/Desc_Stone.Desc_Stone_C",
+      "Sulfur": "/Game/FactoryGame/Resource/RawResources/Sulfur/Desc_Sulfur.Desc_Sulfur_C"}
+   FRACKING_NODE_TYPES = {
+      "Crude Oil": LIQUID_OIL,
+      "Nitrogen Gas": "/Game/FactoryGame/Resource/RawResources/NitrogenGas/Desc_NitrogenGas.Desc_NitrogenGas_C",
+      "Water": "/Game/FactoryGame/Resource/RawResources/Water/Desc_Water.Desc_Water_C"}
+   NODE_PURITIES = {"Impure": "RP_Impure", "Normal": "RP_Normal", "Pure": "RP_Pure"}
+
+   if nodeType in ITEM_NODE_TYPES:
+      requestedTypeIsFrackingFlag = False
+      nodeType = ITEM_NODE_TYPES[nodeType]
+   elif nodeType in FRACKING_NODE_TYPES:
+      requestedTypeIsFrackingFlag = True
+      nodeType = FRACKING_NODE_TYPES[nodeType]
+   else:
+      return (ChangeResultEnum.ERROR, f"ERROR: Invalid node type '{nodeType}'")
+
+   if nodePurity is not None:
+      if nodePurity not in NODE_PURITIES:
+         return (ChangeResultEnum.ERROR, f"ERROR: Invalid node purity '{nodePurity}'")
+      nodePurity = NODE_PURITIES[nodePurity]
+
+   nodeName = f"Persistent_Level:PersistentLevel.{originalNodeName}"
+
+   level = parsedSave.levels[-1]
+   for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+      if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and \
+            actorOrComponentObjectHeader.typePath in ("/Game/FactoryGame/Resource/BP_ResourceNode.BP_ResourceNode_C",
+                                                      "/Game/FactoryGame/Resource/BP_FrackingCore.BP_FrackingCore_C",
+                                                      "/Game/FactoryGame/Resource/BP_FrackingSatellite.BP_FrackingSatellite_C") and \
+            actorOrComponentObjectHeader.instanceName == nodeName:
+         # Note is confirmed to be the correct typePath, so continue
+         for object in level.objects:
+            if object.instanceName == nodeName:
+               if nodeType != LIQUID_OIL:
+                  requestedNodeIsFrackingFlag = actorOrComponentObjectHeader.typePath != "/Game/FactoryGame/Resource/BP_ResourceNode.BP_ResourceNode_C"
+                  if requestedTypeIsFrackingFlag != requestedNodeIsFrackingFlag:
+                     return (ChangeResultEnum.ERROR, f"ERROR: Mismatch between {originalNodeName} type {actorOrComponentObjectHeader.typePath} and new type {nodeType}")
+
+               successType = ChangeResultEnum.NO_CHANGE
+               successMessage = f"{object.instanceName}:"
+
+               resourceClassOverride = sav_parse.getPropertyValue(object.properties, "mResourceClassOverride")
+               if resourceClassOverride:
+                  if resourceClassOverride.pathName != nodeType:
+                     successMessage += f" Changed type from {sav_parse.pathNameToReadableName(resourceClassOverride.pathName)} to {sav_parse.pathNameToReadableName(nodeType)}."
+                     resourceClassOverride.pathName = nodeType
+                     successType = ChangeResultEnum.CHANGE
+                  else:
+                     successMessage += f" Type already {sav_parse.pathNameToReadableName(nodeType)}."
+               else:
+                  resourceClassOverride = sav_parse.ObjectReference()
+                  resourceClassOverride.pathName = nodeType
+                  object.properties.append(["mResourceClassOverride", resourceClassOverride])
+                  object.propertyTypes.append(["mResourceClassOverride", "ObjectProperty", 0])
+                  successMessage += f" Setting type to {sav_parse.pathNameToReadableName(nodeType)}."
+                  successType = ChangeResultEnum.CHANGE
+
+               purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
+               if purityOverride:
+                  if purityOverride[1] != nodePurity:
+                     successMessage += f" Changed purity from {purityOverride[1]} to {nodePurity}."
+                     purityOverride[1] = nodePurity
+                     successType = ChangeResultEnum.CHANGE
+                  else:
+                     successMessage += f" Purity already {nodePurity}."
+               elif actorOrComponentObjectHeader.typePath != "/Game/FactoryGame/Resource/BP_FrackingCore.BP_FrackingCore_C":
+                  object.properties.append(["mPurityOverride", ["EResourcePurity", nodePurity]])
+                  object.propertyTypes.append(["mPurityOverride", "ByteProperty", 1, "EResourcePurity", ["/Script/FactoryGame"]])
+                  successMessage += f" Setting purity to {nodePurity}."
+                  successType = ChangeResultEnum.CHANGE
+
+               return (successType, successMessage)
+
+   if nodeName not in sav_data.resourcePurity.RESOURCE_PURITY:
+      return (ChangeResultEnum.ERROR, f"ERROR: Invalid node name '{originalNodeName}'")
+   else:
+      return (ChangeResultEnum.ERROR, f"ERROR: Node not found '{originalNodeName}'")
+
 def printUsage() -> None:
    print()
    print("USAGE:")
@@ -599,6 +697,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --find-node <x> <y>")
    print("   py sav_cli.py --set-node <name> <type> <purity> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-node-types <save-filename> <output-json-filename>")
+   print("   py sav_cli.py --import-node-types <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-player-inventory <player-num> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-player-inventory <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --tweak-player-inventory <player-num> <slot-index> <item> <quantity> <original-save-filename> <new-save-filename> [--same-time]")
@@ -1110,7 +1209,7 @@ if __name__ == '__main__':
             print(f"{nodeName[33:]} is as {nodePosition}")
 
    elif len(sys.argv) in (7, 8) and sys.argv[1] == "--set-node" and os.path.isfile(sys.argv[5]):
-      originalNodeName = sys.argv[2]
+      nodeName = sys.argv[2]
       nodeType = sys.argv[3]
       nodePurity = sys.argv[4]
       savFilename = sys.argv[5]
@@ -1123,67 +1222,9 @@ if __name__ == '__main__':
       try:
          parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-         NODE_TYPES = {
-            "Coal": "/Game/FactoryGame/Resource/RawResources/Coal/Desc_Coal.Desc_Coal_C",
-            "Crude Oil": "/Game/FactoryGame/Resource/RawResources/CrudeOil/Desc_LiquidOil.Desc_LiquidOil_C",
-            "Nitrogen Gas": "/Game/FactoryGame/Resource/RawResources/NitrogenGas/Desc_NitrogenGas.Desc_NitrogenGas_C",
-            "Bauxite": "/Game/FactoryGame/Resource/RawResources/OreBauxite/Desc_OreBauxite.Desc_OreBauxite_C",
-            "Copper Ore": "/Game/FactoryGame/Resource/RawResources/OreCopper/Desc_OreCopper.Desc_OreCopper_C",
-            "Caterium Ore": "/Game/FactoryGame/Resource/RawResources/OreGold/Desc_OreGold.Desc_OreGold_C",
-            "Iron Ore": "/Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C",
-            "Uranium": "/Game/FactoryGame/Resource/RawResources/OreUranium/Desc_OreUranium.Desc_OreUranium_C",
-            "Raw Quartz": "/Game/FactoryGame/Resource/RawResources/RawQuartz/Desc_RawQuartz.Desc_RawQuartz_C",
-            "SAM Ore": "/Game/FactoryGame/Resource/RawResources/SAM/Desc_SAM.Desc_SAM_C",
-            "Limestone": "/Game/FactoryGame/Resource/RawResources/Stone/Desc_Stone.Desc_Stone_C",
-            "Sulfur": "/Game/FactoryGame/Resource/RawResources/Sulfur/Desc_Sulfur.Desc_Sulfur_C",
-            "Water": "/Game/FactoryGame/Resource/RawResources/Water/Desc_Water.Desc_Water_C"}
-         NODE_PURITIES = {"Impure": "RP_Impure", "Normal": "RP_Normal", "Pure": "RP_Pure"}
-
-         if nodeType not in NODE_TYPES:
-            print(f"ERROR: Invalid node type '{nodeType}'")
-            exit(1)
-         if nodePurity not in NODE_PURITIES:
-            print(f"ERROR: Invalid node purity '{nodePurity}'")
-            exit(1)
-
-         nodeType = NODE_TYPES[nodeType]
-         nodePurity = NODE_PURITIES[nodePurity]
-         nodeName = f"Persistent_Level:PersistentLevel.{originalNodeName}"
-
-         if nodeName not in sav_data.resourcePurity.RESOURCE_PURITY:
-            print(f"ERROR: Invalid node name '{originalNodeName}'")
-            exit(1)
-
-         level = parsedSave.levels[-1]
-         for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
-            if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and \
-                  actorOrComponentObjectHeader.typePath in ("/Game/FactoryGame/Resource/BP_ResourceNode.BP_ResourceNode_C",
-                                                            "/Game/FactoryGame/Resource/BP_FrackingCore.BP_FrackingCore_C",
-                                                            "/Game/FactoryGame/Resource/BP_FrackingSatellite.BP_FrackingSatellite_C") and \
-                  actorOrComponentObjectHeader.instanceName == nodeName:
-               # Note is confirmed to be the correct typePath, so continue
-               for object in level.objects:
-                  if object.instanceName == nodeName:
-                     purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
-                     if purityOverride:
-                        purityOverride[1] = nodePurity
-                     elif actorOrComponentObjectHeader.typePath != "/Game/FactoryGame/Resource/BP_FrackingCore.BP_FrackingCore_C":
-                        object.properties.append(["mPurityOverride", ["EResourcePurity", nodePurity]])
-                        object.propertyTypes.append(["mPurityOverride", "ByteProperty", 1, "EResourcePurity", ["/Script/FactoryGame"]])
-
-                     resourceClassOverride = sav_parse.getPropertyValue(object.properties, "mResourceClassOverride")
-                     if resourceClassOverride:
-                        resourceClassOverride.pathName = nodeType
-                        print(f"Changed {object.instanceName} to a {purityOverride[1]} {resourceClassOverride.pathName}")
-                     else:
-                        resourceClassOverride = sav_parse.ObjectReference()
-                        resourceClassOverride.pathName = nodeType
-                        object.properties.append(["mResourceClassOverride", resourceClassOverride])
-                        object.propertyTypes.append(["mResourceClassOverride", "ObjectProperty", 0])
-                        print(f"Setting {object.instanceName} to a {nodePurity} {resourceClassOverride.pathName}")
-                     modifiedFlag = True
-                     break
-               break
+         (resultStatus, resultMessage) = setNodeType(nodeName, nodeType, nodePurity)
+         modifiedFlag = resultStatus == ChangeResultEnum.CHANGE
+         print(resultMessage)
 
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
@@ -1258,6 +1299,48 @@ if __name__ == '__main__':
       print(f"Writing {outFilename}")
       with open(outFilename, "w") as fout:
          json.dump(jdata, fout, indent=2)
+
+   elif len(sys.argv) in (5, 6) and sys.argv[1] == "--import-node-types" and os.path.isfile(sys.argv[2]) and os.path.isfile(sys.argv[3]):
+      savFilename = sys.argv[2]
+      inFilename = sys.argv[3]
+      outFilename = sys.argv[4]
+      changeTimeFlag = True
+      if len(sys.argv) == 6 and sys.argv[5] == "--same-time":
+         changeTimeFlag = False
+
+      with open(inFilename, "r") as fin:
+         jdata = json.load(fin)
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         for nodeName in jdata:
+            nodeType, nodePurity = jdata[nodeName][:2]
+            (resultStatus, resultMessage) = setNodeType(nodeName, nodeType, nodePurity)
+            print(resultMessage)
+
+            if resultStatus == ChangeResultEnum.ERROR:
+               exit(1)
+            elif resultStatus == ChangeResultEnum.CHANGE:
+               modifiedFlag = True
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("ERROR: All resource nodes already match json.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) == 5 and sys.argv[1] == "--export-player-inventory" and os.path.isfile(sys.argv[3]):
       playerId = sys.argv[2]
