@@ -152,9 +152,16 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_ElevatorFloorStop_C": "Elevator Floor Stop",
    "Build_Elevator_C": "Personnel Elevator",
    "Build_Fence_01_C": "Industrial Railing",
+   "Build_FenceRamp_8x1_L_C": "Industrial Railing, Left (1 m)",
+   "Build_FenceRamp_8x1_R_C": "Industrial Railing, Right (1 m)",
+   "Build_FenceRamp_8x2_L_C": "Industrial Railing, Left (2 m)",
+   "Build_FenceRamp_8x2_R_C": "Industrial Railing, Right (2 m)",
+   "Build_FenceRamp_8x4_L_C": "Industrial Railing, Left (4 m)",
+   "Build_FenceRamp_8x4_R_C": "Industrial Railing, Right (4 m)",
    "Build_Flat_Frame_01_C": "Frame Floor",
    "Build_FloodlightPole_C": "Flood Light Tower",
    "Build_FloodlightWall_C": "Wall Mounted Flood Light",
+   "Build_FluidTruckStation_C": "Fluid Truck Station",
    "Build_FoundationGlass_01_C": "Glass Frame Foundation",
    "Build_FoundationPassthrough_Hypertube_C": "Hypertube Floor Hole",
    "Build_FoundationPassthrough_Lift_C": "Conveyor Lift Floor Hole",
@@ -278,6 +285,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_PipeSupportStackable_C": "Stackable Pipeline Support",
    "Build_PipelineFlowIndicator_C": "Pipeline Flow Indicator",  # Part of a Pipeline
    "Build_PipelineJunction_Cross_C": "Pipeline Junction Cross",
+   "Build_PipelineJunction_T_C": "Pipeline T-Junction",
    "Build_PipelineMK2_C": "Pipeline Mk.2",
    "Build_PipelineMK2_NoIndicator_C": "Pipeline Mk.2 (No Indicator)",
    "Build_PipelinePumpMk2_C": "Pipeline Pump Mk.2",
@@ -496,9 +504,9 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_SignPole_Large_C": "Sign Pole, Large", # Not a separate item
    "Build_SignPole_Medium_C": "Sign Pole, Medium", # Not a separate item
    "Build_SignPole_Portrait_C": "Sign Pole, Portrait", # Not a separate item
-   "Build_SM_RailingRamp_8x1_01_C": "SM_RailingRamp_8x1_01",
-   "Build_SM_RailingRamp_8x2_01_C": "SM_RailingRamp_8x2_01",
-   "Build_SM_RailingRamp_8x4_01_C": "SM_RailingRamp_8x4_01",
+   "Build_SM_RailingRamp_8x1_01_C": "Modern Railing (1 m)",
+   "Build_SM_RailingRamp_8x2_01_C": "Modern Railing (2 m)",
+   "Build_SM_RailingRamp_8x4_01_C": "Modern Railing (4 m)",
    "Build_SmelterMk1_C": "Smelter",
    "Build_SMM_C": "Somersloop Finder", # Mod: Somersloop Finder
    "Build_SnowCannon_C": "FICSMAS Snow Cannon",
@@ -507,7 +515,9 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_SpaceElevator_C": "Space Elevator",
    "Build_Stairs_Left_01_C": "Stairs Left",
    "Build_Stairs_Right_01_C": "Stairs Right",
-   # "Build_Stair_FicsitSet_8x4_01_C": "TODO: UNKNOWN",
+   "Build_Stair_FicsitSet_8x1_01_C": "Foundation Stairs (1 m)",
+   "Build_Stair_FicsitSet_8x2_01_C": "Foundation Stairs (2 m)",
+   "Build_Stair_FicsitSet_8x4_01_C": "Foundation Stairs (4 m)",
    "Build_StandaloneWidgetSign_Huge_C": "Large Billboard",
    "Build_StandaloneWidgetSign_Large_C": "Small Billboard",
    "Build_StandaloneWidgetSign_Medium_C": "Display Sign",
