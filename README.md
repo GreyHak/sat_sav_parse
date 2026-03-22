@@ -17,7 +17,7 @@ Table of Contents:
 - [sav_cli.py](#sav_clipy) - Save editor CLI
 - [sav_to_html.py](#sav_to_htmlpy) - HTML and Map generator
 - [sav_monitor.py](#sav_monitorpy) - Automation for sav_to_html.py
-- [Support for older save files](#Support_for_older_save_files)
+- [Support for older save files](#support-for-older-save-files)
 - [Credits](#credits) and Thanks
 - [License](#license)
 
