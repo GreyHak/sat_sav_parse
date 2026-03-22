@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is part of the Satisfactory Save Parser distribution
 #                                  (https://github.com/GreyHak/sat_sav_parse).
-# Copyright (c) 2024-2025 GreyHak (github.com/GreyHak).
+# Copyright (c) 2024-2026 GreyHak (github.com/GreyHak).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import sys
 
 import sav_parse
 import sav_data.data
+import sav_data.resourcePurity
 
 try:
    from PIL import Image, ImageDraw, ImageFont
@@ -243,8 +244,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
                if typePath in sav_data.data.MINED_RESOURCES:
                   resourceType = None
                   purity = None
-                  if actorOrComponentObjectHeader.instanceName in sav_data.resourcePurity.RESOURCE_PURITY: # Won't be found for BP_FrackingCore_C
-                     (resourceType, purity) = sav_data.resourcePurity.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
+                  if actorOrComponentObjectHeader.instanceName in sav_data.resourcePurity.RESOURCE_PURITY:
+                     (resourceType, purity, position, core) = sav_data.resourcePurity.RESOURCE_PURITY[actorOrComponentObjectHeader.instanceName]
                   minedResourceActors[actorOrComponentObjectHeader.instanceName] = (actorOrComponentObjectHeader.position, resourceType, purity)
                elif typePath in sav_data.data.POWER_LINE:
                   powerLines[actorOrComponentObjectHeader.instanceName] = actorOrComponentObjectHeader.position
