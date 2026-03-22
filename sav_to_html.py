@@ -520,7 +520,10 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          lines += '<ul style="margin-top:0px">\n'
          creaturesKilled.sort(reverse=True, key=lambda x: x[1])
          for (creatureName, killQuantity) in creaturesKilled:
-            shortName = sav_parse.pathNameToReadableName(creatureName)
+            if len(creatureName) == 0:
+               shortName = "&lt;no path name in save file&gt;"
+            else:
+               shortName = sav_parse.pathNameToReadableName(creatureName)
             lines += f"<li>{killQuantity} x {shortName}</li>\n"
          lines += f"<li>Flying Crab Hatchers not tracked as of v1.1.2.2</li>\n"
          lines += "</ul>\n"
