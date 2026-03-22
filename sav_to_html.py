@@ -519,9 +519,9 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          lines += f"{numCreaturesKilled} creatures killed:\n"
          lines += '<ul style="margin-top:0px">\n'
          creaturesKilled.sort(reverse=True, key=lambda x: x[1])
-         for creature in creaturesKilled:
-            shortName = sav_parse.pathNameToReadableName(creature[0])
-            lines += f"<li>{creature[1]} x {shortName}</li>\n"
+         for (creatureName, killQuantity) in creaturesKilled:
+            shortName = sav_parse.pathNameToReadableName(creatureName)
+            lines += f"<li>{killQuantity} x {shortName}</li>\n"
          lines += f"<li>Flying Crab Hatchers not tracked as of v1.1.2.2</li>\n"
          lines += "</ul>\n"
 
@@ -665,7 +665,7 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
          rnImage = origImage.copy()
          rnDraw = ImageDraw.Draw(rnImage)
          for instanceName in minedResourceActors:
-            (position, type, purity) = minedResourceActors[instanceName]
+            (position, nodeType, purity) = minedResourceActors[instanceName]
             posX = adjPos(position[0], False)
             posY = adjPos(position[1], True)
 
@@ -678,8 +678,8 @@ def generateHTML(savFilename: str, outputDir: str = DEFAULT_OUTPUT_DIR, htmlBase
 
             sz -= 1
 
-            if type in MAP_COLOR_NODE_TYPE:
-               rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=MAP_COLOR_NODE_TYPE[type])
+            if nodeType in MAP_COLOR_NODE_TYPE:
+               rnDraw.ellipse((posX-sz, posY-sz, posX+sz, posY+sz), fill=MAP_COLOR_NODE_TYPE[nodeType])
          rnDraw.text(MAP_TEXT_POSITION, parsedSave.saveFileInfo.saveDatetime.strftime(f"Resource Nodes\n{parsedSave.saveFileInfo.sessionName} %m/%d/%Y %I:%M:%S %p"), font=imageFont, fill=MAP_COLOR_TEXT)
          imageFilename = f"{outputDir}/{MAP_BASENAME_RESOURCE_NODES}"
          rnImage.crop(CROP_SETTINGS).save(imageFilename)
