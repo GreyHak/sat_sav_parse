@@ -1212,6 +1212,9 @@ if __name__ == '__main__':
 
       print(f"{closestNodeName[33:]} is at {closestNodePosition} at a distance of {closestNodeDistance} meters.")
 
+      nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[closestNodeName]
+      print(f"   Default setting: {nodePurity.name} {sav_parse.pathNameToReadableName(nodeType)}")
+
    elif len(sys.argv) in (7, 8) and sys.argv[1] == "--set-node" and os.path.isfile(sys.argv[5]):
       nodeName = sys.argv[2]
       nodeType = sys.argv[3]
