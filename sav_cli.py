@@ -695,6 +695,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
    print("   py sav_cli.py --find-node <x> <y>")
+   print("   py sav_cli.py --find-node-near <player-num> <save-filename>")
    print("   py sav_cli.py --set-node <name> <type> <purity> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-node-types <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-node-types <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
@@ -1214,6 +1215,62 @@ if __name__ == '__main__':
 
       nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[closestNodeName]
       print(f"   Default setting: {nodePurity.name} {sav_parse.pathNameToReadableName(nodeType)}")
+
+   elif len(sys.argv) == 4 and sys.argv[1] == "--find-node-near" and os.path.isfile(sys.argv[3]):
+      playerId = sys.argv[2]
+      savFilename = sys.argv[3]
+
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
+
+         target = None
+         for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
+               print(str((playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath)))
+
+               level = parsedSave.levels[-1]
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+                  if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and actorOrComponentObjectHeader.instanceName == characterPlayer:
+                     target = actorOrComponentObjectHeader.position
+
+               break
+
+         if target is None:
+            print(f"Unable to match player '{playerId}'", file=sys.stderr)
+            exit(1)
+
+         closestNodeName = None
+         closestNodeDistance = None
+         closestNodePosition = None
+
+         for nodeName in sav_data.resourcePurity.RESOURCE_PURITY:
+            nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[nodeName]
+            distance = math.dist(target, nodePosition)
+            if closestNodeName is None or distance < closestNodeDistance:
+               closestNodeName = nodeName
+               closestNodeDistance = distance
+               closestNodePosition = nodePosition
+
+         print(f"{closestNodeName[33:]} is at {closestNodePosition} at a distance of {closestNodeDistance} meters.")
+
+         nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[closestNodeName]
+         nodePurity = nodePurity.name.capitalize()
+         print(f"   Default setting: {nodePurity} {sav_parse.pathNameToReadableName(nodeType)}")
+
+         level = parsedSave.levels[-1]
+         for object in level.objects:
+            if object.instanceName == closestNodeName:
+               resourceClassOverride = sav_parse.getPropertyValue(object.properties, "mResourceClassOverride")
+               if resourceClassOverride:
+                  nodeType = resourceClassOverride.pathName
+               purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
+               if purityOverride:
+                  nodePurity = purityOverride[1][3:]
+               print(f"   Current setting: {nodePurity} {sav_parse.pathNameToReadableName(nodeType)}")
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) in (7, 8) and sys.argv[1] == "--set-node" and os.path.isfile(sys.argv[5]):
       nodeName = sys.argv[2]

@@ -971,7 +971,7 @@ def parsePackageName(offset, data):
    if packageNameFlag1:
       (offset, packageName1) = parseString(offset, data)
       packageNames.append(packageName1)
-   
+
       (offset, packageNameFlag23) = parseBool(offset, data, parseUint32, "packageNameFlag2")
       if packageNameFlag23:
          (offset, packageName2) = parseString(offset, data)
@@ -1049,7 +1049,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list, obje
                   retainedPropertyType.extend((valueName, packageNames))
                else:
                   retainedPropertyType.append(None)
-               
+
       (offset, propertySize) = parseUint32(offset, data) # line 2069/2083 (currentPropertyLength)
 
       if not propertyHeaderFlag:

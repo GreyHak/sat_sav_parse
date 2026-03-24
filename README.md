@@ -55,6 +55,7 @@ Usage:
   - `py sav_cli.py --list-players <save-filename>`
   - `py sav_cli.py --list-player-inventory <player-num> <save-filename>`
   - `py sav_cli.py --find-node <x> <y>`
+  - `py sav_cli.py --find-node-near <player-num> <save-filename>`
   - `py sav_cli.py --set-node <name> <type> <purity> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --export-node-types <save-filename> <output-json-filename>`
   - `py sav_cli.py --import-node-types <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
