@@ -694,7 +694,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
-   print("   py sav_cli.py --find-node <x> <y>")
+   print("   py sav_cli.py --find-node <x> <y> [save-filename]")
    print("   py sav_cli.py --find-node-near <player-num> <save-filename>")
    print("   py sav_cli.py --set-node <name> <type> <purity> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-node-types <save-filename> <output-json-filename>")
@@ -1195,26 +1195,48 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
-   elif len(sys.argv) == 4 and sys.argv[1] == "--find-node":
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--find-node" and (len(sys.argv) == 4 or os.path.isfile(sys.argv[4])):
       target = (float(sys.argv[2]), float(sys.argv[3]))
 
-      closestNodeName = None
-      closestNodeDistance = None
-      closestNodePosition = None
+      try:
 
-      for nodeName in sav_data.resourcePurity.RESOURCE_PURITY:
-         nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[nodeName]
-         (x, y, _) = nodePosition
-         distance = math.dist(target, (x / 100, y / 100))
-         if closestNodeName is None or distance < closestNodeDistance:
-            closestNodeName = nodeName
-            closestNodeDistance = distance
-            closestNodePosition = nodePosition
+         if len(sys.argv) == 5:
+            savFilename = sys.argv[4]
+            parsedSave = sav_parse.readFullSaveFile(savFilename)
 
-      print(f"{closestNodeName[33:]} is at {closestNodePosition} at a distance of {closestNodeDistance} meters.")
+         closestNodeName = None
+         closestNodeDistance = None
+         closestNodePosition = None
 
-      nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[closestNodeName]
-      print(f"   Default setting: {nodePurity.name} {sav_parse.pathNameToReadableName(nodeType)}")
+         for nodeName in sav_data.resourcePurity.RESOURCE_PURITY:
+            nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[nodeName]
+            (x, y, _) = nodePosition
+            distance = math.dist(target, (x / 100, y / 100))
+            if closestNodeName is None or distance < closestNodeDistance:
+               closestNodeName = nodeName
+               closestNodeDistance = distance
+               closestNodePosition = nodePosition
+   
+         print(f"{closestNodeName[33:]} is at {closestNodePosition} at a distance of {closestNodeDistance} meters.")
+   
+         nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[closestNodeName]
+         nodePurity = nodePurity.name.capitalize()
+         print(f"   Default setting: {nodePurity} {sav_parse.pathNameToReadableName(nodeType)}")
+
+         if len(sys.argv) == 5:
+            level = parsedSave.levels[-1]
+            for object in level.objects:
+               if object.instanceName == closestNodeName:
+                  resourceClassOverride = sav_parse.getPropertyValue(object.properties, "mResourceClassOverride")
+                  if resourceClassOverride:
+                     nodeType = resourceClassOverride.pathName
+                  purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
+                  if purityOverride:
+                     nodePurity = purityOverride[1][3:]
+                  print(f"   Current setting: {nodePurity} {sav_parse.pathNameToReadableName(nodeType)}")
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    elif len(sys.argv) == 4 and sys.argv[1] == "--find-node-near" and os.path.isfile(sys.argv[3]):
       playerId = sys.argv[2]
