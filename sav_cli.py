@@ -620,7 +620,7 @@ def setNodeType(originalNodeName, nodeType, nodePurity):
       requestedTypeIsFrackingFlag = True
       nodeType = FRACKING_NODE_TYPES[nodeType]
    else:
-      return (ChangeResultEnum.ERROR, f"ERROR: Invalid node type '{nodeType}'")
+      return (ChangeResultEnum.ERROR, f"ERROR: Invalid node type '{nodeType}' for node {originalNodeName}")
 
    if nodePurity is not None:
       if nodePurity not in NODE_PURITIES:
