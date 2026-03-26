@@ -1344,16 +1344,15 @@ if __name__ == '__main__':
             sav_data.resourcePurity.Purity.IMPURE: "Impure",
             sav_data.resourcePurity.Purity.NORMAL: "Normal",
             sav_data.resourcePurity.Purity.PURE: "Pure"}
-         cores = []
+         # One might ask, why loop over RESOURCE_PURITY instead of just check it inside the level.objects loop below.
+         # The reason is specifically because of the nodeCore isn't lookup'able in RESOURCE_PURITY.
          for nodeName in sav_data.resourcePurity.RESOURCE_PURITY:
             nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[nodeName]
             if nodeType != "Desc_Geyser_C":
                nodeListing[nodeName] = (sav_parse.pathNameToReadableName(nodeType), PURITY_TRANSLATION[nodePurity], "Absent")
                if nodeCore is not None:
-                  if nodeCore in cores:
-                     nodeListing[nodeName] = (sav_parse.pathNameToReadableName(nodeType), None, "Absent")
-                  else:
-                     cores.append(nodeCore)
+                  if nodeCore not in nodeListing:
+                     nodeListing[nodeCore] = (sav_parse.pathNameToReadableName(nodeType), None, "Absent")
 
          nodes = []
          level = parsedSave.levels[-1]
@@ -1366,14 +1365,19 @@ if __name__ == '__main__':
          for object in level.objects:
             if object.instanceName in nodes:
                nodeType = None
+               nodePurity = None
+               if object.instanceName in nodeListing:
+                  (nodeType, nodePurity, _) = nodeListing[object.instanceName]
                resourceClassOverride = sav_parse.getPropertyValue(object.properties, "mResourceClassOverride")
                if resourceClassOverride:
                   nodeType = sav_parse.pathNameToReadableName(resourceClassOverride.pathName)
-               nodePurity = None
-               purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
-               if purityOverride:
-                  nodePurity = purityOverride[1][3:]
-               nodeListing[object.instanceName] = (nodeType, nodePurity, "Present")
+               if nodeType is None:
+                  print(f"Skipping export of {object.instanceName} since the node type is unknown.")
+               else:
+                  purityOverride = sav_parse.getPropertyValue(object.properties, "mPurityOverride")
+                  if purityOverride:
+                     nodePurity = purityOverride[1][3:]
+                  nodeListing[object.instanceName] = (nodeType, nodePurity, "Present")
 
          jdata = {}
          for nodePathName in sorted(nodeListing.keys()):
