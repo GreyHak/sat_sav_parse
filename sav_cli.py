@@ -702,7 +702,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --export-player-inventory <player-num> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-player-inventory <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --tweak-player-inventory <player-num> <slot-index> <item> <quantity> <original-save-filename> <new-save-filename> [--same-time]")
-   print("   py sav_cli.py --rotate-foundations <primary-color-hex-or-preset> <secondary-color-hex-or-preset> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --rotate-foundations <primary-color-hex-or-preset> <secondary-color-hex-or-preset> <clockwise-degrees> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --clear-fog <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-hotbar <player-num> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-hotbar <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
@@ -1621,13 +1621,14 @@ if __name__ == '__main__':
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
-   elif len(sys.argv) in (6, 7) and sys.argv[1] == "--rotate-foundations" and os.path.isfile(sys.argv[4]):
+   elif len(sys.argv) in (7, 8) and sys.argv[1] == "--rotate-foundations" and os.path.isfile(sys.argv[5]):
       colorPrimary = sys.argv[2]
       colorSecondary = sys.argv[3]
-      savFilename = sys.argv[4]
-      outFilename = sys.argv[5]
+      clockwiseInDegrees = float(sys.argv[4]) # Game allows for small rotation in 10 degree increments
+      savFilename = sys.argv[5]
+      outFilename = sys.argv[6]
       changeTimeFlag = True
-      if len(sys.argv) == 7 and sys.argv[6] == "--same-time":
+      if len(sys.argv) == 8 and sys.argv[7] == "--same-time":
          changeTimeFlag = False
 
       modifiedFlag = False
@@ -1665,7 +1666,7 @@ if __name__ == '__main__':
                            if lcTupleToSrgbHex(primaryColor) == colorPrimary and lcTupleToSrgbHex(secondaryColor) == colorSecondary:
                               euler = quaternionToEuler(rotationQuaternion)
                               oldYaw = euler[2]
-                              euler[2] += math.pi/180
+                              euler[2] += clockwiseInDegrees * math.pi/180
                               if euler[2] > math.pi:
                                  euler[2] -= 2 * math.pi
                               elif euler[2] < -math.pi:
