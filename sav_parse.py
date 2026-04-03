@@ -1293,6 +1293,7 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list, obje
                   "FGDroneFuelRuntimeData", # Nothern_Forest_20232627_191024-123703.sav
                   "GCheckmarkUnlockData",
                   "GlobalColorPreset",
+                  "GlobalPrefabIconElementSaveData", # First seen in Blueprints
                   "HardDriveData",
                   "HighlightedMarkerPair",
                   "Hotbar",

@@ -15,6 +15,7 @@ Table of Contents:
 - [sav_parse.py](#sav_parsepy) - Parser script
 - [sav_to_resave.py](#sav_to_resavepy) - Save generation script
 - [sav_cli.py](#sav_clipy) - Save editor CLI
+- [sbp_parse.py](#sbp_parsepy) - Blueprint parser and re-saving script
 - [sav_to_html.py](#sav_to_htmlpy) - HTML and Map generator
 - [sav_monitor.py](#sav_monitorpy) - Automation for sav_to_html.py
 - [Support for older save files](#support-for-older-save-files)
@@ -111,6 +112,12 @@ map, it will generate a map of all the locations for the specified item.
 
 With v1.0.0.4 release, there isn't much point to the `--blueprint --sort`
 operation since the game's reverse-sorting is performed on save-open time.
+
+## sbp_parse.py
+
+`blueprint = sbp_parse.parseBlueprint(filename)` will parse a blueprint.
+
+`sbp_parse.resaveBlueprint(filename, *blueprint)` will resave a blueprint.
 
 ## sav_to_html.py
 

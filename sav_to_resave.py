@@ -389,6 +389,7 @@ def addProperties(currentEntitySaveVersion, objectUE5Version, properties, proper
                            "FGDroneFuelRuntimeData",
                            "GCheckmarkUnlockData",
                            "GlobalColorPreset",
+                           "GlobalPrefabIconElementSaveData", # First seen in Blueprints
                            "HardDriveData",
                            "HighlightedMarkerPair",
                            "Hotbar",
@@ -845,45 +846,50 @@ def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjec
          data.extend(addSaveObjectVersionData(object.perObjectVersionData))
    return data
 
+def addHeaders(actorAndComponentObjectHeaders):
+   data = bytearray()
+   #print(f"len(actorAndComponentObjectHeaders)=")
+   data.extend(addUint32(len(actorAndComponentObjectHeaders)))
+   for actorOrComponentObjectHeader in actorAndComponentObjectHeaders:
+      if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
+         #print(f"ActorHeader {actorOrComponentObjectHeader.typePath}")
+         data.extend(addUint32(1))
+         data.extend(addString(actorOrComponentObjectHeader.typePath))
+         data.extend(addString(actorOrComponentObjectHeader.rootObject))
+         data.extend(addString(actorOrComponentObjectHeader.instanceName))
+         data.extend(addUint32(actorOrComponentObjectHeader.flags))
+         data.extend(addUint32(actorOrComponentObjectHeader.needTransform))
+
+         data.extend(addFloat(actorOrComponentObjectHeader.rotation[0]))
+         data.extend(addFloat(actorOrComponentObjectHeader.rotation[1]))
+         data.extend(addFloat(actorOrComponentObjectHeader.rotation[2]))
+         data.extend(addFloat(actorOrComponentObjectHeader.rotation[3]))
+
+         data.extend(addFloat(actorOrComponentObjectHeader.position[0]))
+         data.extend(addFloat(actorOrComponentObjectHeader.position[1]))
+         data.extend(addFloat(actorOrComponentObjectHeader.position[2]))
+
+         data.extend(addFloat(actorOrComponentObjectHeader.scale[0]))
+         data.extend(addFloat(actorOrComponentObjectHeader.scale[1]))
+         data.extend(addFloat(actorOrComponentObjectHeader.scale[2]))
+
+         data.extend(addUint32(actorOrComponentObjectHeader.wasPlacedInLevel))
+
+      else: # ComponentHeader
+         #print(f"ComponentHeader {actorOrComponentObjectHeader.className}")
+         data.extend(addUint32(0))
+         data.extend(addString(actorOrComponentObjectHeader.className))
+         data.extend(addString(actorOrComponentObjectHeader.rootObject))
+         data.extend(addString(actorOrComponentObjectHeader.instanceName))
+         data.extend(addUint32(actorOrComponentObjectHeader.flags))
+         data.extend(addString(actorOrComponentObjectHeader.parentActorName))
+   return data
+
 def addLevel(headerSaveVersion, persistentLevelUE5Version, level):
    #print(f"Level {level.levelName} with {len(level.actorAndComponentObjectHeaders)} actor/component headers and {len(level.objects)} objects.")
 
    dataOH = bytearray()
-   #print(f"len(level.actorAndComponentObjectHeaders)=")
-   dataOH.extend(addUint32(len(level.actorAndComponentObjectHeaders)))
-   for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
-      if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
-         #print(f"ActorHeader {actorOrComponentObjectHeader.typePath}")
-         dataOH.extend(addUint32(1))
-         dataOH.extend(addString(actorOrComponentObjectHeader.typePath))
-         dataOH.extend(addString(actorOrComponentObjectHeader.rootObject))
-         dataOH.extend(addString(actorOrComponentObjectHeader.instanceName))
-         dataOH.extend(addUint32(actorOrComponentObjectHeader.flags))
-         dataOH.extend(addUint32(actorOrComponentObjectHeader.needTransform))
-
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.rotation[0]))
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.rotation[1]))
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.rotation[2]))
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.rotation[3]))
-
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.position[0]))
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.position[1]))
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.position[2]))
-
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.scale[0]))
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.scale[1]))
-         dataOH.extend(addFloat(actorOrComponentObjectHeader.scale[2]))
-
-         dataOH.extend(addUint32(actorOrComponentObjectHeader.wasPlacedInLevel))
-
-      else: # ComponentHeader
-         #print(f"ComponentHeader {actorOrComponentObjectHeader.className}")
-         dataOH.extend(addUint32(0))
-         dataOH.extend(addString(actorOrComponentObjectHeader.className))
-         dataOH.extend(addString(actorOrComponentObjectHeader.rootObject))
-         dataOH.extend(addString(actorOrComponentObjectHeader.instanceName))
-         dataOH.extend(addUint32(actorOrComponentObjectHeader.flags))
-         dataOH.extend(addString(actorOrComponentObjectHeader.parentActorName))
+   dataOH.extend(addHeaders(level.actorAndComponentObjectHeaders))
 
    if level.levelPersistentFlag is not None:
       dataOH.extend(addUint32(level.levelPersistentFlag))

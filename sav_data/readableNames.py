@@ -359,6 +359,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_QuarterPipeMiddle_Concrete_8x1_C": "Half 1m Foundation (Concrete)",
    "Build_QuarterPipeMiddle_Concrete_8x2_C": "Half 2m Foundation (Concrete)",
    "Build_QuarterPipeMiddle_Concrete_8x4_C": "Half 4m Foundation (Concrete)",
+   "Build_QuarterPipeMiddle_Ficsit_4x1_C": "Half Foundation (1m)",
    "Build_QuarterPipeMiddle_Ficsit_8x1_C": "Half 1m Foundation (FICSIT)",
    "Build_QuarterPipeMiddle_Ficsit_8x2_C": "Half 2m Foundation (FICSIT)",
    "Build_QuarterPipeMiddle_Ficsit_8x4_C": "Half 4m Foundation (FICSIT)",
