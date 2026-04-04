@@ -201,7 +201,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_HubTerminal_C": "HUB Terminal",
    "Build_HyperPoleStackable_C": "Stackable Hypertube Support",
    "Build_HyperTubeJunction_C": "Hypertube Junction",
-   "Build_HypertubeTJunction_C": "Hypertube Branch",
+   "Build_HyperTubeTJunction_C": "Hypertube Branch",
    "Build_HyperTubeWallHole_C": "Hypertube Wall Hole",
    "Build_HyperTubeWallSupport_C": "Hypertube Wall Support",
    "Build_IndustrialTank_C": "Industrial Fluid Buffer",
@@ -508,6 +508,7 @@ READABLE_PATH_NAME_CORRECTIONS = {
    "Build_SM_RailingRamp_8x1_01_C": "Modern Railing (1 m)",
    "Build_SM_RailingRamp_8x2_01_C": "Modern Railing (2 m)",
    "Build_SM_RailingRamp_8x4_01_C": "Modern Railing (4 m)",
+   "Build_SmelterBasicMk1_C": "Smelter",
    "Build_SmelterMk1_C": "Smelter",
    "Build_SMM_C": "Somersloop Finder", # Mod: Somersloop Finder
    "Build_SnowCannon_C": "FICSMAS Snow Cannon",
