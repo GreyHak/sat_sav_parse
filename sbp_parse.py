@@ -151,7 +151,8 @@ def parseBlueprint(sbpFile: str):
 
    return [[headerVersion, saveVersion, buildVersion, saveObjectVersionData], [designerDimensionX, ingredients, buildableRecipes], actorAndComponentObjectHeaders, objects]
 
-def resaveBlueprint(sbpFile, versions, summary, objectHeaders, objects):
+def resaveBlueprint(sbpFile, blueprint):
+   versions, summary, objectHeaders, objects = blueprint
    headerVersion, saveVersion, buildVersion, saveObjectVersionData = versions
    designerDimension, ingredients, buildableRecipes = summary
 
@@ -257,26 +258,138 @@ def printBlueprintSummary(blueprint, sbpFile):
       buildingPathName = buildables.pathName.replace("Recipe_", "Build_")
       print(f"   Buildable {sav_parse.pathNameToReadableName(buildingPathName)}")
 
+def parseBlueprintConfig(sbpcfgFile):
+   with open(sbpcfgFile, "rb") as fin:
+      data = fin.read()
+      offset = 0
+
+      (offset, version) = sav_parse.parseUint32(offset, data)
+      (offset, description) = sav_parse.parseString(offset, data)
+      (offset, iconId) = sav_parse.parseUint32(offset, data)
+      iconColor = []
+      for idx in range(4):
+         (offset, color) = sav_parse.parseFloat(offset, data)
+         iconColor.append(color)
+
+      referencedIconLibrary = None
+      iconLibraryType = None
+      editors = None
+      serviceProvider = None
+      if version >= 3:
+         (offset, referencedIconLibrary) = sav_parse.parseString(offset, data)
+         (offset, iconLibraryType) = sav_parse.parseString(offset, data)
+
+         if version == 4:
+            editors = []
+            (offset, editByCount) = sav_parse.parseUint32(offset, data)
+            for idx in range(editByCount):
+               (offset, accountId) = sav_parse.parseString(offset, data)
+               (offset, displayName) = sav_parse.parseString(offset, data)
+               (offset, platformName) = sav_parse.parseString(offset, data)
+               editors.append([accountId, displayName, platformName])
+
+         elif version == 6:
+            # FPlayerInfoHandle
+            (offset, serviceProvider) = sav_parse.parseUint8(offset, data)
+            unpresentSaveVersion56AndBelowFlag = (len(data) - offset == 1)
+            if unpresentSaveVersion56AndBelowFlag: # < 57
+               version = (version, unpresentSaveVersion56AndBelowFlag)
+               offset = sav_parse.confirmBasicType(offset, data, sav_parse.parseUint8, 0) # Legacy PlayerInfoTableIndex
+            else: # >= 57
+               offset = sav_parse.confirmBasicType(offset, data, sav_parse.parseUint32, 0) # PlayerInfoTableIndex
+
+      if offset != len(data):
+         raise sav_parse.ParseError(f"Unexpected file length {len(data)} > {offset}")
+
+      return version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider
+
+def resaveBlueprintConfig(sbpcfgFile, config):
+
+   version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider = config
+
+   if isinstance(version, (list, tuple)):
+      # unpresentSaveVersion56AndBelowFlag here is always True
+      version, unpresentSaveVersion56AndBelowFlag = version
+   elif version >= 6:
+      unpresentSaveVersion56AndBelowFlag = False
+   else:
+      unpresentSaveVersion56AndBelowFlag = None
+
+   data = bytearray()
+   data.extend(sav_to_resave.addUint32(version))
+   data.extend(sav_to_resave.addString(description))
+   data.extend(sav_to_resave.addUint32(iconId))
+   for color in iconColor:
+      data.extend(sav_to_resave.addFloat(color))
+
+   if version >= 3:
+      data.extend(sav_to_resave.addString(referencedIconLibrary))
+      data.extend(sav_to_resave.addString(iconLibraryType))
+
+      if version == 4:
+         data.extend(sav_to_resave.addUint32(len(editors)))
+         for accountId, displayName, platformName in editors:
+            data.extend(sav_to_resave.addString(accountId))
+            data.extend(sav_to_resave.addString(displayName))
+            data.extend(sav_to_resave.addString(platformName))
+
+      elif version == 6:
+         data.extend(sav_to_resave.addUint8(serviceProvider))
+         if unpresentSaveVersion56AndBelowFlag: # < 57
+            data.extend(sav_to_resave.addUint8(0))
+         else: # >= 57
+            data.extend(sav_to_resave.addUint32(0))
+
+   with open(sbpcfgFile, "wb") as fout:
+      fout.write(data)
+
 if __name__ == '__main__':
    import os
    import sys
    import pathlib
 
-   if len(sys.argv) == 2:
-      sbpFile = sys.argv[1]
-      blueprint = parseBlueprint(sbpFile)
-      if isinstance(blueprint, str):
-         print(blueprint)
+   pathList = [f"{os.environ['LOCALAPPDATA']}\\FactoryGame\\Saved\\SaveGames\\blueprints"]
+   if len(sys.argv) > 1:
+      pathList = sys.argv[1:]
+
+   fileList = []
+   for path in pathList:
+      if os.path.isdir(path):
+         for path in pathlib.Path(path).glob('**/*.sbp*'):
+            fileList.append(str(path))
       else:
-         printBlueprintSummary(blueprint, sbpFile)
-   else:
-      TEST_OUTPUT_FILE = "C:\\temp\\resave.sbp"
-      pathlist = pathlib.Path(f"{os.environ['LOCALAPPDATA']}\\FactoryGame\\Saved\\SaveGames\\blueprints\\ficsit2025").glob('**/*.sbp')
-      for path in pathlist:
-         blueprint = parseBlueprint(path)
+         fileList.append(path)
+
+   RESAVE_TEST = True
+   TEST_OUTPUT_FILE_SBP = "C:\\temp\\resave.sbp"
+   TEST_OUTPUT_FILE_SBPCFG = "C:\\temp\\resave.sbpcfg"
+
+   for filepath in fileList:
+      if filepath.endswith(".sbp"):
+         blueprint = parseBlueprint(filepath)
          if isinstance(blueprint, str):
-            print(f"{blueprint} for {path}")
+            print(blueprint)
          else:
-            printBlueprintSummary(blueprint, path)
-            resaveBlueprint(TEST_OUTPUT_FILE, *blueprint)
-            parseBlueprint(TEST_OUTPUT_FILE)
+            printBlueprintSummary(blueprint, filepath)
+            if RESAVE_TEST:
+               resaveBlueprint(TEST_OUTPUT_FILE_SBP, blueprint)
+               parseBlueprint(TEST_OUTPUT_FILE_SBP)
+      elif filepath.endswith(".sbpcfg"):
+         config = parseBlueprintConfig(filepath)
+         version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider = config
+         print(filepath)
+         print(f"Icon {iconId} with color {iconColor}")
+         if len(description) > 0:
+            print(f"Description:\n{description}")
+         if editors is not None and len(editors) > 0:
+            print(f"Created by {editors[0][1]}")
+         if RESAVE_TEST:
+            resaveBlueprintConfig(TEST_OUTPUT_FILE_SBPCFG, config)
+            parseBlueprintConfig(TEST_OUTPUT_FILE_SBPCFG)
+            with open(filepath, "rb") as finOriginal:
+               with open(TEST_OUTPUT_FILE_SBPCFG, "rb") as finResave:
+                  if finResave.read() != finOriginal.read():
+                     raise sav_parse.ParseError(f"Resave check of {filepath} failed.")
+      else:
+         print(f"Unknown file extension {filepath}")
+      print()

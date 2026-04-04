@@ -115,9 +115,13 @@ operation since the game's reverse-sorting is performed on save-open time.
 
 ## sbp_parse.py
 
-`blueprint = sbp_parse.parseBlueprint(filename)` will parse a blueprint.
+`blueprint = sbp_parse.parseBlueprint(filename)` will parse a blueprint .sbp file.
 
-`sbp_parse.resaveBlueprint(filename, *blueprint)` will resave a blueprint.
+`sbp_parse.resaveBlueprint(filename, blueprint)` will resave a blueprint.
+
+`config = sbp_parse.parseBlueprintConfig(filename)` will parse a blueprint config .sbpcfg file.
+
+`sbp_parse.resaveBlueprintConfig(filename, config)` will resave a blueprint config.
 
 ## sav_to_html.py
 
