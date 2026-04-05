@@ -379,7 +379,10 @@ if __name__ == '__main__':
          config = parseBlueprintConfig(filepath)
          version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider = config
          print(filepath)
-         if iconId in sav_data.data.ICON_IDS_TO_NAMES:
+         ICON_ID_NONE = 65535
+         if iconId == ICON_ID_NONE:
+            print(f"No icon with color {iconColor}")
+         elif iconId in sav_data.data.ICON_IDS_TO_NAMES:
             print(f"Icon {iconId} ({sav_data.data.ICON_IDS_TO_NAMES[iconId]}) with color {iconColor}")
          else:
             print(f"Icon {iconId} with color {iconColor}")
