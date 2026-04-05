@@ -347,6 +347,7 @@ if __name__ == '__main__':
    import os
    import sys
    import pathlib
+   import sav_data.data
 
    pathList = [f"{os.environ['LOCALAPPDATA']}\\FactoryGame\\Saved\\SaveGames\\blueprints"]
    if len(sys.argv) > 1:
@@ -378,7 +379,10 @@ if __name__ == '__main__':
          config = parseBlueprintConfig(filepath)
          version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider = config
          print(filepath)
-         print(f"Icon {iconId} with color {iconColor}")
+         if iconId in sav_data.data.ICON_IDS_TO_NAMES:
+            print(f"Icon {iconId} ({sav_data.data.ICON_IDS_TO_NAMES[iconId]}) with color {iconColor}")
+         else:
+            print(f"Icon {iconId} with color {iconColor}")
          if len(description) > 0:
             print(f"Description:\n{description}")
          if editors is not None and len(editors) > 0:

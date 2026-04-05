@@ -546,7 +546,7 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
                                 ["Name", markerName],
                                 ["CategoryName", subcategory], # This is called "Subcategory" in-game
                                 ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
-                                ["IconID", sav_data.data.ICON_IDS[markerIconId_key]],
+                                ["IconID", sav_data.data.ICON_NAMES_TO_IDS[markerIconId_key]],
                                 ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]],
                                 ["Scale", scale],
                                 ["compassViewDistance", ["ECompassViewDistance", f"ECompassViewDistance::{markerViewDistance.name}"]],
@@ -568,7 +568,7 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
                                 ["Name", markerName],
                                 ["CategoryName", subcategory], # This is called "Subcategory" in-game
                                 ["MapMarkerType", ["ERepresentationType", "ERepresentationType::RT_MapMarker"]],
-                                ["IconID", sav_data.data.ICON_IDS[markerIconId_key]],
+                                ["IconID", sav_data.data.ICON_NAMES_TO_IDS[markerIconId_key]],
                                 ["Color", [markerColor[0], markerColor[1], markerColor[2], 1.0]],
                                 ["Scale", scale],
                                 ["compassViewDistance", ["ECompassViewDistance", f"ECompassViewDistance::{markerViewDistance.name}"]],
@@ -2907,9 +2907,8 @@ if __name__ == '__main__':
                                     compassViewDistance = sav_data.data.COMPASS_VIEW_DISTANCES__ENUM_TO_NAME[cvd]
 
                         iconID = sav_parse.getPropertyValue(mapMarker[0], "IconID")
-                        for iconName in sav_data.data.ICON_IDS:
-                           if iconID == sav_data.data.ICON_IDS[iconName]:
-                              iconID = iconName
+                        if iconID in sav_data.data.ICON_IDS_TO_NAMES:
+                           iconID = sav_data.data.ICON_IDS_TO_NAMES[iconID]
 
                         print(f"{markerGuid} '{name}' at {location} scale={scale} distance={compassViewDistance} icon={iconID}")
 
@@ -2959,9 +2958,8 @@ if __name__ == '__main__':
                                     compassViewDistance = sav_data.data.COMPASS_VIEW_DISTANCES__ENUM_TO_NAME[cvd]
 
                         iconID = sav_parse.getPropertyValue(mapMarker[0], "IconID")
-                        for iconName in sav_data.data.ICON_IDS:
-                           if iconID == sav_data.data.ICON_IDS[iconName]:
-                              iconID = iconName
+                        if iconID in sav_data.data.ICON_IDS_TO_NAMES:
+                           iconID = sav_data.data.ICON_IDS_TO_NAMES[iconID]
 
                         color = sav_parse.getPropertyValue(mapMarker[0], "Color")
 
@@ -3059,8 +3057,8 @@ if __name__ == '__main__':
                if "Color" in newMarker:
                   markerColor = newMarker["Color"]
 
-               markerIconId_key = sav_data.data.ICON_IDS["Home House"]
-               if "IconName" in newMarker and newMarker["IconName"] in sav_data.data.ICON_IDS:
+               markerIconId_key = sav_data.data.ICON_NAMES_TO_IDS["Home House"]
+               if "IconName" in newMarker and newMarker["IconName"] in sav_data.data.ICON_NAMES_TO_IDS:
                   markerIconId_key = newMarker["IconName"]
 
                markerViewDistance = sav_data.data.ECompassViewDistance.CVD_Mid
