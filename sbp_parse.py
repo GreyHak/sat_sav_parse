@@ -248,10 +248,14 @@ def resaveBlueprint(sbpFile, blueprint):
       fout.write(sdata)
 
 def printBlueprintSummary(blueprint, sbpFile):
+   DIMENSION_TO_MK = {4: "Mk.1", 5: "Mk.2", 6: "Mk.3"}
    versions, summary, objectHeaders, objects = blueprint
    headerVersion, saveVersion, buildVersion, saveObjectVersionData = versions
    designerDimension, ingredients, buildableRecipes = summary
-   print(f"{headerVersion}, {saveVersion}, {buildVersion}, {designerDimension}x{designerDimension}x{designerDimension} with {len(ingredients)} ingredients, {len(buildableRecipes)} buildables, and {len(objects)} objects: {sbpFile}")
+   designerMk = "Mk.?"
+   if designerDimension in DIMENSION_TO_MK:
+      designerMk = DIMENSION_TO_MK[designerDimension]
+   print(f"{headerVersion}, {saveVersion}, {buildVersion}, {designerDimension}x{designerDimension}x{designerDimension} ({designerMk}) with {len(ingredients)} ingredients, {len(buildableRecipes)} buildables, and {len(objects)} objects: {sbpFile}")
    for itemCount, item in sorted(ingredients, key=lambda l: l[0], reverse=True):
       print(f"   Ingredient {itemCount}x {sav_parse.pathNameToReadableName(item.pathName)}")
    for buildables in sorted(buildableRecipes, key=lambda l: sav_parse.pathNameToReadableName(l.pathName.replace("Recipe_", "Build_"))):
