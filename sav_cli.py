@@ -40,6 +40,8 @@ CHECK_ITEMS_FOR_PLAYER_INVENTORY = False
 UNCOLLECTED_MAP_MARKER_SCALE = 0.5
 ENFORCE_MAP_MARKER_LIMIT = 250 # Critical for servers that will delete all map markers if above the limit.
 
+DEFAULT_ICON_ID_FOR_NEW_CATEGORIES = sav_data.data.ICON_NAMES_TO_IDS["FICSIT Check Mark"]
+
 def getBlankCategory(objectGameVersion: int, categoryName: str, iconId: int = -1) -> list:
    if objectGameVersion < 53:
       return [[['CategoryName', categoryName],
@@ -61,7 +63,8 @@ def getBlankCategory(objectGameVersion: int, categoryName: str, iconId: int = -1
                ['IsUndefined', 'BoolProperty', 0],
                ['SubCategoryRecords', 'ArrayProperty', 0, 'StructProperty', 0, 'BlueprintSubCategoryRecord', None]]]
    else:
-      iconId = 598 #default iconId during category creation
+      if iconId == -1:
+         iconId = DEFAULT_ICON_ID_FOR_NEW_CATEGORIES
       return [[['CategoryName', categoryName],
                ['IconID', iconId],
                ['MenuPriority', 0.0],
