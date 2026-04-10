@@ -131,6 +131,8 @@ Command line: `py sav_to_html.py <save-filename> [output-html-directory]`
 
 Library: `sav_to_html.generateHTML(savFilePath: str, outputDirectory: str, htmlBaseName: str)`
 
+Dependency:  For `sav_to_html.py` to generate maps, you need to `pip install pillow`.
+
 `sav_to_html.py` makes use of `sav_parse.py` to decode a save file and creates
 a save.html.  The HTML page contains:
   - Session Name
