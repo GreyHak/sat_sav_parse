@@ -379,6 +379,15 @@ if __name__ == '__main__':
             if RESAVE_TEST:
                resaveBlueprint(TEST_OUTPUT_FILE_SBP, blueprint)
                parseBlueprint(TEST_OUTPUT_FILE_SBP)
+            if len(fileList) == 1:
+               outBase = os.path.splitext(filepath)[0]
+               with open(f"{outBase}-dump.txt", "w") as fout:
+                  versions, summary, objectHeaders, objects = blueprint
+                  fout.write(sav_parse.toString(versions)+"\n")
+                  fout.write(sav_parse.toString(summary)+"\n")
+                  for idx in range(len(objects)):
+                     fout.write(sav_parse.toString(objectHeaders[idx])+"\n")
+                     fout.write("   "+sav_parse.toString(objects[idx])+"\n")
       elif filepath.endswith(".sbpcfg"):
          config = parseBlueprintConfig(filepath)
          version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider = config
