@@ -5,6 +5,7 @@
 # "cave": "obvious", "medium", (x, y) or ((x1, y1), (x2, y2)...)
 # "gas": "BP_VolumeGas_01_C", "BP_SporeFlower_C", or "Desc_StingerElite_C"
 # also "radiation", "nobelisk" and "sentry"
+# For precision position, press back-tick (`) for console and run: ToggleDebugOverlay
 CRASH_SITES = {
    "Persistent_Level:PersistentLevel.BP_DropPod1": ("71U3QY9JC6WRRZPQKC79EZB09", (-0.5547969937324524, -0.01757180504500866, 0.8310319781303406, 0.03574034944176674), (87739.6796875, -62975.45703125, 13444.25), {"sentry": [("Desc_HogAlpha_C", 1)]}),
    "Persistent_Level:PersistentLevel.BP_DropPod10": ("16GEMFDCR18T1QGXOOA5T2NV5", (-0.12096187472343445, 0.4601063132286072, -0.8703239560127258, 0.1273053139448166), (232138.0, 27191.0, -1629.0), {"cost": ("Quartz Crystal", 25), "radiation": True, "sentry": [("Desc_HogNuclear_C", 1), ("Char_BigCrabHatcher_C", 2), ("Desc_HogCliff_C", 2), ("Desc_StingerAlpha_C", 1)]}),
