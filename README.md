@@ -55,6 +55,7 @@ Usage:
   - `py sav_cli.py --find-free-stuff [item] [save-filename]`
   - `py sav_cli.py --list-players <save-filename>`
   - `py sav_cli.py --list-player-inventory <player-num> <save-filename>`
+  - `py sav_cli.py --move-player <player-num> <x> <y> <z> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --find-node <x> <y> [save-filename]`
   - `py sav_cli.py --find-node-near <player-num> <save-filename>`
   - `py sav_cli.py --set-node <name> <type> <purity> <original-save-filename> <new-save-filename> [--same-time]`

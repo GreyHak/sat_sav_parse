@@ -859,6 +859,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --find-free-stuff [item] [save-filename]")
    print("   py sav_cli.py --list-players <save-filename>")
    print("   py sav_cli.py --list-player-inventory <player-num> <save-filename>")
+   print("   py sav_cli.py --move-player <player-num> <x> <y> <z> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --find-node <x> <y> [save-filename]")
    print("   py sav_cli.py --find-node-near <player-num> <save-filename>")
    print("   py sav_cli.py --set-node <name> <type> <purity> <original-save-filename> <new-save-filename> [--same-time]")
@@ -1360,6 +1361,53 @@ if __name__ == '__main__':
                               print(f"[{str(idx).rjust(2)}] {str(itemQuantity).rjust(3)} x {itemName}{extraInformationStr}")
       except Exception as error:
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+   elif len(sys.argv) in (8, 9) and sys.argv[1] == "--move-player" and os.path.isfile(sys.argv[6]):
+      playerId = sys.argv[2]
+      positionX = float(sys.argv[3])
+      positionY = float(sys.argv[4])
+      positionZ = float(sys.argv[5])
+      savFilename = sys.argv[6]
+      outFilename = sys.argv[7]
+      changeTimeFlag = True
+      if len(sys.argv) == 9 and sys.argv[8] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
+
+         target = None
+         for (playerStateInstanceName, characterPlayer, inventoryPath, armsPath, backPath, legsPath, headPath, bodyPath, healthPath) in playerPaths:
+            if characterPlayerMatch(characterPlayer, playerId, parsedSave.levels):
+               level = parsedSave.levels[-1]
+               for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+                  if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader) and actorOrComponentObjectHeader.instanceName == characterPlayer:
+                     print(f"Moving {characterPlayer} from {actorOrComponentObjectHeader.position} to {positionX},{positionY},{positionZ}")
+                     actorOrComponentObjectHeader.position[0] = positionX
+                     actorOrComponentObjectHeader.position[1] = positionY
+                     actorOrComponentObjectHeader.position[2] = positionZ
+                     modifiedFlag = True
+                     break
+               break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print(f"Unable to match player '{playerId}'", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    elif len(sys.argv) in (4, 5) and sys.argv[1] == "--find-node" and (len(sys.argv) == 4 or os.path.isfile(sys.argv[4])):
       target = (float(sys.argv[2]), float(sys.argv[3]))
