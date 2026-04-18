@@ -225,6 +225,9 @@ def lcTupleToSrgbHex(linearCTuple) -> str:
 def radiansToDegrees(radians) -> float:
    return radians / math.pi * 180
 
+def degreesToRadians(degrees) -> float:
+   return degrees * math.pi / 180
+
 # Credit to Addison Sears-Collins
 # From https://automaticaddison.com/how-to-convert-a-quaternion-into-euler-angles-in-python/
 def quaternionToEuler(quaternion):
@@ -1670,7 +1673,7 @@ if __name__ == '__main__':
                            if lcTupleToSrgbHex(primaryColor) == colorPrimary and lcTupleToSrgbHex(secondaryColor) == colorSecondary:
                               euler = quaternionToEuler(rotationQuaternion)
                               oldYaw = euler[2]
-                              euler[2] += clockwiseInDegrees * math.pi/180
+                              euler[2] += degreesToRadians(clockwiseInDegrees)
                               if euler[2] > math.pi:
                                  euler[2] -= 2 * math.pi
                               elif euler[2] < -math.pi:
