@@ -309,9 +309,7 @@ def fromJSON(object):
       return bytes.fromhex(object["jsonhexstr"])
 
    if isinstance(object, dict) and len(object) == 2 and "levelName" in object and "pathName" in object:
-      objectReference = sav_parse.ObjectReference()
-      objectReference.levelName = object["levelName"]
-      objectReference.pathName = object["pathName"]
+      objectReference = sav_parse.ObjectReference(object["levelName"], object["pathName"])
       return objectReference
 
    if isinstance(object, (tuple, list)):
@@ -476,9 +474,7 @@ def addMercerShrine(levels, targetPathName: str) -> bool:
 
 def removeInstance(levels: list, humanReadableName: str, rootObject, targetInstanceName: str, position = None) -> bool:
 
-   removedObjectCollectionReference = sav_parse.ObjectReference()
-   removedObjectCollectionReference.levelName = rootObject
-   removedObjectCollectionReference.pathName = targetInstanceName
+   removedObjectCollectionReference = sav_parse.ObjectReference(rootObject, targetInstanceName)
 
    for level in levels:
       for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
@@ -663,8 +659,7 @@ def setNodeType(originalNodeName, nodeType, nodePurity):
                   else:
                      successMessage += f" Type already {sav_parse.pathNameToReadableName(nodeType)}."
                else:
-                  resourceClassOverride = sav_parse.ObjectReference()
-                  resourceClassOverride.pathName = nodeType
+                  resourceClassOverride = sav_parse.ObjectReference("", nodeType)
                   object.properties.append(["mResourceClassOverride", resourceClassOverride])
                   object.propertyTypes.append(["mResourceClassOverride", "ObjectProperty", 0])
                   successMessage += f" Setting type to {sav_parse.pathNameToReadableName(nodeType)}."
@@ -1993,18 +1988,15 @@ if __name__ == '__main__':
             newObject.actorReferenceAssociations = None
 
             if replacementHotbarItemNewClassName == "FGRecipeShortcut":
-               newRecipeObjectReference = sav_parse.ObjectReference()
-               newRecipeObjectReference.pathName = replacementHotbarItem
+               newRecipeObjectReference = sav_parse.ObjectReference("", replacementHotbarItem)
                newObject.properties    = [("mRecipeToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mRecipeToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGFactoryCustomizationShortcut":
-               newRecipeObjectReference = sav_parse.ObjectReference()
-               newRecipeObjectReference.pathName = replacementHotbarItem
+               newRecipeObjectReference = sav_parse.ObjectReference("", replacementHotbarItem)
                newObject.properties    = [("mCustomizationRecipeToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mCustomizationRecipeToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGEmoteShortcut":
-               newRecipeObjectReference = sav_parse.ObjectReference()
-               newRecipeObjectReference.pathName = replacementHotbarItem
+               newRecipeObjectReference = sav_parse.ObjectReference("", replacementHotbarItem)
                newObject.properties    = [("mEmoteToActivate", newRecipeObjectReference), ("mShortcutIndex", hotbarItemIdx)]
                newObject.propertyTypes = [("mEmoteToActivate", "ObjectProperty", 0),      ("mShortcutIndex", "IntProperty", 0)]
             elif replacementHotbarItemNewClassName == "FGBlueprintShortcut":
@@ -2493,9 +2485,7 @@ if __name__ == '__main__':
                savedPaths = sav_parse.getPropertyValue(object.properties, "mSavedPaths")
                if savedPaths is not None:
                   print(f"Adding {len(newVehicleTargetPoints)} points as {newSavedWheeledVehiclePath} to VehicleSubsystem")
-                  objectReference = sav_parse.ObjectReference()
-                  objectReference.levelName = "Persistent_Level"
-                  objectReference.pathName = newSavedWheeledVehiclePath
+                  objectReference = sav_parse.ObjectReference("Persistent_Level", newSavedWheeledVehiclePath)
                   savedPaths.append(objectReference)
                   modifiedFlag = True
 
@@ -2515,18 +2505,11 @@ if __name__ == '__main__':
          object.instanceName = newDrivingTargetList
          object.objectGameVersion = parsedSave.saveFileInfo.saveVersion
          object.shouldMigrateObjectRefsToPersistentFlag = False
-         parentObjectReference = sav_parse.ObjectReference()
-         parentObjectReference.levelName = "Persistent_Level"
-         parentObjectReference.pathName = "Persistent_Level:PersistentLevel.VehicleSubsystem"
+         parentObjectReference = sav_parse.ObjectReference("Persistent_Level", "Persistent_Level:PersistentLevel.VehicleSubsystem")
          object.actorReferenceAssociations = [parentObjectReference, []]
-         firstObjectReference = sav_parse.ObjectReference()
-         firstObjectReference.levelName = "Persistent_Level"
-         firstObjectReference.pathName = newVehicleTargetPoints[0]
-         lastObjectReference = sav_parse.ObjectReference()
-         lastObjectReference.levelName = "Persistent_Level"
-         lastObjectReference.pathName = newVehicleTargetPoints[-1]
-         vehicleObjectReference = sav_parse.ObjectReference()
-         vehicleObjectReference.pathName = jdata["mVehicleType"]
+         firstObjectReference = sav_parse.ObjectReference("Persistent_Level", newVehicleTargetPoints[0])
+         lastObjectReference = sav_parse.ObjectReference("Persistent_Level", newVehicleTargetPoints[-1])
+         vehicleObjectReference = sav_parse.ObjectReference("", jdata["mVehicleType"])
          object.properties = [
             ["mFirst", firstObjectReference],
             ["mLast", lastObjectReference],
@@ -2558,16 +2541,12 @@ if __name__ == '__main__':
             object.instanceName = newVehicleTargetPoints[idx]
             object.objectGameVersion = parsedSave.saveFileInfo.saveVersion
             object.shouldMigrateObjectRefsToPersistentFlag = False
-            parentObjectReference = sav_parse.ObjectReference()
-            parentObjectReference.levelName = "Persistent_Level"
-            parentObjectReference.pathName = newDrivingTargetList
+            parentObjectReference = sav_parse.ObjectReference("Persistent_Level", newDrivingTargetList)
             object.actorReferenceAssociations = [parentObjectReference, []]
             object.properties = []
             object.propertyTypes = []
             if idx+1 < len(newVehicleTargetPoints):
-               nextObjectReference = sav_parse.ObjectReference()
-               nextObjectReference.levelName = "Persistent_Level"
-               nextObjectReference.pathName = newVehicleTargetPoints[idx+1]
+               nextObjectReference = sav_parse.ObjectReference("Persistent_Level", newVehicleTargetPoints[idx+1])
                object.properties.append(["mNext", nextObjectReference])
                object.propertyTypes.append(["mNext", "ObjectProperty", 0])
             if jdata["mTargetList"][idx][3] is not None:
@@ -2597,15 +2576,9 @@ if __name__ == '__main__':
          object.shouldMigrateObjectRefsToPersistentFlag = False
          parentObjectReference = sav_parse.ObjectReference()
          object.actorReferenceAssociations = [parentObjectReference, []]
-         firstObjectReference = sav_parse.ObjectReference()
-         firstObjectReference.levelName = "Persistent_Level"
-         firstObjectReference.pathName = newVehicleTargetPoints[0]
-         lastObjectReference = sav_parse.ObjectReference()
-         lastObjectReference.levelName = "Persistent_Level"
-         lastObjectReference.pathName = newVehicleTargetPoints[-1]
-         listObjectReference = sav_parse.ObjectReference()
-         listObjectReference.levelName = "Persistent_Level"
-         listObjectReference.pathName = newDrivingTargetList
+         firstObjectReference = sav_parse.ObjectReference("Persistent_Level", newVehicleTargetPoints[0])
+         lastObjectReference = sav_parse.ObjectReference("Persistent_Level", newVehicleTargetPoints[-1])
+         listObjectReference = sav_parse.ObjectReference("Persistent_Level", newDrivingTargetList)
          object.properties = [
             ["mPathName", newSavePathName],
             ["mTargetList", listObjectReference]]
@@ -2849,9 +2822,7 @@ if __name__ == '__main__':
                            level.collectables2 = []
                         del level.actorAndComponentObjectHeaders[idx]
                         del level.objects[idx]
-                        objectReference = sav_parse.ObjectReference()
-                        objectReference.levelName = sav_data.crashSites.CRASH_SITES[dropPodPathName][0]
-                        objectReference.pathName = dropPodPathName
+                        objectReference = sav_parse.ObjectReference(sav_data.crashSites.CRASH_SITES[dropPodPathName][0], dropPodPathName)
                         level.collectables1.append(objectReference)
                         level.collectables2.append(objectReference)
                         print(f"Crash site {dropPodShortName} removed")

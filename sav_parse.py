@@ -794,8 +794,10 @@ class Object: # Both ActorObject and ComponentObject
       return f"<Object: instanceName={self.instanceName}, objectGameVersion={self.objectGameVersion}, smortpFlag={self.shouldMigrateObjectRefsToPersistentFlag}, actorReferenceAssociations={actorReferenceAssociationsStr}, properties={toString(self.properties)}, actorSpecificInfo={toString(self.actorSpecificInfo)}>"
 
 class ObjectReference:
-   levelName = ""
-   pathName = ""
+
+   def __init__(self, levelName = "", pathName = ""):
+      self.levelName = levelName
+      self.pathName = pathName
 
    def parse(self, offset: int, data) -> int:
       (offset, self.levelName) = parseString(offset, data)
