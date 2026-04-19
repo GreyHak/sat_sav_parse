@@ -44,6 +44,7 @@ DEFAULT_ICON_ID_FOR_NEW_CATEGORIES = sav_data.data.ICON_NAMES_TO_IDS["FICSIT Che
 
 PERSISTENT_LEVEL = "Persistent_Level"
 WATER_EXTRACTOR_TYPE = "/Game/FactoryGame/Buildable/Factory/WaterPump/Build_WaterPump.Build_WaterPump_C"
+DEFAULT_SWATCH_PATH_NAME = "/Game/FactoryGame/Buildable/-Shared/Customization/Swatches/SwatchDesc_Slot0.SwatchDesc_Slot0_C"
 
 def getBlankCategory(objectGameVersion: int, categoryName: str, iconId: int = -1) -> list:
    if objectGameVersion < 53:
@@ -689,7 +690,7 @@ def setNodeType(originalNodeName, nodeType, nodePurity):
    else:
       return (ChangeResultEnum.ERROR, f"ERROR: Node not found '{originalNodeName}'")
 
-def addWaterExtractor(level, waterExtractorPosition, waterExtractorRotationInDegrees, waterVolume, incrementStatisticsSubsystemFlag = True):
+def addWaterExtractor(level, waterExtractorPosition, waterExtractorRotationInDegrees, waterVolume, swatchDesc = DEFAULT_SWATCH_PATH_NAME, incrementStatisticsSubsystemFlag = True):
    # Rotation is -180 to 180 degrees
 
    actorInsertionIdx = -1
@@ -747,7 +748,7 @@ def addWaterExtractor(level, waterExtractorPosition, waterExtractorRotationInDeg
        ['mInventoryPotential', {'levelName': 'Persistent_Level', 'pathName': f"{waterPumpActorHeader.instanceName}.InventoryPotential"}],
        #['BuiltBy', {'jsonhexstr': '0600000000'}],
        ['mCustomizationData', [
-        [['SwatchDesc', {'levelName': '', 'pathName': '/Game/FactoryGame/Buildable/-Shared/Customization/Swatches/SwatchDesc_Slot0.SwatchDesc_Slot0_C'}]],
+        [['SwatchDesc', {'levelName': '', 'pathName': swatchDesc}]],
         [['SwatchDesc', 'ObjectProperty', 0]]]],
        ['mBuiltWithRecipe', {'levelName': '', 'pathName': '/Game/FactoryGame/Recipes/Buildings/Recipe_WaterPump.Recipe_WaterPump_C'}]])
    waterPumpActorObject.propertyTypes = fromJSON(
@@ -849,6 +850,8 @@ def addWaterExtractor(level, waterExtractorPosition, waterExtractorRotationInDeg
    componentObject.perObjectVersionData = None
    level.objects.append(componentObject)
 
+   return waterPumpActorHeader.instanceName
+
 def printUsage() -> None:
    print()
    print("USAGE:")
@@ -912,6 +915,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --add-missing-items-to-sav_stack_sizes")
    print("   py sav_cli.py --list-crash-site-guards")
    print("   py sav_cli.py --add-water-extractor <original-save-filename> <new-save-filename>")
+   print("   py sav_cli.py --zoop-water-extractor <reference-extractor> <north|south|east|west> <count> <original-save-filename> <new-save-filename>")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -4237,6 +4241,105 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       addWaterExtractor(parsedSave.levels[-1], [-75173.3515625, 232295.75, -2630], -45.0, "Persistent_Level:PersistentLevel.FGWaterVolume78")
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (7, 8) and sys.argv[1] == "--zoop-water-extractor" and os.path.isfile(sys.argv[5]):
+
+      targetWaterExtractor = sys.argv[2]
+      cardinalDirection = sys.argv[3].lower()
+      count = int(sys.argv[4])
+      savFilename = sys.argv[5]
+      outFilename = sys.argv[6]
+      changeTimeFlag = True
+      if len(sys.argv) == 8 and sys.argv[7] == "--same-time":
+         changeTimeFlag = False
+
+      if count <= 0:
+         printf("ERROR: Count must be greater than zero.")
+         exit(1)
+
+      if not targetWaterExtractor.startswith("Persistent_Level:PersistentLevel."):
+         targetWaterExtractor = "Persistent_Level:PersistentLevel." + targetWaterExtractor
+
+      modifiedFlag = False
+      waterExtractors = []
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+         level = parsedSave.levels[-1]
+         for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+            if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
+               if actorOrComponentObjectHeader.typePath == WATER_EXTRACTOR_TYPE:
+                  if actorOrComponentObjectHeader.instanceName == targetWaterExtractor:
+                     for object in level.objects:
+                        if object.instanceName == targetWaterExtractor:
+                           extractableResource = sav_parse.getPropertyValue(object.properties, "mExtractableResource")
+                           if extractableResource is not None:
+
+                              swatchDescPathName = DEFAULT_SWATCH_PATH_NAME
+                              mCustomizationData = sav_parse.getPropertyValue(object.properties, "mCustomizationData")
+                              if mCustomizationData is not None:
+                                 swatchDesc = sav_parse.getPropertyValue(mCustomizationData[0], "SwatchDesc")
+                                 if swatchDesc is not None:
+                                    swatchDescPathName = swatchDesc.pathName
+
+                              referencePosition = actorOrComponentObjectHeader.position
+                              referenceRotationRadians = quaternionToEuler(actorOrComponentObjectHeader.rotation)[2]
+                              referenceRotationDegrees = radiansToDegrees(referenceRotationRadians)
+                              print(f"Reference position={referencePosition} rotation={referenceRotationDegrees:.2f} degrees inside {extractableResource.pathName[33:]} with {swatchDescPathName[77:]}")
+                              modifiedFlag = True
+
+                              if cardinalDirection.startswith("n"):
+                                 # Zoop North means zoop Left if facing East
+                                 leftFlag = referenceRotationDegrees >= 0
+                              elif cardinalDirection.startswith("s"):
+                                 # Zoop South means zoop Left if facing West
+                                 leftFlag = referenceRotationDegrees < 0
+                              elif cardinalDirection.startswith("e"):
+                                 # Zoop East means zoop Left if facing South
+                                 leftFlag = abs(referenceRotationDegrees) >= 90
+                              else:
+                                 # Zoop West means zoop Left if facing North
+                                 leftFlag = abs(referenceRotationDegrees) < 90
+
+                              if leftFlag:
+                                 offsetDirectionDegrees = referenceRotationDegrees + 180
+                                 if offsetDirectionDegrees > 180:
+                                    offsetDirectionDegrees -= 360
+                              else:
+                                 offsetDirectionDegrees = referenceRotationDegrees
+                              #print(f"Zooming at angle {offsetDirectionDegrees} degrees")
+                              offsetDirectionRadians = degreesToRadians(offsetDirectionDegrees)
+
+                              WATER_EXTRACTOR_SEPARATION_SIDEWAYS = 2000 # Front/back 1800
+
+                              for idx in range(count):
+                                 distance = (idx + 1) * WATER_EXTRACTOR_SEPARATION_SIDEWAYS
+                                 deltaEastWest = distance * math.cos(offsetDirectionRadians)
+                                 deltaNorthSouth = distance * math.sin(offsetDirectionRadians)
+                                 offsetPosition = [referencePosition[0] + deltaEastWest, referencePosition[1] + deltaNorthSouth]
+                                 waterExtractorPathName = addWaterExtractor(level, [offsetPosition[0], offsetPosition[1], referencePosition[2]], referenceRotationDegrees, extractableResource.pathName, swatchDescPathName)
+                                 print(f"[{idx+1}/{count}] {waterExtractorPathName[33:]} added to the reference's {('right', 'left')[leftFlag]} at {offsetPosition}")
+
+                           break
+                     break
+                  waterExtractors.append(actorOrComponentObjectHeader.instanceName[33:])
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print(f"ERROR: Failed to find water extractor '{targetWaterExtractor}' to zoop.\nOptions are {waterExtractors}", file=sys.stderr)
+         exit(1)
 
       try:
          if changeTimeFlag:
