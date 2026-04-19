@@ -1534,7 +1534,7 @@ if __name__ == '__main__':
          raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
       if not modifiedFlag:
-         print("ERROR: Failed to find node '{originalNodeName}' to modify.", file=sys.stderr)
+         print(f"ERROR: Failed to find node '{originalNodeName}' to modify.", file=sys.stderr)
          exit(1)
 
       try:
