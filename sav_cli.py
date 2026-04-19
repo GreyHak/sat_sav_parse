@@ -42,6 +42,9 @@ ENFORCE_MAP_MARKER_LIMIT = 250 # Critical for servers that will delete all map m
 
 DEFAULT_ICON_ID_FOR_NEW_CATEGORIES = sav_data.data.ICON_NAMES_TO_IDS["FICSIT Check Mark"]
 
+PERSISTENT_LEVEL = "Persistent_Level"
+WATER_EXTRACTOR_TYPE = "/Game/FactoryGame/Buildable/Factory/WaterPump/Build_WaterPump.Build_WaterPump_C"
+
 def getBlankCategory(objectGameVersion: int, categoryName: str, iconId: int = -1) -> list:
    if objectGameVersion < 53:
       return [[['CategoryName', categoryName],
@@ -686,6 +689,166 @@ def setNodeType(originalNodeName, nodeType, nodePurity):
    else:
       return (ChangeResultEnum.ERROR, f"ERROR: Node not found '{originalNodeName}'")
 
+def addWaterExtractor(level, waterExtractorPosition, waterExtractorRotationInDegrees, waterVolume, incrementStatisticsSubsystemFlag = True):
+   # Rotation is -180 to 180 degrees
+
+   actorInsertionIdx = -1
+   for idx in range(len(level.actorAndComponentObjectHeaders)):
+      if isinstance(level.actorAndComponentObjectHeaders[idx], sav_parse.ComponentHeader):
+         actorInsertionIdx = idx
+         break
+
+   if incrementStatisticsSubsystemFlag:
+      for object in level.objects:
+         if object.instanceName == "Persistent_Level:PersistentLevel.StatisticsSubsystem":
+            for property in object.properties:
+               if property[0] == "mActorsBuiltCount":
+                  for items in property[1]:
+                     if items[0].pathName == WATER_EXTRACTOR_TYPE:
+                        for itemProperties in items[1]:
+                           if itemProperties[0] == "Current":
+                              itemProperties[1] += 1
+                           elif itemProperties[0] == "CurrentMax":
+                              itemProperties[1] += 1
+                           elif itemProperties[0] == "Total":
+                              itemProperties[1] += 1
+                           elif itemProperties[0] == "BuiltPerPlayer" and len(itemProperties[1]) > 0:
+                              firstBuilder = itemProperties[1][0]
+                              firstBuilder[1] += 1
+                        #print(f"Updated StatisticsSubsystem::{property[0]} for {items[0].pathName}")
+
+   waterPumpActorHeader = sav_parse.ActorHeader()
+   waterPumpActorHeader.typePath = WATER_EXTRACTOR_TYPE
+   waterPumpActorHeader.rootObject = PERSISTENT_LEVEL
+   waterPumpActorHeader.instanceName = f"Persistent_Level:PersistentLevel.Build_WaterPump_C_{uuid.uuid4().hex}"
+   waterPumpActorHeader.flags = 8
+   waterPumpActorHeader.needTransform = True
+   waterPumpActorHeader.rotation = eulerToQuaternion((0, 0, degreesToRadians(waterExtractorRotationInDegrees))) # roll, pitch, yaw (rotation clockwise from zero=north; -180 to 180)
+   waterPumpActorHeader.position = waterExtractorPosition
+   waterPumpActorHeader.scale = [1.0, 1.0, 1.0]
+   waterPumpActorHeader.wasPlacedInLevel = False
+   level.actorAndComponentObjectHeaders.insert(actorInsertionIdx, waterPumpActorHeader)
+
+   waterPumpActorObject = sav_parse.Object()
+   waterPumpActorObject.instanceName = waterPumpActorHeader.instanceName
+   waterPumpActorObject.objectGameVersion = 58
+   waterPumpActorObject.shouldMigrateObjectRefsToPersistentFlag = False
+   waterPumpActorObject.actorReferenceAssociations = [sav_parse.ObjectReference(PERSISTENT_LEVEL, "Persistent_Level:PersistentLevel.BuildableSubsystem"), [
+      sav_parse.ObjectReference(PERSISTENT_LEVEL, f"{waterPumpActorHeader.instanceName}.FGPipeConnectionFactory"),
+      sav_parse.ObjectReference(PERSISTENT_LEVEL, f"{waterPumpActorHeader.instanceName}.InventoryPotential"),
+      sav_parse.ObjectReference(PERSISTENT_LEVEL, f"{waterPumpActorHeader.instanceName}.powerInfo"),
+      sav_parse.ObjectReference(PERSISTENT_LEVEL, f"{waterPumpActorHeader.instanceName}.OutputInventory"),
+      sav_parse.ObjectReference(PERSISTENT_LEVEL, f"{waterPumpActorHeader.instanceName}.PowerConnection")]]
+   waterPumpActorObject.properties = fromJSON(
+      [['mOutputInventory', {'levelName': 'Persistent_Level', 'pathName': f"{waterPumpActorHeader.instanceName}.OutputInventory"}],
+       ['mExtractableResource', {'levelName': 'Persistent_Level', 'pathName': waterVolume}],
+       ['mPowerInfo', {'levelName': 'Persistent_Level', 'pathName': f"{waterPumpActorHeader.instanceName}.powerInfo"}],
+       ['mTimeSinceStartStopProducing', 3.3999999521443642e+38],
+       ['mInventoryPotential', {'levelName': 'Persistent_Level', 'pathName': f"{waterPumpActorHeader.instanceName}.InventoryPotential"}],
+       #['BuiltBy', {'jsonhexstr': '0600000000'}],
+       ['mCustomizationData', [
+        [['SwatchDesc', {'levelName': '', 'pathName': '/Game/FactoryGame/Buildable/-Shared/Customization/Swatches/SwatchDesc_Slot0.SwatchDesc_Slot0_C'}]],
+        [['SwatchDesc', 'ObjectProperty', 0]]]],
+       ['mBuiltWithRecipe', {'levelName': '', 'pathName': '/Game/FactoryGame/Recipes/Buildings/Recipe_WaterPump.Recipe_WaterPump_C'}]])
+   waterPumpActorObject.propertyTypes = fromJSON(
+      [['mOutputInventory', 'ObjectProperty', 0], ['mExtractableResource', 'ObjectProperty', 0], ['mPowerInfo', 'ObjectProperty', 0],
+       ['mTimeSinceStartStopProducing', 'FloatProperty', 0], ['mInventoryPotential', 'ObjectProperty', 0],
+       #['BuiltBy', 'StructProperty', 1, 'PlayerInfoHandle', ['/Script/FactoryGame'], 8],
+       ['mCustomizationData', 'StructProperty', 1, 'FactoryCustomizationData', ['/Script/FactoryGame'], 0], ['mBuiltWithRecipe', 'ObjectProperty', 0]])
+   waterPumpActorObject.actorSpecificInfo = None
+   waterPumpActorObject.perObjectVersionData = None
+   level.objects.insert(actorInsertionIdx, waterPumpActorObject)
+
+   componentHeader = sav_parse.ComponentHeader()
+   componentHeader.className = "/Script/FactoryGame.FGPipeConnectionFactory"
+   componentHeader.rootObject = PERSISTENT_LEVEL
+   componentHeader.instanceName = f"{waterPumpActorHeader.instanceName}.FGPipeConnectionFactory"
+   componentHeader.flags = 0x200000
+   componentHeader.parentActorName = waterPumpActorHeader.instanceName
+   level.actorAndComponentObjectHeaders.append(componentHeader)
+   componentObject = sav_parse.Object()
+   componentObject.instanceName = componentHeader.instanceName
+   componentObject.objectGameVersion = 58
+   componentObject.shouldMigrateObjectRefsToPersistentFlag = False
+   componentObject.actorReferenceAssociations = None
+   componentObject.properties = []
+   componentObject.propertyTypes = []
+   componentObject.actorSpecificInfo = True
+   componentObject.perObjectVersionData = None
+   level.objects.append(componentObject)
+
+   componentHeader = sav_parse.ComponentHeader()
+   componentHeader.className = "/Script/FactoryGame.FGPowerConnectionComponent"
+   componentHeader.rootObject = PERSISTENT_LEVEL
+   componentHeader.instanceName = f"{waterPumpActorHeader.instanceName}.PowerConnection"
+   componentHeader.flags = 0x200000
+   componentHeader.parentActorName = waterPumpActorHeader.instanceName
+   level.actorAndComponentObjectHeaders.append(componentHeader)
+   componentObject = sav_parse.Object()
+   componentObject.instanceName = componentHeader.instanceName
+   componentObject.objectGameVersion = 58
+   componentObject.shouldMigrateObjectRefsToPersistentFlag = False
+   componentObject.actorReferenceAssociations = None
+   componentObject.properties = []
+   componentObject.propertyTypes = []
+   componentObject.actorSpecificInfo = True
+   componentObject.perObjectVersionData = None
+   level.objects.append(componentObject)
+
+   componentHeader = sav_parse.ComponentHeader()
+   componentHeader.className = "/Script/FactoryGame.FGInventoryComponent"
+   componentHeader.rootObject = PERSISTENT_LEVEL
+   componentHeader.instanceName = f"{waterPumpActorHeader.instanceName}.OutputInventory"
+   componentHeader.flags = 0x40008
+   componentHeader.parentActorName = waterPumpActorHeader.instanceName
+   level.actorAndComponentObjectHeaders.append(componentHeader)
+   componentObject = sav_parse.Object()
+   componentObject.instanceName = componentHeader.instanceName
+   componentObject.objectGameVersion = 58
+   componentObject.shouldMigrateObjectRefsToPersistentFlag = False
+   componentObject.actorReferenceAssociations = None
+   componentObject.properties = fromJSON([['mArbitrarySlotSizes', [200000]], ['mAllowedItemDescriptors', [{'levelName': '', 'pathName': '/Game/FactoryGame/Resource/RawResources/Water/Desc_Water.Desc_Water_C'}]]])
+   componentObject.propertyTypes = [['mArbitrarySlotSizes', 'ArrayProperty', 1, 'IntProperty', 0, 0], ['mAllowedItemDescriptors', 'ArrayProperty', 1, 'ObjectProperty', 0, 0]]
+   componentObject.actorSpecificInfo = True
+   componentObject.perObjectVersionData = None
+   level.objects.append(componentObject)
+
+   componentHeader = sav_parse.ComponentHeader()
+   componentHeader.className = "/Script/FactoryGame.FGPowerInfoComponent"
+   componentHeader.rootObject = PERSISTENT_LEVEL
+   componentHeader.instanceName = f"{waterPumpActorHeader.instanceName}.powerInfo"
+   componentHeader.flags = 0x40008
+   componentHeader.parentActorName = waterPumpActorHeader.instanceName
+   level.actorAndComponentObjectHeaders.append(componentHeader)
+   componentObject = sav_parse.Object()
+   componentObject.instanceName = componentHeader.instanceName
+   componentObject.objectGameVersion = 58
+   componentObject.shouldMigrateObjectRefsToPersistentFlag = False
+   componentObject.actorReferenceAssociations = None
+   componentObject.properties = [['mTargetConsumption', 0.10000000149011612]]
+   componentObject.propertyTypes = [['mTargetConsumption', 'FloatProperty', 0]]
+   componentObject.actorSpecificInfo = True
+   componentObject.perObjectVersionData = None
+   level.objects.append(componentObject)
+
+   componentHeader = sav_parse.ComponentHeader()
+   componentHeader.className = "/Script/FactoryGame.FGInventoryComponent"
+   componentHeader.rootObject = PERSISTENT_LEVEL
+   componentHeader.instanceName = f"{waterPumpActorHeader.instanceName}.InventoryPotential"
+   componentHeader.flags = 0x40008
+   componentHeader.parentActorName = waterPumpActorHeader.instanceName
+   level.actorAndComponentObjectHeaders.append(componentHeader)
+   componentObject = sav_parse.Object()
+   componentObject.instanceName = componentHeader.instanceName
+   componentObject.objectGameVersion = 58
+   componentObject.shouldMigrateObjectRefsToPersistentFlag = False
+   componentObject.actorReferenceAssociations = None
+   componentObject.properties = [['mArbitrarySlotSizes', [1, 1, 1]]]
+   componentObject.propertyTypes = [['mArbitrarySlotSizes', 'ArrayProperty', 1, 'IntProperty', 0, 0]]
+   componentObject.actorSpecificInfo = True
+   componentObject.perObjectVersionData = None
+   level.objects.append(componentObject)
+
 def printUsage() -> None:
    print()
    print("USAGE:")
@@ -747,6 +910,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --resave-only <original-save-filename> <new-save-filename>")
    print("   py sav_cli.py --add-missing-items-to-sav_stack_sizes")
    print("   py sav_cli.py --list-crash-site-guards")
+   print("   py sav_cli.py --add-water-extractor <original-save-filename> <new-save-filename>")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -1218,9 +1382,9 @@ if __name__ == '__main__':
                closestNodeName = nodeName
                closestNodeDistance = distance
                closestNodePosition = nodePosition
-   
+
          print(f"{closestNodeName[33:]} is at {closestNodePosition} at a distance of {closestNodeDistance} meters.")
-   
+
          nodeType, nodePurity, nodePosition, nodeCore = sav_data.resourcePurity.RESOURCE_PURITY[closestNodeName]
          nodePurity = nodePurity.name.capitalize()
          print(f"   Default setting: {nodePurity} {sav_parse.pathNameToReadableName(nodeType)}")
@@ -4011,6 +4175,30 @@ if __name__ == '__main__':
                print(f"{shortName}  Guarded by {guards}")
          else:
             print(f"Unknown crash site {shortName}")
+
+   elif len(sys.argv) in (4, 5) and sys.argv[1] == "--add-water-extractor" and os.path.isfile(sys.argv[2]):
+      savFilename = sys.argv[2]
+      outFilename = sys.argv[3]
+      changeTimeFlag = True
+      if len(sys.argv) == 5 and sys.argv[4] == "--same-time":
+         changeTimeFlag = False
+
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      addWaterExtractor(parsedSave.levels[-1], [-75173.3515625, 232295.75, -2630], -45.0, "Persistent_Level:PersistentLevel.FGWaterVolume78")
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
 
    else:
       print(f"ERROR: Did not understand {len(sys.argv)} arguments: {sys.argv}", file=sys.stderr)
