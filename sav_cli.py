@@ -692,6 +692,29 @@ def setNodeType(originalNodeName, nodeType, nodePurity):
    else:
       return (ChangeResultEnum.ERROR, f"ERROR: Node not found '{originalNodeName}'")
 
+def makeUniqueObjectNumber():
+   usedObjectNumbers = []
+   for level in parsedSave.levels:
+      for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+         locSlash = actorOrComponentObjectHeader.instanceName.rfind("_")
+         if locSlash != -1: # Should always be true
+            afterSlash = actorOrComponentObjectHeader.instanceName[locSlash+1:]
+            locPeriod = afterSlash.rfind(".")
+            if locPeriod == -1: # Works and fails for both Actor and Component
+               try:
+                  objectNumber = int(afterSlash)
+                  if objectNumber not in usedObjectNumbers:
+                     usedObjectNumbers.append(objectNumber)
+               except ValueError:
+                  pass
+   usedObjectNumbers.sort()
+   highestValidObjectNumber = usedObjectNumbers[-1]
+   searchUnusedObjectNumber = highestValidObjectNumber - 1
+   while searchUnusedObjectNumber in usedObjectNumbers:
+      searchUnusedObjectNumber -= 1
+   usedObjectNumbers.append(searchUnusedObjectNumber) # Only needed if usedObjectNumbers becomes a global
+   return searchUnusedObjectNumber
+
 def addWaterExtractor(level, waterExtractorPosition, waterExtractorRotationInDegrees, waterVolume, swatchDesc = DEFAULT_SWATCH_PATH_NAME, incrementStatisticsSubsystemFlag = True):
    # Rotation is -180 to 180 degrees
 
@@ -723,7 +746,7 @@ def addWaterExtractor(level, waterExtractorPosition, waterExtractorRotationInDeg
    waterPumpActorHeader = sav_parse.ActorHeader()
    waterPumpActorHeader.typePath = WATER_EXTRACTOR_TYPE
    waterPumpActorHeader.rootObject = PERSISTENT_LEVEL
-   waterPumpActorHeader.instanceName = f"Persistent_Level:PersistentLevel.Build_WaterPump_C_{uuid.uuid4().hex}"
+   waterPumpActorHeader.instanceName = f"Persistent_Level:PersistentLevel.Build_WaterPump_C_{makeUniqueObjectNumber()}"
    waterPumpActorHeader.flags = 8
    waterPumpActorHeader.needTransform = True
    waterPumpActorHeader.rotation = eulerToQuaternion((0, 0, degreesToRadians(waterExtractorRotationInDegrees))) # roll, pitch, yaw (rotation clockwise from zero=north; -180 to 180)
