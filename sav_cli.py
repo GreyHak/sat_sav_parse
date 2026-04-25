@@ -532,6 +532,8 @@ def addMapMarker(levels, markerName: str, markerLocation: list[float, float, flo
    if len(markerLocation) != 3:
       print(f"ERROR: Invalid markerLocation passed to addMapMarker: {markerLocation}")
       return False
+   if len(markerColor) == 4:
+      markerColor = markerColor[:3]
    if len(markerColor) != 3:
       print(f"ERROR: Invalid markerColor passed to addMapMarker: {markerColor}")
       return False
