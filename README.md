@@ -64,6 +64,7 @@ Usage:
   - `py sav_cli.py --export-player-inventory <player-num> <save-filename> <output-json-filename>`
   - `py sav_cli.py --import-player-inventory <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --tweak-player-inventory <player-num> <slot-index> <item> <quantity> <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --add-foundation <x> <y> <z> <yaw-degrees> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --rotate-foundations <primary-color-hex-or-preset> <secondary-color-hex-or-preset> <clockwise-degrees> <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --clear-fog <original-save-filename> <new-save-filename> [--same-time]`
   - `py sav_cli.py --export-hotbar <player-num> <save-filename> <output-json-filename>`

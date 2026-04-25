@@ -896,6 +896,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --export-player-inventory <player-num> <save-filename> <output-json-filename>")
    print("   py sav_cli.py --import-player-inventory <player-num> <original-save-filename> <input-json-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --tweak-player-inventory <player-num> <slot-index> <item> <quantity> <original-save-filename> <new-save-filename> [--same-time]")
+   print("   py sav_cli.py --add-foundation <x> <y> <z> <yaw-degrees> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --rotate-foundations <primary-color-hex-or-preset> <secondary-color-hex-or-preset> <clockwise-degrees> <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --clear-fog <original-save-filename> <new-save-filename> [--same-time]")
    print("   py sav_cli.py --export-hotbar <player-num> <save-filename> <output-json-filename>")
@@ -1852,6 +1853,63 @@ if __name__ == '__main__':
 
       if not modifiedFlag:
          print("ERROR: Failed to find inventory slot to modify.", file=sys.stderr)
+         exit(1)
+
+      try:
+         if changeTimeFlag:
+            parsedSave.saveFileInfo.saveDateTimeInTicks += sav_parse.TICKS_IN_SECOND
+         sav_to_resave.saveFile(parsedSave, outFilename)
+         if VERIFY_CREATED_SAVE_FILES:
+            parsedSave = sav_parse.readFullSaveFile(outFilename)
+            print("Validation successful")
+      except Exception as error:
+         raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif len(sys.argv) in (8, 9) and sys.argv[1] == "--add-foundation" and os.path.isfile(sys.argv[6]):
+      # Example for placing foundation on south-east world boundary:
+      #    sav_cli.py --add-foundation 353460 104000 -1650 35.034551 in.sav out.sav
+
+      positionX = float(sys.argv[2])
+      positionY = float(sys.argv[3])
+      positionZ = float(sys.argv[4])
+      yawInDegrees = float(sys.argv[5])
+      savFilename = sys.argv[6]
+      outFilename = sys.argv[7]
+      changeTimeFlag = True
+      if len(sys.argv) == 9 and sys.argv[8] == "--same-time":
+         changeTimeFlag = False
+
+      modifiedFlag = False
+      try:
+         parsedSave = sav_parse.readFullSaveFile(savFilename)
+         playerPaths = getPlayerPaths(parsedSave.levels)
+
+         persistentLevel = parsedSave.levels[-1]
+         for persistentLevelObject in persistentLevel.objects:
+            if persistentLevelObject.instanceName == "Persistent_Level:PersistentLevel.LightweightBuildableSubsystem":
+               for info in persistentLevelObject.actorSpecificInfo:
+                  if isinstance(info, list) and info[0] == "/Game/FactoryGame/Buildable/Building/Foundation/Build_Foundation_8x1_01.Build_Foundation_8x1_01_C":
+                     foundations = info[1]
+                     foundations.append([
+                        # This example is right inside the south-east world boundary
+                        list(eulerToQuaternion([0, 0, degreesToRadians(yawInDegrees)])),
+                        [positionX, positionY, positionZ],
+                        sav_parse.ObjectReference("", "/Game/FactoryGame/Buildable/-Shared/Customization/Swatches/SwatchDesc_Slot16.SwatchDesc_Slot16_C"),
+                        sav_parse.ObjectReference(),
+                        [[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 1.0]],
+                        sav_parse.ObjectReference(),
+                        0,
+                        sav_parse.ObjectReference("", "/Game/FactoryGame/Recipes/Buildings/Foundations/Recipe_Foundation_8x1_01.Recipe_Foundation_8x1_01_C"),
+                        sav_parse.ObjectReference(), # Blueprint proxy
+                        None, 0, -1]) # Have also seen: None, 6, 1
+                     modifiedFlag = True
+               break
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
+
+      if not modifiedFlag:
+         print("Failed to find light-weight buildable system for 8x8x1 foundations.", file=sys.stderr)
          exit(1)
 
       try:
