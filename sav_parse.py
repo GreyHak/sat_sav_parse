@@ -292,7 +292,7 @@ class SaveFileInfo:
       if self.saveHeaderType != 14: # 13=(v0.8.3.3 thru v1.0.0.4)  14=(v1.1.0.0 thru v1.1.3.0)
          raise ParseError(f"Unsupported save header version number {self.saveHeaderType}.")
       (offset, self.saveVersion) = parseUint32(offset, data) # line 1491
-      if self.saveVersion != 52 and self.saveVersion != 53 and self.saveVersion != 58:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1-v1.0.0.4  51=v1.1.0.0-v1.1.0.3  52=v1.1.0.4-v1.1.2.2  53=v1.1.3.0  58=v1.2.0.0
+      if self.saveVersion != 52 and self.saveVersion != 53 and self.saveVersion != 58 and self.saveVersion != 59:  # 30=v0.6.1.3  42=v0.8.3.3  46=v1.0.0.1-v1.0.0.4  51=v1.1.0.0-v1.1.0.3  52=v1.1.0.4-v1.1.2.2  53=v1.1.3.0  58=v1.2.0.0-v1.2.1.0  59=v1.2.2.0
          raise ParseError(f"Unsupported save version number {self.saveVersion}.")
       (offset, self.buildVersion) = parseUint32(offset, data)
       if self.saveVersion >= 14:
