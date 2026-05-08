@@ -279,6 +279,7 @@ def parseBlueprintConfig(sbpcfgFile):
       iconLibraryType = None
       editors = None
       serviceProvider = None
+      playerInfoTableIndex = None
       if version >= 3:
          (offset, referencedIconLibrary) = sav_parse.parseString(offset, data)
          (offset, iconLibraryType) = sav_parse.parseString(offset, data)
@@ -292,32 +293,23 @@ def parseBlueprintConfig(sbpcfgFile):
                (offset, platformName) = sav_parse.parseString(offset, data)
                editors.append([accountId, displayName, platformName])
 
-         elif version == 6:
+         elif version >= 6:
             # FPlayerInfoHandle
             (offset, serviceProvider) = sav_parse.parseUint8(offset, data)
             unpresentSaveVersion56AndBelowFlag = (len(data) - offset == 1)
             if unpresentSaveVersion56AndBelowFlag: # < 57
-               version = (version, unpresentSaveVersion56AndBelowFlag)
                offset = sav_parse.confirmBasicType(offset, data, sav_parse.parseUint8, 0) # Legacy PlayerInfoTableIndex
             else: # >= 57
-               offset = sav_parse.confirmBasicType(offset, data, sav_parse.parseUint32, 0) # PlayerInfoTableIndex
+               (offset, playerInfoTableIndex) = sav_parse.parseUint32(offset, data)
 
       if offset != len(data):
-         raise sav_parse.ParseError(f"Unexpected file length {len(data)} > {offset}")
+         raise sav_parse.ParseError(f"Unexpected file length {len(data)} != parsed position {offset}")
 
-      return version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider
+      return version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider, playerInfoTableIndex
 
 def resaveBlueprintConfig(sbpcfgFile, config):
 
-   version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider = config
-
-   if isinstance(version, (list, tuple)):
-      # unpresentSaveVersion56AndBelowFlag here is always True
-      version, unpresentSaveVersion56AndBelowFlag = version
-   elif version >= 6:
-      unpresentSaveVersion56AndBelowFlag = False
-   else:
-      unpresentSaveVersion56AndBelowFlag = None
+   version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider, playerInfoTableIndex = config
 
    data = bytearray()
    data.extend(sav_to_resave.addUint32(version))
@@ -339,10 +331,10 @@ def resaveBlueprintConfig(sbpcfgFile, config):
 
       elif version == 6:
          data.extend(sav_to_resave.addUint8(serviceProvider))
-         if unpresentSaveVersion56AndBelowFlag: # < 57
+         if playerInfoTableIndex is None: # < 57
             data.extend(sav_to_resave.addUint8(0))
          else: # >= 57
-            data.extend(sav_to_resave.addUint32(0))
+            data.extend(sav_to_resave.addUint32(playerInfoTableIndex))
 
    with open(sbpcfgFile, "wb") as fout:
       fout.write(data)
@@ -390,7 +382,7 @@ if __name__ == '__main__':
                      fout.write("   "+sav_parse.toString(objects[idx])+"\n")
       elif filepath.endswith(".sbpcfg"):
          config = parseBlueprintConfig(filepath)
-         version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider = config
+         version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider, playerInfoTableIndex = config
          print(filepath)
          ICON_ID_NONE = 65535
          if iconId == ICON_ID_NONE:
