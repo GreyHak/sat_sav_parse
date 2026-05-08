@@ -828,7 +828,7 @@ def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjec
    if object.objectGameVersion >= 53:
       shouldSerializePerObjectVersionData = object.perObjectVersionData is not None
       if shouldSerializePerObjectVersionData:
-         objectUE5Version = getUE5VersionFromObjectVersionData(object.perObjectVersionData)
+         objectUE5Version = sav_parse.getUE5VersionFromObjectVersionData(object.perObjectVersionData)
    if objectUE5Version >= 1011:
       dataEntity.extend(addUint8(0))
    dataEntity.extend(addProperties(object.objectGameVersion, objectUE5Version, object.properties, object.propertyTypes))
