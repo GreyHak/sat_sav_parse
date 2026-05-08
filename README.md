@@ -3,7 +3,7 @@
 Copyright (c) 2024-2026 [GreyHak](https://github.com/GreyHak)
 
 A set of Python tools for parsing Satisfactory save files, and then displaying
-and manipulating the contents.  Supports Satisfactory release v1.2.0.0.
+and manipulating the contents.  Supports Satisfactory releases v1.2.0.0, v1.2.1.0, v1.2.2.0 and v1.2.2.1.
 
 [Satisfactory](https://www.satisfactorygame.com/) is a non-competitive,
 first-person, open-world, factory-building and exploration game produced by
