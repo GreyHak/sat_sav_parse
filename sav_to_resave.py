@@ -759,7 +759,7 @@ def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjec
          dataTrailing.extend(addObjectReference(chainBelts[-1][0]))
          dataTrailing.extend(addUint32(len(chainBelts)))
          for idx in range(len(chainBelts)):
-            (levelPathName_belt, chainBeltElements, buint32a, buint32b, buint32c, beltLeadItemIndex, beltTailItemIndex) = chainBelts[idx]
+            (levelPathName_belt, chainBeltElements, bfloata, bfloatb, bfloatc, beltLeadItemIndex, beltTailItemIndex) = chainBelts[idx]
             dataTrailing.extend(addObjectReference(levelPathName_conveyorChainActor))
             dataTrailing.extend(addObjectReference(levelPathName_belt))
             dataTrailing.extend(addUint32(len(chainBeltElements)))
@@ -767,9 +767,9 @@ def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjec
                for kdx in range(3):
                   for ldx in range(3):
                      dataTrailing.extend(addDouble(element[kdx][ldx]))
-            dataTrailing.extend(addUint32(buint32a))
-            dataTrailing.extend(addUint32(buint32b))
-            dataTrailing.extend(addUint32(buint32c))
+            dataTrailing.extend(addFloat(bfloata))
+            dataTrailing.extend(addFloat(bfloatb))
+            dataTrailing.extend(addFloat(bfloatc))
             dataTrailing.extend(addInt32(beltLeadItemIndex))
             dataTrailing.extend(addInt32(beltTailItemIndex))
             dataTrailing.extend(addUint32(idx))

@@ -668,14 +668,14 @@ class Object: # Both ActorObject and ComponentObject
                      nine.append(three)
                   chainBeltElements.append(nine)
 
-               (offset, buint32a) = parseUint32(offset, data)
-               (offset, buint32b) = parseUint32(offset, data)
-               (offset, buint32c) = parseUint32(offset, data)
+               (offset, bfloata) = parseFloat(offset, data)
+               (offset, bfloatb) = parseFloat(offset, data)
+               (offset, bfloatc) = parseFloat(offset, data)
                (offset, beltLeadItemIndex) = parseInt32(offset, data)
                (offset, beltTailItemIndex) = parseInt32(offset, data)
                offset = confirmBasicType(offset, data, parseUint32, idx)
 
-               chainBelts.append([levelPathName_belt, chainBeltElements, buint32a, buint32b, buint32c, beltLeadItemIndex, beltTailItemIndex])
+               chainBelts.append([levelPathName_belt, chainBeltElements, bfloata, bfloatb, bfloatc, beltLeadItemIndex, beltTailItemIndex])
 
             (offset, cuint32) = parseUint32(offset, data)
             (offset, maximumItems) = parseInt32(offset, data)
