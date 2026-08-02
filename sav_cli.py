@@ -22,6 +22,7 @@ import math
 import os
 import sys
 import uuid
+import glob
 
 import sav_parse
 import sav_to_resave
@@ -942,6 +943,7 @@ def printUsage() -> None:
    print("   py sav_cli.py --list-crash-site-guards")
    print("   py sav_cli.py --add-water-extractor <original-save-filename> <new-save-filename>")
    print("   py sav_cli.py --zoop-water-extractor <reference-extractor> <north|south|east|west> <count> <original-save-filename> <new-save-filename>")
+   print("   py sav_cli.py --list-water-extractors <save-filename>")
    print()
 
    # TODO: Add manipulation of cheat flags
@@ -4433,6 +4435,46 @@ if __name__ == '__main__':
             print("Validation successful")
       except Exception as error:
          raise Exception(f"ERROR: While validating resave of '{savFilename}' to '{outFilename}': {error}")
+
+   elif sys.argv[1] == "--list-water-extractors":
+
+      fullSavList = []
+      for savFilename_possibleWildcard in sys.argv[2:]:
+         fullSavList.extend(glob.glob(savFilename_possibleWildcard))
+      print(f"Processing {len(fullSavList)} save file(s).")
+
+      # Quick version check to make sure sav_parse can open all supplied files
+      try:
+         for savFilename in fullSavList:
+            sav_parse.readSaveFileInfo(savFilename)
+      except Exception as error:
+         print(f"ERROR: While processing '{savFilename}': {error}")
+         exit(1)
+
+      try:
+         uniqueWaterExtractorPositions = set()
+         for savFilename in fullSavList:
+            print()
+            print(savFilename)
+            parsedSave = sav_parse.readFullSaveFile(savFilename)
+
+            level = parsedSave.levels[-1]
+            for actorOrComponentObjectHeader in level.actorAndComponentObjectHeaders:
+               if isinstance(actorOrComponentObjectHeader, sav_parse.ActorHeader):
+                  if actorOrComponentObjectHeader.typePath == WATER_EXTRACTOR_TYPE:
+                     eulerRotation = quaternionToEuler(actorOrComponentObjectHeader.rotation)
+                     uniqueWaterExtractorPositions.add((actorOrComponentObjectHeader.position[0], actorOrComponentObjectHeader.position[1], actorOrComponentObjectHeader.position[2], eulerRotation[2]))
+            print(f"Now {len(uniqueWaterExtractorPositions)} unique water extractor positions.")
+
+         print()
+         print(f"{len(uniqueWaterExtractorPositions)} unique water extractor positions found across {len(fullSavList)} save files.")
+         print("[")
+         for x, y, z, r in uniqueWaterExtractorPositions:
+            print(f'  {{"x": {x}, "y": {y}, "z": {z}, "rad": {r}}},')
+         print("]")
+
+      except Exception as error:
+         raise Exception(f"ERROR: While processing '{savFilename}': {error}")
 
    else:
       print(f"ERROR: Did not understand {len(sys.argv)} arguments: {sys.argv}", file=sys.stderr)

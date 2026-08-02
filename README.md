@@ -109,6 +109,7 @@ Usage:
   - `py sav_cli.py --add-missing-items-to-sav_stack_sizes`
   - `py sav_cli.py --list-crash-site-guards`
   - `py sav_cli.py --zoop-water-extractor <reference-extractor> <north|south|east|west> <count> <original-save-filename> <new-save-filename> [--same-time]`
+  - `py sav_cli.py --list-water-extractors <save-filename>`
 
 If `--find-free-stuff` is used inconjunction with `sav_to_html.py` and a blank
 map, it will generate a map of all the locations for the specified item.
