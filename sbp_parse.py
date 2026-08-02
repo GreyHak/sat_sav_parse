@@ -31,7 +31,7 @@ def parseBlueprint(sbpFile: str):
       if headerVersion != 2:
          return f"Unsupported header version {headerVersion}"
       (offset, saveVersion) = sav_parse.parseUint32(offset, data)
-      if saveVersion != 51 and saveVersion != 52 and saveVersion != 53 and saveVersion != 58 and saveVersion != 60:
+      if saveVersion != 51 and saveVersion != 52 and saveVersion != 53 and saveVersion != 58 and saveVersion != 59 and saveVersion != 60:
          return f"Unsupported save version {saveVersion}"
       (offset, buildVersion) = sav_parse.parseUint32(offset, data)
       (offset, designerDimensionX) = sav_parse.parseUint32(offset, data)
@@ -261,6 +261,26 @@ def printBlueprintSummary(blueprint, sbpFile):
    for buildables in sorted(buildableRecipes, key=lambda l: sav_parse.pathNameToReadableName(l.pathName.replace("Recipe_", "Build_"))):
       buildingPathName = buildables.pathName.replace("Recipe_", "Build_")
       print(f"   Buildable {sav_parse.pathNameToReadableName(buildingPathName)}")
+
+   recipes = {}
+   for objIdx in range(len(objectHeaders)):
+      objectHeader = objectHeaders[objIdx]
+      object = objects[objIdx]
+      if isinstance(objectHeader, sav_parse.ActorHeader) and len(object) == 5:
+         currentRecipe = sav_parse.getPropertyValue(object[2], "mCurrentRecipe")
+         if currentRecipe is not None:
+            pendingPotential = sav_parse.getPropertyValue(object[2], "mPendingPotential")
+            if pendingPotential is None:
+               pendingPotential = 1.0
+            if currentRecipe.pathName in recipes:
+               recipes[currentRecipe.pathName][0] += pendingPotential
+            else:
+               recipes[currentRecipe.pathName] = [pendingPotential, objectHeader.typePath]
+   if len(recipes) > 0:
+      print("Recipes:")
+      for recipePathName in sorted(recipes):
+         fraction, machineTypePath = recipes[recipePathName]
+         print(f"   '{sav_parse.pathNameToReadableName(recipePathName)}' @ {fraction*100:.4f}% ({fraction:.6f}) in {sav_parse.pathNameToReadableName(machineTypePath)}")
 
 def parseBlueprintConfig(sbpcfgFile):
    with open(sbpcfgFile, "rb") as fin:
