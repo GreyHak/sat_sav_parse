@@ -738,6 +738,7 @@ class Object: # Both ActorObject and ComponentObject
             if actorOrComponentObjectHeader.typePath in (
                   "/Script/FactoryGame.FGBlueprintProxy",
                   "/Script/FactoryGame.FGCentralStorageSubsystem",
+                  "/Script/FactoryGame.FGDockingStationIdentifier",
                   "/Script/FactoryGame.FGDockingStationInfo",
                   "/Script/FactoryGame.FGDrivingTargetList",
                   "/Script/FactoryGame.FGDroneStationInfo",
@@ -753,6 +754,7 @@ class Object: # Both ActorObject and ComponentObject
                   "/Script/FactoryGame.FGScannableSubsystem",
                   "/Script/FactoryGame.FGStatisticsSubsystem",
                   "/Script/FactoryGame.FGTrainStationIdentifier",
+                  "/Script/FactoryGame.FGWheeledVehicleIdentifier",
                   "/Script/FactoryGame.FGWheeledVehicleInfo",
                   "/Script/FactoryGame.FGWorldSettings"):
                offset = confirmBasicType(offset, data, parseUint32, 0)
@@ -765,7 +767,8 @@ class Object: # Both ActorObject and ComponentObject
                   "/Script/FactoryGame.FGHighlightedMarker_MapMarker",
                   "/Script/FactoryGame.FGPlayerHotbar",
                   "/Script/FactoryGame.FGPowerCircuit",
-                  "/Script/FactoryGame.FGRecipeShortcut"):
+                  "/Script/FactoryGame.FGRecipeShortcut",
+                  "/Script/FactoryGame.FGVehiclePathNetwork"):
                offset = confirmBasicType(offset, data, parseUint32, 0)
 
       if offset > offsetStartThis + objectSize:
