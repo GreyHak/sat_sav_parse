@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import zlib
 import string
 import struct
@@ -247,7 +248,7 @@ def resaveBlueprint(sbpFile, blueprint):
 
       fout.write(sdata)
 
-def printBlueprintSummary(blueprint, sbpFile):
+def printBlueprintSummary(blueprint, sbpFile, outFile = sys.stdout):
    DIMENSION_TO_MK = {4: "Mk.1", 5: "Mk.2", 6: "Mk.3"}
    versions, summary, objectHeaders, objects = blueprint
    headerVersion, saveVersion, buildVersion, saveObjectVersionData = versions
@@ -255,12 +256,12 @@ def printBlueprintSummary(blueprint, sbpFile):
    designerMk = "Mk.?"
    if designerDimension in DIMENSION_TO_MK:
       designerMk = DIMENSION_TO_MK[designerDimension]
-   print(f"{headerVersion}, {saveVersion}, {buildVersion}, {designerDimension}x{designerDimension}x{designerDimension} ({designerMk}) with {len(ingredients)} ingredients, {len(buildableRecipes)} buildables, and {len(objects)} objects: {sbpFile}")
+   print(f"{headerVersion}, {saveVersion}, {buildVersion}, {designerDimension}x{designerDimension}x{designerDimension} ({designerMk}) with {len(ingredients)} ingredients, {len(buildableRecipes)} buildables, and {len(objects)} objects: {sbpFile}", file=outFile)
    for itemCount, item in sorted(ingredients, key=lambda l: l[0], reverse=True):
-      print(f"   Ingredient {itemCount}x {sav_parse.pathNameToReadableName(item.pathName)}")
+      print(f"   Ingredient {itemCount}x {sav_parse.pathNameToReadableName(item.pathName)}", file=outFile)
    for buildables in sorted(buildableRecipes, key=lambda l: sav_parse.pathNameToReadableName(l.pathName.replace("Recipe_", "Build_"))):
       buildingPathName = buildables.pathName.replace("Recipe_", "Build_")
-      print(f"   Buildable {sav_parse.pathNameToReadableName(buildingPathName)}")
+      print(f"   Buildable {sav_parse.pathNameToReadableName(buildingPathName)}", file=outFile)
 
    recipes = {}
    for objIdx in range(len(objectHeaders)):
@@ -277,10 +278,10 @@ def printBlueprintSummary(blueprint, sbpFile):
             else:
                recipes[currentRecipe.pathName] = [pendingPotential, objectHeader.typePath]
    if len(recipes) > 0:
-      print("Recipes:")
+      print("Recipes:", file=outFile)
       for recipePathName in sorted(recipes):
          fraction, machineTypePath = recipes[recipePathName]
-         print(f"   '{sav_parse.pathNameToReadableName(recipePathName)}' @ {fraction*100:.4f}% ({fraction:.6f}) in {sav_parse.pathNameToReadableName(machineTypePath)}")
+         print(f"   '{sav_parse.pathNameToReadableName(recipePathName)}' @ {fraction*100:.4f}% ({fraction:.6f}) in {sav_parse.pathNameToReadableName(machineTypePath)}", file=outFile)
 
 def parseBlueprintConfig(sbpcfgFile):
    with open(sbpcfgFile, "rb") as fin:
@@ -391,15 +392,15 @@ if __name__ == '__main__':
             if RESAVE_TEST:
                resaveBlueprint(TEST_OUTPUT_FILE_SBP, blueprint)
                parseBlueprint(TEST_OUTPUT_FILE_SBP)
-            if len(fileList) == 1:
-               outBase = os.path.splitext(filepath)[0]
-               with open(f"{outBase}-dump.txt", "w") as fout:
-                  versions, summary, objectHeaders, objects = blueprint
-                  fout.write(sav_parse.toString(versions)+"\n")
-                  fout.write(sav_parse.toString(summary)+"\n")
-                  for idx in range(len(objects)):
-                     fout.write(sav_parse.toString(objectHeaders[idx])+"\n")
-                     fout.write("   "+sav_parse.toString(objects[idx])+"\n")
+            outBase = os.path.splitext(filepath)[0]
+            with open(f"{outBase}-dump.txt", "w", encoding="utf-8") as fout:
+               printBlueprintSummary(blueprint, filepath, fout)
+               versions, summary, objectHeaders, objects = blueprint
+               fout.write(sav_parse.toString(versions)+"\n")
+               fout.write(sav_parse.toString(summary)+"\n")
+               for idx in range(len(objects)):
+                  fout.write(sav_parse.toString(objectHeaders[idx])+"\n")
+                  fout.write("   " + sav_parse.toString(objects[idx]) + "\n")
       elif filepath.endswith(".sbpcfg"):
          config = parseBlueprintConfig(filepath)
          version, description, iconId, iconColor, referencedIconLibrary, iconLibraryType, editors, serviceProvider, playerInfoTableIndex = config
