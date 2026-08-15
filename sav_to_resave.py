@@ -429,6 +429,8 @@ def addProperties(currentEntitySaveVersion, objectUE5Version, properties, proper
                            "SignComponentVariableMetaData", # Only observed in modded save
                            "SwatchGroupData",               # Only observed in modded save
                            "USSSwatchSaveInfo",             # Only observed in modded save
+                           "RPAttachmentData",              # Modded: Refined Power
+                           "RPAttachmentPointData",         # Modded: Refined Power
                            ):
                         for value in propertyValue:
                            (prop, propTypes) = value
@@ -571,6 +573,9 @@ def addProperties(currentEntitySaveVersion, objectUE5Version, properties, proper
                      "LBBalancerData",      # Only observed in modded save
                      "ManagedSignData",     # Only observed in modded save
                      "Struct_PC_PartInfo",  # Only observed in modded save
+                     # Modded: Refined Power
+                     "RPPowerOptions",
+                     "RPFullProductionHandle",
                      ):
                   (prop, propTypes) = propertyValue
                   dataProp.extend(addProperties(currentEntitySaveVersion, objectUE5Version, prop, propTypes))
@@ -788,6 +793,10 @@ def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjec
             dataTrailing.extend(addUint32(0))
       elif actorOrComponentObjectHeader.typePath in ( # Only observed in modded save
             "/AB_CableMod/Cables_Heavy/Build_AB-PLHeavy-Cu.Build_AB-PLHeavy-Cu_C",
+            "/AB_CableMod/Cables_Standard/Build_AB-PLStandard-Cu.Build_AB-PLStandard-Cu_C",
+            "/AB_CableMod/Cables_Wire/Build_AB-PLWire-Au.Build_AB-PLWire-Au_C",
+            "/AB_CableMod/Cables_Wire/Build_AB-PLWire-Si.Build_AB-PLWire-Si_C",
+            "/AB_CableMod/Cables_Wire/Build_AB-PLWire-Cu.Build_AB-PLWire-Cu_C",
             "/FlexSplines/Conveyor/Build_Belt2.Build_Belt2_C",
             "/FlexSplines/PowerLine/Build_FlexPowerline.Build_FlexPowerline_C",
             "/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C",
