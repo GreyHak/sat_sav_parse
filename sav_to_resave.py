@@ -573,9 +573,8 @@ def addProperties(currentEntitySaveVersion, objectUE5Version, properties, proper
                      "LBBalancerData",      # Only observed in modded save
                      "ManagedSignData",     # Only observed in modded save
                      "Struct_PC_PartInfo",  # Only observed in modded save
-                     # Modded: Refined Power
-                     "RPPowerOptions",
-                     "RPFullProductionHandle",
+                     "RPPowerOptions",         # Modded: Refined Power
+                     "RPFullProductionHandle", # Modded: Refined Power
                      ):
                   (prop, propTypes) = propertyValue
                   dataProp.extend(addProperties(currentEntitySaveVersion, objectUE5Version, prop, propTypes))
@@ -822,6 +821,7 @@ def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjec
             "/Script/FactoryGame.FGVehicleAutopilotComponent",
             "/Script/FicsitFarming.FFDoggoHealthInfoComponent", # Only observed in modded save
             "/EditSwatchNames/DataHolder.DataHolder_C",         # Only observed in modded save
+            "/Script/RefinedRDLib.RRDLModularBuildingHandler",  # Modded: Refined R&D Mods (Refined Power, Ficsit Farming etc)
             ):
          if object.actorSpecificInfo:
             dataTrailing.extend(addUint32(0))

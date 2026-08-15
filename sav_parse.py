@@ -1486,11 +1486,8 @@ def parseProperties(currentEntitySaveVersion: int, offset: int, data: list, obje
                "LBBalancerData",      # Only observed in modded save
                "ManagedSignData",     # Only observed in modded save
                "Struct_PC_PartInfo",  # Only observed in modded save
-
-               # Modded: Refined Power
-               "RPPowerOptions",
-               "RPFullProductionHandle",
-
+               "RPPowerOptions",         # Modded: Refined Power
+               "RPFullProductionHandle", # Modded: Refined Power
                ):
             (offset, prop, propTypes) = parseProperties(currentEntitySaveVersion, offset, data, objectUE5Version)
             properties.append([propertyName, [prop, propTypes]])
