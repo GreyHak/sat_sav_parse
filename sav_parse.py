@@ -1572,7 +1572,7 @@ def readCompressedSaveFile(filename: str):
       return fin.read()
 
 def decompressSaveFile(offset: int, data: list):
-   decompressedData = b""
+   decompressedData = []
    if PROGRESS_BAR_ENABLE_DECOMPRESS:
       progressBar = ProgressBar(len(data), "Decompression: ")
    while offset < len(data):
@@ -1597,14 +1597,14 @@ def decompressSaveFile(offset: int, data: list):
       dData = zlib.decompress(data[offset:offset+currentChunkCompressedLength1])
       if len(dData) != currentChunkUncompressedLength1:
          raise ParseError(f"Decompression didn't return the expected amount return={len(dData)} != expected={currentChunkUncompressedLength1}")
-      decompressedData += dData
+      decompressedData.append(dData)
       offset += currentChunkCompressedLength1
       if PROGRESS_BAR_ENABLE_DECOMPRESS:
          progressBar.set(offset)
 
    if PROGRESS_BAR_ENABLE_DECOMPRESS:
       progressBar.complete()
-   return decompressedData
+   return b"".join(decompressedData)
 
 def pathNameToReadableName(name: str) -> str:
    if len(name) == 0:
