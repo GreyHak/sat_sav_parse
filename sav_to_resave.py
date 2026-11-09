@@ -55,12 +55,12 @@ def addDouble(val):
 
 def addString(val):
    if len(val) == 0:
-      return addInt32(0)
+      return struct.pack("<i", 0)
    try:
-      return addInt32(len(val) + 1) + val.encode("ascii") + b"\0"
+      return struct.pack("<i", len(val) + 1) + val.encode("ascii") + b"\0"
    except UnicodeEncodeError:
       val = val.encode("utf-16")[2:]
-      return addInt32(int(-(len(val)+2)/2)) + val + b"\0\0"
+      return struct.pack("<i", int(-(len(val)+2)/2)) + val + b"\0\0"
 
 def addSaveObjectVersionData(saveObjectVersionData):
    saveObjectVersionDataVersion, (packageFileVersion_FileVersionUE4, packageFileVersion_FileVersionUE5), licenseeVersion, (engineVersion_Major, engineVersion_Minor, engineVersion_Patch, engineVersion_Changelist, engineVersion_Branch), customVersionContainer = saveObjectVersionData
