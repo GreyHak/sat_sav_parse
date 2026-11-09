@@ -484,13 +484,32 @@ class Object: # Both ActorObject and ComponentObject
          if actorOrComponentObjectHeader.typePath in CONVEYOR_BELTS:
             (offset, count) = parseUint32(offset, data)
             self.actorSpecificInfo = []
-            for idx in range(count):
-               (offset, length) = parseUint32(offset, data)
-               (offset, name) = parseString(offset, data)
-               offset = confirmBasicType(offset, data, parseString, "")
-               offset = confirmBasicType(offset, data, parseString, "")
-               (offset, position) = parseFloat(offset, data)
-               self.actorSpecificInfo.append([length, name, position])
+            self.conveyorItemEmptyStringCount = 2
+            endOffset = offsetStartThis + objectSize
+            if count > (endOffset - offset) // 16:
+               raise ParseError(f"Conveyor item count {count} exceeds object size.")
+            if count:
+               itemData = data[offset:endOffset]
+               layouts = []
+               for emptyStringCount in (2, 1):
+                  itemOffset = 0
+                  items = []
+                  try:
+                     for idx in range(count):
+                        (itemOffset, length) = parseUint32(itemOffset, itemData)
+                        (itemOffset, name) = parseString(itemOffset, itemData)
+                        for jdx in range(emptyStringCount):
+                           itemOffset = confirmBasicType(itemOffset, itemData, parseString, "")
+                        (itemOffset, position) = parseFloat(itemOffset, itemData)
+                        items.append([length, name, position])
+                  except ParseError:
+                     continue
+                  if itemOffset == len(itemData):
+                     layouts.append((emptyStringCount, items))
+               if len(layouts) != 1:
+                  raise ParseError(f"Unknown or ambiguous conveyor item layout for {self.instanceName}.")
+               self.conveyorItemEmptyStringCount, self.actorSpecificInfo = layouts[0]
+               offset = endOffset
          elif actorOrComponentObjectHeader.typePath in (
                "/Game/FactoryGame/-Shared/Blueprint/BP_GameMode.BP_GameMode_C",
                "/Game/FactoryGame/-Shared/Blueprint/BP_GameState.BP_GameState_C"):
