@@ -646,12 +646,16 @@ def addObject(headerSaveVersion, objectUE5Version, object, actorOrComponentObjec
 
    if isActorFlag:
       if actorOrComponentObjectHeader.typePath in sav_parse.CONVEYOR_BELTS:
+         emptyStringCount = getattr(object, "conveyorItemEmptyStringCount", 2)
+         if emptyStringCount not in (1, 2):
+            raise ValueError(f"Unsupported conveyor item layout {emptyStringCount}.")
          dataTrailing.extend(addUint32(len(object.actorSpecificInfo)))
          for (length, name, position) in object.actorSpecificInfo:
             dataTrailing.extend(addUint32(length))
             dataTrailing.extend(addString(name))
             dataTrailing.extend(addString(""))
-            dataTrailing.extend(addString(""))
+            if emptyStringCount == 2:
+               dataTrailing.extend(addString(""))
             dataTrailing.extend(addFloat(position))
       elif actorOrComponentObjectHeader.typePath in (
             "/Game/FactoryGame/-Shared/Blueprint/BP_GameMode.BP_GameMode_C",
